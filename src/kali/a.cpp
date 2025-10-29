@@ -4,7 +4,7 @@
 #include "_colors.h"
 
 ///////////////////////////////////////////////////////////////////////////////]
-int print() {
+void print() {
 
     std::cout << C_542 " This is Patrick!" RESET << std::endl;
 }

@@ -24,6 +24,8 @@ v: $(NAME)
 	@$(call random_shmol_cat, "vlgrininnng ... $(NAME)!", "...", $(CLS), );
 	-$(VALGRIND) ./$(word 1, $^)
 
+
+# --------------------------------------------------------------------------------- >
 # $(1)=$(ARGS) $(2)=$(TXT_cat) $(3)=$(TXT_below) $(4)=$(VALGRIND)(timeout 15s)
 define helper_tester
 	$(call random_shmol_cat, $(2), $(1), $(CLS), )
@@ -34,10 +36,17 @@ define helper_tester
 endef
 
 
-# ╭──────────────────────────────────────────────────────────────────────╮
-# │                  	 	       MAKE TEST                   	         │
-# ╰──────────────────────────────────────────────────────────────────────╯
-
+define rules
+	echo "movement is done with arrow keys + home (up) / end (down)"; \
+	echo "rotation wasd + qe"; \
+	echo "left clic + drag moves the camera"; \
+	echo "right clic an object to select it"; \
+	echo "\tmovement is applied to the selected object"; \
+	echo "\tright clic the same object to unselect it"; \
+	echo "mouse wheel control the speed of movement"; \
+	echo "(n) toogle between cameras"; \
+	echo "The input file update in real time"
+endef
 
 # ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 # │─██████████████─██████████████─██████──██████─████████████████───██████████████─██████████████─██████████████─│
@@ -55,6 +64,7 @@ endef
 
 CC = g++
 FLAGS = -Wextra -Wall -Werror -g -std=c++98
+FLAGS_LESS = -g -std=c++98
 
 # beeing cleaned
 OBJ_FOLDER0 = _obj
@@ -85,7 +95,7 @@ SFML_PATH =
 SFML = $(SFML_LINK)
 
 #  $(MORE_FLAGS)
-MORE_FLAGS = $(INC) $(SFML)
+MORE_FLAGS = $(INC)
 # SFML library
 
 # ╭──────────────────────────────────────────────────────────────────────╮
@@ -94,14 +104,14 @@ MORE_FLAGS = $(INC) $(SFML)
 
 $(NAME): $(OBJ) main.cpp $(HEAD)
 	@clear
-	@if ! $(CC) $(FLAGS) $(INC) $(OBJ) main.cpp $(SFML_LINK) -o $(NAME); then \
+	@if ! $(CC) $(FLAGS) $(INC) $(OBJ) main.cpp -o $(NAME); then \
 		$(call print_cat, "", $(RED), $(GOLD), $(RED_L), $(call pad_word, 10, "ERROR"), $(call pad_word, 12, "COMPILING..")); \
 		exit 1; \
 	fi
 	@$(call print_cat, $(CLEAR), $(GOLD), $(GREEN1), $(GREEN1), $(call pad_word, 10, $(NAME)), $(call pad_word, 12, "Compiled~"));
 
 abc: clean_silent $(OBJ) main.cpp $(HEAD)
-	$(CC) $(FLAGS) $(INC) $(OBJ) main.cpp $(SFML_LINK) -o $(NAME)
+	$(CC) $(FLAGS) $(INC) $(OBJ) main.cpp -o $(NAME)
 
 src/$(OBJ_FOLDER0)/%.o: src/%.cpp
 	@mkdir -p $(dir $@)
@@ -109,6 +119,52 @@ src/$(OBJ_FOLDER0)/%.o: src/%.cpp
 		$(call shmol_cat_error, $(RED), $(RED_L)); \
 		exit 1; \
 	fi
+
+# ╭──────────────────────────────────────────────────────────────────────╮
+# │                  	 	       MAKE TEST                   	         │
+# ╰──────────────────────────────────────────────────────────────────────╯
+
+TEST_FOLDER = data/tests
+
+test: $(TEST_FOLDER)/main.cpp
+	@rm -f $(TEST_FOLDER)/a.out
+	@clear
+	-@$(CC) $(FLAGS_LESS) $(TEST_FOLDER)/main.cpp -o $(TEST_FOLDER)/a.out
+	@if [ ! -e $(TEST_FOLDER)/a.out ]; then\
+		$(call print_cat, "", $(RED), $(GOLD), $(RED_L), $(call pad_word, 10, "The⠀Cake"), $(call pad_word, 12, "Is⠀A⠀Lie..")); \
+		exit 3; \
+	fi
+	@$(call random_cat, $(call pad_word, 12, "Making"), $(call pad_word, 14, "Science"), $(CLS), $(RESET));
+	@$(TEST_FOLDER)/a.out
+
+# test%:	libft $(OBJ) inc/$(NAME).h
+# 	@rm -f ./TEST/a.out
+# 	@$(CC) $(FLAGS_TEST) $(OBJ) ./lib/test.c lib/libft.a $(ADD_FLAGS) -o ./lib/a.out
+# 	@$(call random_cat, $(call pad_word, 12, "TESTING"), $(call pad_word, 14, "SCIENCE"), $(CLS), $(RESET));
+# 	-@$(VALGRIND) lib/a.out
+
+# test2:	libft $(OBJ) inc/$(NAME).h
+# 	@rm -f ./TEST/a.out
+# 	@$(CC) $(FLAGS_TEST) $(OBJ) ./lib/test.c lib/libft.a $(ADD_FLAGS) -o ./lib/a.out
+# 	@$(call random_cat, $(call pad_word, 12, "TESTING"), $(call pad_word, 14, "SCIENCE"), $(CLS), $(RESET));
+# 	-@$(VALGRIND) lib/a.out
+
+# f_d=$${rule:0:1}; s_d=$${rule:1:1};
+# %:
+# 	@rule=$@; \
+# 	if echo $$rule | grep -qE '^[0-9]$$'; then \
+# 		s_d=$$rule; \
+# 		$(call random_shmol_cat, "teshting ... CPP 8: exo $$s_d", 'hav fun ね?', $(CLS), ); \
+# 		make -C ex0$$s_d a; \
+# 	elif echo $$rule | grep -qE '^[0-9][a-z]$$'; then \
+# 		s_d=$$(echo $$rule | cut -c1); \
+# 		s_a=$$(echo $$rule | cut -c2); \
+# 		$(call random_shmol_cat, "Valgrinning ... CPP 8: exo $$s_d", 'hav fun ね?', $(CLS), ); \
+# 		make -C ex0$$s_d $$s_a; \
+# 	else \
+# 		$(call random_shmol_cat, "Error! $@ isnt a valable exo", 'Bad Miaou', $(CLS), ); \
+# 		exit 1; \
+# 	fi
 
 # ╭────────────────────────────────────────────────────────────────────────────╮
 # │─██████████████─██████████████─██████████████─██████─────────██████████████─│
@@ -151,6 +207,7 @@ git2: fclean
 # --------------------------------------------------------------------------------- >
 # 																				CLEAN
 clean:
+	@rm -f $(TEST_FOLDER)/a.out
 	@rm -rf $(OBJ_FOLDER)
 	@$(call print_cat, $(CLEAR), $(C_225), $(C_320), $(C_450), $(call pad_word, 10, "Objects"), $(call pad_word, 12, "Exterminated"));
 
