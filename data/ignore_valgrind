@@ -1,0 +1,54 @@
+{
+	nvidia-driver-stuff
+	Memcheck:Addr4
+	fun:*
+	obj:/usr/lib/wsl/drivers/nv_dispig.inf_amd64_*
+}
+
+{
+	sfml-texture-update
+	Memcheck:Addr8
+	fun:sf::Texture::update(unsigned char const*, unsigned int, unsigned int, unsigned int, unsigned int)
+	fun:sf::Texture::loadFromImage(sf::Image const&, sf::Rect<int> const&)
+	fun:sf::Texture::loadFromFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, sf::Rect<int> const&)
+}
+
+{
+	memmove-invalid-write
+	Memcheck:Addr8
+	fun:memmove
+}
+
+{
+   libnvwgf2umx-errors
+   Memcheck:Addr4
+   obj:/usr/lib/wsl/drivers/nv_dispig.inf_amd64_0afec3f2050014a0/libnvwgf2umx.so
+}
+
+{
+   dlopen-loader-errors
+   Memcheck:Addr8
+   fun:cache_rpath
+   fun:_dl_map_object
+   fun:openaux
+   fun:_dl_catch_exception
+   fun:_dl_map_object_deps
+   fun:dl_open_worker_begin
+   fun:_dl_catch_exception
+   fun:dl_open_worker
+}
+
+{
+   dlopen-strncmp-rpath
+   Memcheck:Addr8
+   fun:strncmp
+   fun:is_dst
+   fun:_dl_dst_substitute
+   fun:fillin_rpath.isra.0
+   fun:decompose_rpath
+   fun:cache_rpath
+   fun:cache_rpath
+   fun:_dl_map_object
+   fun:openaux
+   fun:_dl_catch_exception
+}

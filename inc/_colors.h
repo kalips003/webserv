@@ -30,7 +30,7 @@
 
 # define CLEAR "\e[2J\e[H"
 # define CLS "\e[2J\e[H"
-# define REVERSE "\e[7m"
+# define INV "\e[7m"
 # define BLINK "\e[5m"
 # define R_BLINK "\e[25m"
 
