@@ -1,18 +1,18 @@
 
 #include "_colors.h"
-#include <string>
 #include <iostream>
+#include <string>
 
 #include "webserv.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
-int main(int ac, char** av)
-{
-	(void)ac;
-	(void)av;
-	std::cout << C_430 "hello" RESET << std::endl;
-	print();
+int main(int ac, char **av) {
+  (void)ac;
+  (void)av;
+  std::string test = "hi";
+  std::cout << C_430 "hello" RESET << std::endl;
+  print();
 
-	return 0;
+  return 0;
 }

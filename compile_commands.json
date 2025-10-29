@@ -1,0 +1,47 @@
+[
+  {
+    "arguments": [
+      "/nix/store/hl19vrjrc54fvmwzp6391252j3ygnhja-gcc-wrapper-14.3.0/bin/c++",
+      "-c",
+      "-Wextra",
+      "-Wall",
+      "-Werror",
+      "-g",
+      "-std=c++98",
+      "-Iinc",
+      "-Isrc",
+      "-Isrc/kali/",
+      "-Isrc/_obj/",
+      "-Isrc/_obj/kali/",
+      "-o",
+      "src/_obj/kali/a.o",
+      "src/kali/a.cpp"
+    ],
+    "directory": "/home/kershuen/webserv",
+    "file": "/home/kershuen/webserv/src/kali/a.cpp",
+    "output": "/home/kershuen/webserv/src/_obj/kali/a.o"
+  },
+  {
+    "arguments": [
+      "/nix/store/hl19vrjrc54fvmwzp6391252j3ygnhja-gcc-wrapper-14.3.0/bin/c++",
+      "-c",
+      "-Wextra",
+      "-Wall",
+      "-Werror",
+      "-g",
+      "-std=c++98",
+      "-Iinc",
+      "-Isrc",
+      "-Isrc/kali/",
+      "-Isrc/_obj/",
+      "-Isrc/_obj/kali/",
+      "src/_obj/kali/a.o",
+      "-o",
+      "webserv",
+      "main.cpp"
+    ],
+    "directory": "/home/kershuen/webserv",
+    "file": "/home/kershuen/webserv/main.cpp",
+    "output": "/home/kershuen/webserv/webserv"
+  }
+]
