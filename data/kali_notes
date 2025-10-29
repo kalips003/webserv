@@ -68,7 +68,24 @@ closedir()          - C / POSIX
 
 
 ============================================================
-3. SOCKET PROGRAMMING
+3. SOCKET PROGRAMMING:
+    Server Workflow
+
+socket() → create a listening socket.
+setsockopt() (optional) → configure options like SO_REUSEADDR.
+bind() → assign an IP address and port to the socket.
+listen() → mark the socket as passive to accept incoming connections.
+accept() → accept a client connection; returns a new socket FD for communication.
+recv() / send() → exchange data with the client.
+close() → close the client socket; optionally continue to accept more clients.
+close() → close the listening socket when shutting down.
+
+    Client Workflow
+
+socket() → create a socket for outgoing connection.
+connect() → connect to the server's IP and port.
+send() / recv() → exchange data with the server.
+close() → close the connection when done.
 ============================================================
 
 socket()            - C / POSIX
