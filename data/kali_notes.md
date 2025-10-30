@@ -118,6 +118,7 @@ int sockfd = socket(int domain, int type, int protocol) {
             IPPROTO_ICMP (1), domain: AF_INET, type: SOCK_RAW : ICMP (ping)
             IPPROTO_RAW (255), domain: AF_INET, type: SOCK_RAW : Direct IP packets
 }
+int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
 ```
 
@@ -138,19 +139,137 @@ Application layer: Defines the format of messages between client and server.
 HTTP, structure:
 
 ```yaml
-Request:
-GET /index.html HTTP/1.1
+POST /api/user HTTP/1.1
 Host: example.com
-User-Agent: curl/8.0
-...
+Content-Type: application/json
+Content-Length: 38
 
-Response:
-HTTP/1.1 200 OK
-Content-Type: text/html
-Content-Length: 1234
-...
+{
+  "name": "Alice",
+  "age": 30
+}
+```
 
-<html> ... </html>
+An HTTP request has three main parts:
+<Request Line>
+    First line of the request: method, path, version
+        . what you want to do (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, CONNECT, TRACE)
+        . Path: resource on the server (/index.html, /api/users)
+        . Version: HTTP version (HTTP/1.0, HTTP/1.1, HTTP/2)
+<Headers>
+    Key:Value pairs providing metadata about the request.
+    Each header is on its own line.
+    Ends with an empty line (\r\n) to separate headers from the body.
+        . Host	Mandatory in HTTP/1.1, specifies the server domain
+        . User-Agent	Identifies the client software
+        . Accept	Which content types the client can handle
+        . Content-Type	Type of the body (for POST/PUT requests)
+        . Content-Length	Size of the body in bytes
+<Body (optional)>
+ex:
+
+HTTP Response structure, also three main parts:
+<Status Line> = HTTP/1.1 200 OK (\r\n)
+<Headers>                       (\r\n)
+                                (empty line separating) (\r\n\r\n)
+<Body (optional)>
+
+STATUS:
+Version: HTTP version
+
+Status code: numeric, indicates success/failure
+
+    2xx → success (200 OK, 201 Created)
+    3xx → redirection (301 Moved Permanently)
+    4xx → client error (404 Not Found)
+    5xx → server error (500 Internal Server Error)
+
+Reason phrase: human-readable (optional, ignored by computers)
+
+HEADERS:
+
+1️⃣ HTTP Request Headers
+Accept:                 MIME types the client can handle (text/html, application/json)
+Accept-Charset:         Character sets the client can handle (utf-8, iso-8859-1)
+Accept-Encoding:        Compression formats the client accepts (gzip, deflate, br)
+Accept-Language:        Preferred languages (en-US, fr)
+Authorization:          Credentials for HTTP authentication (Basic, Bearer tokens)
+Cache-Control:          Client caching rules (no-cache, max-age=0)
+Connection:             keep-alive or close
+Content-Length:         Length of the request body in bytes
+Content-Type:           MIME type of the request body (application/json, multipart/form-data)
+Cookie:                 Cookies sent to the server
+Date:                   Date and time of the request
+Expect:                 Indicates expectations, e.g., 100-continue
+From:                   Email of the user making the request (rare)
+Host:                   Mandatory in HTTP/1.1, server domain
+If-Match:               Conditional request based on ETag
+If-Modified-Since:      Only send if resource changed since date
+If-None-Match:          Only send if ETag does not match
+If-Range:               Used for partial content requests
+If-Unmodified-Since:    Only send if resource not modified since date
+Max-Forwards:           Limit for proxies and TRACE requests
+Origin:                 Origin of cross-site request (CORS)
+Pragma:                 Legacy caching instructions (no-cache)
+Proxy-Authorization:    Credentials for proxy authentication
+Range:                  Request part of a resource (bytes=0-499)
+Referer:                URL of the page making the request
+TE:                     Transfer encodings the client accepts
+Upgrade:                Request protocol upgrade (websocket)
+User-Agent:             Software making the request (browser, curl)
+Via:                    Proxies the request went through
+Warning:                General warnings
+
+1️⃣ HTTP Response Headers
+Accept-Ranges:                 Indicates if server supports range requests (bytes)
+Age:                           Age of the cached response in seconds
+Allow:                         Methods allowed for the resource (GET, POST, OPTIONS)
+Cache-Control:                 Caching rules (no-store, private, max-age)
+Connection:                     keep-alive or close
+Content-Encoding:               Compression format applied (gzip, br)
+Content-Language:               Language of the content (en-US)
+Content-Length:                 Length of the response body in bytes
+Content-Location:               Alternate location for the returned content
+Content-Disposition:            How content should be handled (inline, attachment; filename="file.txt")
+Content-Type:                   MIME type of response (text/html, application/json)
+Date:                           Date/time of response
+ETag:                           Unique identifier for version of resource
+Expires:                        Expiration date for caching
+Last-Modified:                  Last modification date of resource
+Location:                       Redirect target URL (3xx responses)
+Pragma:                         Legacy caching instructions (no-cache)
+Retry-After:                    When to retry (503 maintenance)
+Server:                         Server software/version (nginx/1.25)
+Set-Cookie:                     Cookie sent to client
+Strict-Transport-Security:      HSTS rules (HTTPS only)
+Trailer:                        Headers sent after chunked body
+Transfer-Encoding:              Encoding applied (chunked)
+Upgrade:                        Protocol upgrades (websocket)
+Vary:                           Specifies headers that affect caching (Accept-Encoding)
+Via:                            Proxy chain
+Warning:                        General warnings
+WWW-Authenticate:               Challenge for authentication (Basic, Digest)
+
+========================================================================================================================
+sockaddr_in: defines the address and port of a socket for IPv4.
+
+Used in bind() (to assign a local address to a socket)
+Used in connect() (client socket connecting to server)
+Used in accept() (server receives a client address)
+    Important: listen() does not need it directly; it just marks the socket as passive.
+
+
+```cpp
+struct sockaddr_in {
+    sa_family_t    sin_family; // Address family (AF_INET)
+    uint16_t       sin_port;   // Port number (network byte order)
+    struct in_addr sin_addr;   // IP address (struct with uint32_t s_addr)
+    char           sin_zero[8]; // Padding, usually set to 0
+};
+    sin_family → must be AF_INET
+    sin_port → port number in network byte order → use htons()
+    sin_addr → IP address (struct in_addr) → usually set via inet_addr() or INADDR_ANY
+    sin_zero → padding to make sockaddr_in same size as sockaddr; usually memset to 0
 ```
 ============================================================
 bind()              - C / POSIX
