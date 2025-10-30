@@ -86,11 +86,73 @@ socket() → create a socket for outgoing connection.
 connect() → connect to the server's IP and port.
 send() / recv() → exchange data with the server.
 close() → close the connection when done.
+========================================================================================================================
+<!--                    socket()  -->
+<!-- Creates a new socket descriptor. -->
+```cpp
+
+int sockfd = socket(int domain, int type, int protocol) {
+    // This defines the type of addresses you’ll use (IPv4, IPv6, local, etc).
+    domain = AF_INET = IPv4 (HTTP, TCP, UDP)
+            = AF_INET6 = IPv6
+            = AF_UNIX / AF_LOCAL = Local (inter-process) communication on the same machince = Unix domain sockets
+            = AF_PACKET = Low-level access to network devices (raw Ethernet frames) = (Sniffers, ARP tools)
+            = AF_NETLINK = Kernel-user space communication in Linux = Routing table updates
+            = AF_BLUETOOTH = Bluetooth sockets = Bluetooth apps
+            = AF_UNSPEC = Unspecified — used for lookups (not for creating actual sockets)
+    // Defines how data is sent (reliable stream, datagrams, raw packets...).
+    type = SOCK_STREAM > TCP || SOCK_DGRAM > UDP
+            = SOCK_STREAM = Stream socket :	TCP (connection-oriented, reliable, ordered, byte stream)
+            = SOCK_DGRAM = Datagram socket :	UDP (connectionless, unreliable, packet-based)
+            = SOCK_RAW = Raw socket :	Direct access to lower-level protocols (requires root)
+            = SOCK_SEQPACKET = Sequential packet socket :	Like stream but message boundaries preserved
+            = SOCK_RDM = Reliable datagram (rarely used) :	Reliable, but message-based
+        // Flags (can be combined with bitwise OR):
+            SOCK_NONBLOCK	Create non-blocking socket immediately
+            SOCK_CLOEXEC	Close socket automatically on exec() (security/cleanup)
+    // Specific protocol in the family (usually = 0): The kernel chooses the default protocol that matches domain + type
+    protocol = 0
+        // But you can explicitly specify:
+            IPPROTO_TCP (6), domain: AF_INET, type: SOCK_STREAM : TCP
+            IPPROTO_UDP (17), domain: AF_INET, type: SOCK_DGRAM : UDP
+            IPPROTO_ICMP (1), domain: AF_INET, type: SOCK_RAW : ICMP (ping)
+            IPPROTO_RAW (255), domain: AF_INET, type: SOCK_RAW : Direct IP packets
+}
+
+```
+
+Application	HTTP, FTP, SMTP, DNS
+    Defines what the data means, the language of the message
+Transport	TCP, UDP
+    Defines how to send it reliably or not, message boundaries, order, error checking
+Internet / Network	IP (IPv4, IPv6)
+    Defines where to send it, addresses and routing
+
+Transport layer:
+TCP (Transmission Control Protocol) = a registered mail with tracking: everything must arrive in order.
+    Used for: HTTP, HTTPS, FTP, SSH.
+UDP (User Datagram Protocol) = a postcard: it may get lost, but you don’t care much.
+    Used for: DNS queries, streaming, VoIP, gaming.
+
+Application layer: Defines the format of messages between client and server.
+HTTP, structure:
+
+```yaml
+Request:
+GET /index.html HTTP/1.1
+Host: example.com
+User-Agent: curl/8.0
+...
+
+Response:
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 1234
+...
+
+<html> ... </html>
+```
 ============================================================
-
-socket()            - C / POSIX
-    Creates a new socket descriptor.
-
 bind()              - C / POSIX
     Binds socket to address and port.
 
