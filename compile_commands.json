@@ -144,7 +144,7 @@
       "-fdeprecated-macro",
       "-ferror-limit",
       "19",
-      "-fmessage-length=94",
+      "-fmessage-length=188",
       "-fzero-call-used-regs=used-gpr",
       "-fwrapv",
       "-stack-protector",
@@ -169,11 +169,11 @@
       "-x",
       "c++",
       "-o",
-      "/tmp/main-bec271.o",
+      "/tmp/main-3725ab.o",
       "main.cpp"
     ],
     "directory": "/home/kershuen/webserv",
     "file": "/home/kershuen/webserv/main.cpp",
-    "output": "/tmp/main-bec271.o"
+    "output": "/tmp/main-3725ab.o"
   }
 ]

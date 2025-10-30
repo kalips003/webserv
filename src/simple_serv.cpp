@@ -12,7 +12,11 @@
 void server() {
   int server_fd = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in server;
-
+  int is_reusable = true;
+  if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &is_reusable,
+                 sizeof(is_reusable)) != 0)
+    throw std::runtime_error("setsockopt failed: " +
+                             std::string(strerror(errno)));
   server.sin_family = AF_INET;
   server.sin_port = htons(8080);
   server.sin_addr.s_addr = htonl(INADDR_ANY);
