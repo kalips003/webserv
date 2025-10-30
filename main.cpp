@@ -1,18 +1,23 @@
 
 #include "_colors.h"
+#include "simple_serv.h"
+#include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <string>
 
-#include "webserv.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 int main(int ac, char **av) {
   (void)ac;
   (void)av;
-  std::string test = "hi";
-  std::cout << C_430 "hello" RESET << std::endl;
-  print();
 
-  return 0;
+  try {
+    server();
+  } catch (std::exception &e) {
+    std::cout << e.what() << std::endl;
+  }
+
+  return EXIT_SUCCESS;
 }
