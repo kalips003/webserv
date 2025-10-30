@@ -1,0 +1,19 @@
+git checkout -b my_branch
+
+is short for:
+
+git branch my_branch   # create the branch
+git checkout my_branch # move into it
+
+
+
+-u (used with git push)
+
+Meaning: “set the upstream (tracking) branch.”
+
+git push -u origin my_branch
+does two things:
+
+Pushes your branch to the remote (GitHub).
+Links your local my_branch to the remote origin/my_branch.
+After that, you can simply run git push or git pull — no need to specify branch names again.
