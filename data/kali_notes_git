@@ -5,8 +5,15 @@ is short for:
 git branch my_branch   # create the branch
 git checkout my_branch # move into it
 
+after that:
 
+First time:
+git push -u origin your_branch_name
 
+After that:
+git push (no branch name needed)
+
+============================================================
 -u (used with git push)
 
 Meaning: “set the upstream (tracking) branch.”
