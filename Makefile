@@ -161,11 +161,13 @@ test: $(TEST_FOLDER)/main.cpp
 # 	@$(call random_cat, $(call pad_word, 12, "TESTING"), $(call pad_word, 14, "SCIENCE"), $(CLS), $(RESET));
 # 	-@$(VALGRIND) lib/a.out
 
-# test2:	libft $(OBJ) inc/$(NAME).h
-# 	@rm -f ./TEST/a.out
-# 	@$(CC) $(FLAGS_TEST) $(OBJ) ./lib/test.c lib/libft.a $(ADD_FLAGS) -o ./lib/a.out
-# 	@$(call random_cat, $(call pad_word, 12, "TESTING"), $(call pad_word, 14, "SCIENCE"), $(CLS), $(RESET));
-# 	-@$(VALGRIND) lib/a.out
+INPUT_FILE = data/config_file.conf
+test2: $(OBJ) $(TEST_FOLDER)/main.cpp $(HEAD)
+	@rm -f $(TEST_FOLDER)/a.out
+	@clear
+	@$(CC) $(FLAGS_TEST) $(INC) $(OBJ) $(TEST_FOLDER)/main.cpp -o $(TEST_FOLDER)/a.out
+	@$(call random_cat, $(call pad_word, 12, "TESTING"), $(call pad_word, 14, "SCIENCE"), $(CLS), $(RESET));
+	@$(TEST_FOLDER)/a.out $(INPUT_FILE)
 
 # f_d=$${rule:0:1}; s_d=$${rule:1:1};
 # %:

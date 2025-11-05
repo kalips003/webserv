@@ -58,7 +58,7 @@ stat()              - C / POSIX
     Retrieves file status (size, type, modification time).
 
 opendir()           - C / POSIX
-    Opens a directory stream.
+    Opens a directory stream.better, but still linear scan
 
 readdir()           - C / POSIX
     Reads directory entries.
@@ -270,6 +270,11 @@ struct sockaddr_in {
     sin_port → port number in network byte order → use htons()
     sin_addr → IP address (struct in_addr) → usually set via inet_addr() or INADDR_ANY
     sin_zero → padding to make sockaddr_in same size as sockaddr; usually memset to 0
+
+    htons() → Host to Network Short (converts 16-bit port to big-endian)
+    INADDR_ANY → listen on all IP addresses of the machine (0.0.0.0)
+    can specify a specific IP:
+        server_addr.sin_addr.s_addr = inet_addr("192.168.1.100");
 ```
 ============================================================
 bind()              - C / POSIX
@@ -285,15 +290,48 @@ accept()            - C / POSIX
 connect()           - C / POSIX
     Connects socket to remote address (rarely used here).
 
+```cpp
 send()              - C / POSIX
     Sends data on socket (after writable event).
+ssize_t send(int sockfd, const void *buf, size_t len, int flags);
 
 recv()              - C / POSIX
     Receives data from socket (after readable event).
+ssize_t recv(int sockfd, void *buf, size_t len, int flags);
 
+
+flags	= usually 0; or MSG_DONTWAIT, MSG_PEEK, etc.
+return:	number of bytes read/written, or 0 (connection closed), or -1 on error
+```
+
+============================================================
 setsockopt()        - C / POSIX
     Configures socket options (e.g., SO_REUSEADDR).
+```cpp
+int setsockopt(
+    int sockfd,      // your socket file descriptor
+    int level,       // which layer (level) of options we’re touching
+    int option_name, // the specific option you want to set
+    const void *option_value, // pointer to the value you’re setting
+    socklen_t option_len      // size (in bytes) of that value
+);
+> For this socket (fd_socket),
+at the socket level (SOL_SOCKET),
+set the option SO_REUSEADDR
+to the value stored in opt (which is 1),
+whose size is 4 bytes (sizeof(int))
 
+| Option name               | Belongs to    | Meaning                                                    |
+| ------------------------- | ------------- | ---------------------------------------------------------- |
+| `SO_REUSEADDR`            | `SOL_SOCKET`  | Allow reusing local address/port                           |
+| `SO_REUSEPORT`            | `SOL_SOCKET`  | Allow multiple sockets to bind same port (Linux ≥3.9)      |
+| `SO_KEEPALIVE`            | `SOL_SOCKET`  | Enable TCP keepalive probes                                |
+| `TCP_NODELAY`             | `IPPROTO_TCP` | Disable Nagle’s algorithm (send small packets immediately) |
+| `SO_RCVBUF` / `SO_SNDBUF` | `SOL_SOCKET`  | Set receive/send buffer size                               |
+
+```
+
+============================================================
 getsockname()       - C / POSIX
     Gets local address info of socket.
 
@@ -319,28 +357,113 @@ socketpair()        - C / POSIX
 ============================================================
 4. EVENT MULTIPLEXING (NON-BLOCKING I/O CORE)
 ============================================================
+```cpp
 
-poll()              - C / POSIX
-    Monitors multiple FDs for readiness (read/write).
-
-select()            - C / POSIX
-    Alternative to poll(), uses FD_SET macros.
-
+// epoll(not on mac)
+// =============================================
 epoll_create()      - C / Linux
+int epoll_create(int size);
     Creates epoll instance (Linux only).
 
+// =============================================
 epoll_ctl()         - C / Linux
-    Controls epoll (add/remove/modify monitored FDs).
+int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
+    // Controls epoll (add/remove/modify monitored FDs).
+    // op is one of: EPOLL_CTL_ADD, EPOLL_CTL_MOD, EPOLL_CTL_DEL.
 
+struct epoll_event {
+    uint32_t events;   // EPOLLIN, EPOLLOUT, EPOLLET, etc.
+    epoll_data_t data; // union { void *ptr; int fd; uint32_t u32; uint64_t u64; }
+};
+// =============================================
 epoll_wait()        - C / Linux
+int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
     Waits for events on epoll instance.
+    Blocks until one or more FDs are ready or timeout expires.
+    Returns number of ready events, or -1 on error.
 
+
+// =============================================
+fcntl()             - C / POSIX
+int fcntl(int fd, int cmd, ... /* arg */ );
+ex:
+    int flags = fcntl(fd, F_GETFL, 0);
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK); // set non-blocking mode
+
+    Controls file descriptor flags.
+    Allowed flags: F_SETFL, O_NONBLOCK, FD_CLOEXEC.
+        F_GETFL → get file status flags
+        F_SETFL → set file status flags
+    Also used for duplication, locking, etc.
+
+```
+============================================================
+
+🧩 1️⃣ select() family (oldest)
+
+    universal (POSIX standard — works everywhere)
+    but limited by FD_SETSIZE (usually 1024 FDs)
+    slow for many connections because it scans every fd each time
+    ✅ good for small demos, not for production-level server
+
+🧩 2️⃣ poll() family (better)
+
+    replaces select(), no hard FD limit
+    uses an array of pollfd
+    still linear scan every loop → O(n) performance
+    ✅ fine for dozens/hundreds of clients
+    ⚠️ not great for thousands
+
+🧩 3️⃣ epoll() (Linux) / kqueue() (BSD/macOS)
+
+    modern high-performance event notification systems
+    you register fds once, and the kernel keeps track internally
+    epoll_wait() / kevent() return only the sockets that changed
+    O(1) performance (roughly), very scalable
+    ✅ used by nginx, redis, node.js, etc.
+
+```cpp
+// =============================================
+select()            - C / POSIX
+int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+    Alternative to poll() (oldest version), uses FD_SET macros.
+    Monitors sets of FDs for readability/writability/exceptions.
+    Uses macros: FD_SET, FD_CLR, FD_ISSET, FD_ZERO.
+    Oldest, limited by FD_SETSIZE.
+// =============================================
+poll()              - C / POSIX
+    Monitors multiple FDs for readiness (read/write). (better, but still linear scan)
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+    Scans an array of FDs linearly.
+    Timeout in milliseconds (-1 = block forever).
+
+struct pollfd {
+    int   fd;        // file descriptor
+    short events;    // requested events (e.g. POLLIN, POLLOUT)
+    short revents;   // returned events
+};
+// =============================================
 kqueue()            - C / BSD / macOS
+int kqueue(void);
     Creates a kqueue event notification interface.
+    Creates a kernel event queue (BSD/macOS equivalent of epoll).
 
+// =============================================
 kevent()            - C / BSD / macOS
+int kevent(int kq, const struct kevent *changelist, int nchanges, struct kevent *eventlist, int nevents, const struct timespec *timeout);
     Waits for or submits events to kqueue.
+    Handles both submitting and waiting for events in one call.
 
+struct kevent {
+    uintptr_t ident;   // fd or identifier
+    int16_t   filter;  // EVFILT_READ, EVFILT_WRITE, etc.
+    uint16_t  flags;   // EV_ADD, EV_DELETE, EV_ENABLE, EV_DISABLE
+    uint32_t  fflags;
+    intptr_t  data;
+    void     *udata;
+};
+
+```
 
 ============================================================
 5. ENVIRONMENT AND ERROR HANDLING
@@ -363,21 +486,6 @@ errno               - C / POSIX
 
 chdir()             - C / POSIX
     Changes current working directory (used before execve in CGI).
-
-
-============================================================
-7. C++ 98 STANDARD LIBRARY (ALLOWED)
-============================================================
-
-- std::string, std::map, std::vector, std::deque, std::list
-- std::ifstream, std::ofstream, std::ostringstream, std::istringstream
-- std::exception, std::runtime_error
-- iostream, sstream, algorithm, utility, iomanip
-- new, delete
-- STL containers and algorithms from C++98 (no C++11 features)
-
-Used for: configuration parsing, data storage, logic structuring, error handling.
-
 
 ============================================================
 NOTES

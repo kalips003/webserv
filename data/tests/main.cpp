@@ -3,14 +3,26 @@
 #include <string>
 #include <iostream>
 
+#include "../../src/webserv.hpp"
+
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
-// int main(int ac, char** av)
-// {
-// 	std::cout << C_430 "hello" RESET << std::endl;
-// 	return 0;
-// }
+int main(int ac, char** av)
+{
+    const char* string = "  root /var/www/images";
+    std::string s(string);
+    std::pair<std::string, std::string> rtrn;
+    bool    yes = parse_key_value(s, rtrn);
+	std::cout << C_430 "hello: " RESET << (yes ? "true" : "false") << std::endl;
+	std::cout << C_113 "key: " RESET << rtrn.first << std::endl;
+    std::cout << C_152 "value: " RESET << rtrn.second << std::endl;
+
+    // bool y = parse_config_file(av[1]);
+    bool y = true;
+	std::cout << C_430 "hello2: " RESET << (y ? "true" : "false") << std::endl;
+	return 0;                  
+}
 
 ///////////////////////////////////////////////////////////////////////////////]
 // 			FORK
