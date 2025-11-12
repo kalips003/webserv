@@ -1,4 +1,5 @@
 NAME = webserv
+CLIENT = client
 
 all: $(NAME)
 
@@ -16,22 +17,40 @@ all: $(NAME)
 # │─────██████─────██████████████─██████████████─────██████─────██████████─██████──────────██████─██████████████─│
 # ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
-a: $(NAME)
+CONF_FILE = data/config_file.conf
+
+a:	$(NAME)
 	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )
-	-./$(NAME)
+	-./$(NAME) $(CONF_FILE)
+
+c:	$(CLIENT)
+	@$(call random_shmol_cat, "cREAting client", "does it work?", $(CLS), )
+	-./$(CLIENT)
 
 TERMINAL = konsole -e
-b: $(NAME) $(CLIENT)
+b:	$(NAME) $(CLIENT)
 	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )
-	@./$(NAME) & \
+	@./$(NAME) $(CONF_FILE) & \
 	sleep 1; \
 	$(TERMINAL) ./$(CLIENT) \
 	wait
 
-v: $(NAME)c
+v:	$(NAME)
 	@$(call random_shmol_cat, "vlgrininnng ... $(NAME)!", "...", $(CLS), );
 	-$(VALGRIND) ./$(word 1, $^)
 
+LISTENING_PORT = 9999
+# tcp   LISTEN 0      4    0.0.0.0:9999       0.0.0.0:*    users:(("webserv",pid=321011,fd=3))
+w:
+	@clear
+	@echo -e "$(C_410) listening on port $(LISTENING_PORT): $(RESET)"
+	@PID=$$(ss -tulnup | awk '/$(LISTENING_PORT)/ { match($$0, /pid=([0-9]+)/, a); print a[1] }'); \
+	if [ -z "$$PID" ]; then \
+		$(call shmol_cat_color, $(C_241), $(C_035), me good kitten, nothing to kill.., , $(RESET)); \
+	else \
+		$(call shmol_cat_color, $(C_431), $(C_511), BAD PID:, $$PID... KILLEEED!, , ); \
+		kill $$PID; \
+	fi
 
 # --------------------------------------------------------------------------------- >
 # $(1)=$(ARGS) $(2)=$(TXT_cat) $(3)=$(TXT_below) $(4)=$(VALGRIND)(timeout 15s)
@@ -56,10 +75,10 @@ define rules
 	echo "The input file update in real time"
 endef
 
-CLIENT = client
-$(CLIENT): data/client.cpp
+CLIENT_PATH = data/client.cpp
+$(CLIENT):	$(CLIENT_PATH)
 	@clear
-	@if ! $(CC) $(FLAGS_LESS) $(INC) data/client.cpp -o $(CLIENT); then \
+	@if ! $(CC) $(FLAGS_LESS) $(INC) $(CLIENT_PATH) -o $(CLIENT); then \
 		$(call print_cat, "", $(RED), $(GOLD), $(RED_L), $(call pad_word, 10, "ERROR"), $(call pad_word, 12, "COMPILING..")); \
 		exit 1; \
 	fi
@@ -338,7 +357,7 @@ define random_cat
 endef
 
 # --------------------------------------------------------------------------------- >
-# @$(call shmol_cat_color, $(C_c)$C_t)txt1, txt2, $(CLS), $(RESET));
+# @$(call shmol_cat_color, $(C_c), $(C_t), txt1, txt2, $(CLS), $(RESET));
 define shmol_cat_color
 	echo -e "$(5)$(2)\
 	\tにゃ~$(1)\t⠀╱|、\n\

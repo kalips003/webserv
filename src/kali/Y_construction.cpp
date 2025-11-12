@@ -1,15 +1,14 @@
-#include "server.hpp"
+#include "Server.hpp"
 
 #include <unistd.h>
 
-#include "defines.hpp"
-
 ///////////////////////////////////////////////////////////////////////////////]
 bool    check_settings(server_settings& settings);
-bool    atoi_v2(std::string& input, int& rtrn);
-bool    printErr(const char* errmsg);
 
 ///////////////////////////////////////////////////////////////////////////////]
+// Constructor for the Server.
+// if the constructor finishes and _server_status == OK
+    // > the server is listening and ready for accept() / epoll()
 #include <cstring> //memset
 Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_status(false) {
 
@@ -21,48 +20,52 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
     if (!_server_status)
         return ;
 
-    _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (_socket_fd < 0) {
-        _server_status = printErr(RED "socket() failed" RESET);
+    _server_status = create_listening_socket(*this);
+    if (!_server_status)
         return ;
+
+    _server_status = true;
+    std::cout << C_151 "Server up and running on port: " RESET << _settings.port_num << std::endl;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+Server::~Server( void ) { if (_socket_fd >= 0) close(_socket_fd); }
+
+///////////////////////////////////////////////////////////////////////////////]
+// SOCKET > BIND > LISTEN
+bool    Server::create_listening_socket(Server& dis) {
+
+    dis._socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (dis._socket_fd < 0) {
+        return printErr(RED "socket() failed" RESET);
     }
-    _addr.sin_port = htons(_settings.port_num);
-    _addr.sin_family = AF_INET;
-    _addr.sin_addr.s_addr = INADDR_ANY; //  or: inet_addr("192.168.1.100");
+    dis._addr.sin_port = htons(dis._settings.port_num);
+    dis._addr.sin_family = AF_INET;
+    dis._addr.sin_addr.s_addr = INADDR_ANY; //  or: inet_addr("192.168.1.100");
 
     // in case of rapid on/off of the server (TIME_WAIT state), avoid the EADDRINUSE bind error
     int opt = 1;
-    setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    setsockopt(dis._socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    int bind_status = bind(_socket_fd, (struct sockaddr *)&_addr, sizeof(_addr));
+    int bind_status = bind(dis._socket_fd, (struct sockaddr *)&dis._addr, sizeof(dis._addr));
     if (!!bind_status) {
     // most common because port already in use: EADDRINUSE
     // or wrong IPaddr, or permission issue: EACCES (port < 1024 = privileged port)
-        _server_status = printErr(RED "bind() failed" RESET);
-        return ;
+        return printErr(RED "bind() failed" RESET);
     }
 
 // listen() marks the socket as ready to recieve
 // connect() marks the socket as ready to send/initiate
     // how many client can tried to connect to this socket while i call accept()
-    int listen_status = listen(_socket_fd, HOW_MANY_REQUEST_PER_LISTEN);
+    int listen_status = listen(dis._socket_fd, HOW_MANY_REQUEST_PER_LISTEN);
     // 3 step handshake: SYN > SYN-ACK > ACK
     if (!!listen_status) {
-        _server_status = printErr(RED "listen() failed" RESET);
-        return ;
+        return printErr(RED "listen() failed" RESET);
     }
-    _server_status = true;
+
+    return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////]
-Server::~Server() {
-
-    if (_socket_fd >= 0)
-        close(_socket_fd);
-}
-
-///////////////////////////////////////////////////////////////////////////////]
-///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 /*
 in socket programming, if you do something like:
@@ -81,7 +84,8 @@ so in short:
     it’s valid, but not what you usually want for a web server, since clients won’t know which port to connect to.
 
 */  // >> SO TECHNICALY LISTEN 0 IS POSSIBLE
-typedef std::pair<std::string, std::string> kv;
+///////////////////////////////////////////////////////////////////////////////]
+// check that the config file has the minimum settings, set them if missing
 typedef std::map<std::string, std::string> map;
 bool    check_settings(server_settings& settings) {
 
@@ -105,28 +109,4 @@ bool    check_settings(server_settings& settings) {
     }
 /* CHECK IF WE CAN OPEN THE SETTING DIRECTORIES */
     return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////]
-#include <climits>
-bool    atoi_v2(std::string& input, int& rtrn) {
-
-    char* end = NULL;
-    long num = std::strtol(input.c_str(), &end, 10);
-    if (*end != '\0' || num > INT_MAX || num < INT_MIN) {
-        std::cerr << RED "Input number invalid: " RESET << input << std::endl;
-        return false;
-    }
-    rtrn = static_cast<int>(num);
-    return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////]
-#include <stdio.h> // perror
-bool printErr(const char* errmsg) {
-
-    perror(errmsg);
-    std::cout << ERR0 << errmsg << std::endl;
-    std::cout << C_412 "ERRNO: " RESET << errno << std::endl;
-    return false;
 }

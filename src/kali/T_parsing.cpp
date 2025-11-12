@@ -1,27 +1,26 @@
-#include <iostream>
+#include "webserv.hpp"
+
 #include <fstream>
 
 #include <cctype>
 #include <sstream>
 
-#include "structs.hpp"
-#include "_colors.h"
-
 ///////////////////////////////////////////////////////////////////////////////]
-std::string trim_white(const std::string& s);
 bool    parse_config_file(const char* confi_file, server_settings& serv_sett);
 bool    parse_key_value(std::string& line, std::pair<std::string, std::string>& rtrn);
 bool    parse_blocks(std::ifstream& file, std::string& line, size_t pos, block& b);
 ///////////////////////////////////////////////////////////////////////////////]
+bool    read_header_first_line(std::string& line, http_request& to_fill);
 ///////////////////////////////////////////////////////////////////////////////]
-std::string trim_white(const std::string& s) {
-    size_t start = s.find_first_not_of(" \t\n\r");
-    if (start == std::string::npos) return ""; // all whitespace
-    size_t end = s.find_last_not_of(" \t\n\r");
-    return s.substr(start, end - start + 1);
-}
+
 
 ///////////////////////////////////////////////////////////////////////////////]
+//                                 CONFIG FILE
+///////////////////////////////////////////////////////////////////////////////]
+// MAIN function parsing the infile.conf
+// reads the full file, filling the struct server_config
+// return false if any parsing error
+// DOES NOT check for the validity of the settings 
 bool    parse_config_file(const char* confi_file, server_settings& serv_sett) {
 
     std::string s(confi_file);
@@ -60,6 +59,8 @@ bool    parse_config_file(const char* confi_file, server_settings& serv_sett) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
+// read: "server_name myserver.local"
+// return true if pair is correct
 bool    parse_key_value(std::string& line, std::pair<std::string, std::string>& rtrn) {
 
     std::stringstream           ss(trim_white(line));
@@ -79,14 +80,19 @@ bool    parse_key_value(std::string& line, std::pair<std::string, std::string>& 
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
+// reads: "location /images {
+//                  root /var/www/images; hello cat
+//                  cgi /usr/bin/python3} a"
 bool    parse_blocks(std::ifstream& file, std::string& line, size_t pos, block& b) {
 
     std::string s = line.substr(0, pos);
 
 // extract name & arg
     std::pair<std::string, std::string> kv;
-    if (!parse_key_value(s, kv))
+    if (!parse_key_value(s, kv)) {
+        std::cerr << ERR0 RED "invalid kv value: [" RESET << s << RED "]" RESET << std::endl;
         return false;
+    }
     b.name = kv.first;
     b.arg = kv.second;
 
@@ -110,10 +116,40 @@ bool    parse_blocks(std::ifstream& file, std::string& line, size_t pos, block& 
         if (s2.empty()) continue;
         if (s2.find('}') != std::string::npos)
             s2 = trim_white(s2.substr(0, s2.size() - 1));
-        if (s2.find('}') != std::string::npos || !parse_key_value(s2, kv))
+        if (s2.empty()) return true;
+        if (s2.find('}') != std::string::npos || !parse_key_value(s2, kv)) {
+            std::cerr << ERR0 RED "invalid block: [" RESET << s << RED "]" RESET << std::endl;
             return false;
+        }
         b.settings[kv.first] = kv.second;
     }
+
+    return true;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////]
+//                                 HTTP REQUEST
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+// http request line
+// METHOD PATH VERSION
+bool    read_header_first_line(std::string& line, http_request& to_fill) {
+    
+    std::vector<std::string> v;
+    std::stringstream ss(line);
+    std::string s;
+
+    if (!(ss >> to_fill.method >> to_fill.path >> to_fill.version))
+
+    while (ss >> s) v.push_back(s);
+    if (v.size() != 3) {
+        std::cerr << RED "bad http request line" RESET << std::endl;
+        return false;
+    }
+    to_fill.method = v[0];
+    to_fill.path = v[1];
+    to_fill.version = v[2];
 
     return true;
 }
