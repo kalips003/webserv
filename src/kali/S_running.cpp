@@ -60,7 +60,7 @@ void    Server::run_better( void ) {
                 bool isRequestOK = connec.checkRequest();
                 if (isRequestOK)
                     ft_exec(connec);
-                connec._status == SENDING;//?
+                connec._status == SENDING;// ?
             }
             
             if (connec._status == SENDING)

@@ -15,6 +15,12 @@ bool    f_connect();
 void    f_loop_simple(int fd_socket);
 void    recv_req(connection& request);
 ///////////////////////////////////////////////////////////////////////////////]
+// B
+const std::map<int, std::string>&   http_status_map();
+std::string   return_http_from_code(int code);
+const std::vector<std::string>& http_method_list();
+HttpMethod isMethodValid(const std::string& s);
+
 //  TOOLS
 ///////////////////////////////////////////////////////////////////////////////]
 //  PARSING

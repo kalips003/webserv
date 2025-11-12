@@ -17,6 +17,21 @@ enum    ConnectionStatus {
     CLOSED
 };
 
+
+enum HttpMethod {
+    GET = 0,
+    POST,
+    PUT,
+    DELETE,
+    PATCH,
+    HEAD,
+    OPTIONS,
+    CONNECT,
+    TRACE,
+    INVALID = -1
+};
+
+
 typedef std::pair<std::string, std::string> kv;
 typedef std::map<std::string, std::string> map;
 

@@ -120,19 +120,6 @@ const std::vector<std::string>& http_method_list() {
     return s;
 }
 
-enum HttpMethod {
-    GET = 0,
-    POST,
-    PUT,
-    DELETE,
-    PATCH,
-    HEAD,
-    OPTIONS,
-    CONNECT,
-    TRACE,
-    INVALID = -1
-};
-
 ///////////////////////////////////////////////////////////////////////////////]
 HttpMethod isMethodValid(const std::string& s) {
 
