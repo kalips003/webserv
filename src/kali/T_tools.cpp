@@ -1,7 +1,7 @@
 #include "webserv.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
-bool    atoi_v2(std::string& input, int& rtrn);
+bool    atoi_v2(const std::string& input, int& rtrn);
 bool printErr(const char* errmsg);
 std::string trim_white(const std::string& s);
 std::string trim_any(const std::string& s, const char *to_trim);
@@ -10,7 +10,7 @@ std::vector<std::string> splitOnWhite(const std::string& s);
 ///////////////////////////////////////////////////////////////////////////////]
 #include <climits>
 #include <cstdlib>
-bool    atoi_v2(std::string& input, int& rtrn) {
+bool    atoi_v2(const std::string& input, int& rtrn) {
 
     char* end = NULL;
     long num = strtol(input.c_str(), &end, 10);
@@ -54,6 +54,9 @@ std::string trim_any(const std::string& s, const char *to_trim) {
 // work in progress
 std::vector<std::string> splitOnDelimitor(const std::string& s, std::string delimit) {
 
+// std::cerr << RED "_buffer BEFORE SPLIT:\n" RESET;
+// std::cerr << s << std::endl;
+// std::cerr << RED "---------------------" RESET << std::endl;                
     std::vector<std::string> rtrn;
     std::string line;
     size_t pos1 = 0;
@@ -81,4 +84,11 @@ std::vector<std::string> splitOnWhite(const std::string& s) {
         rtrn.push_back(line);
 
     return rtrn;
+}
+
+std::string itostr(int n) {
+
+    std::ostringstream oss;
+    oss << n;
+    return oss.str();
 }

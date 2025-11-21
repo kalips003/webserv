@@ -5,6 +5,7 @@
 
 #include "webserv.hpp"
 
+#include "connection.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 class Server {
@@ -25,16 +26,32 @@ public:
     void    run( void ) {};
     void    run_simple( void );
     void    run_better( void );
-    void    run_simple_v2( void );
     bool    getStatus() { return _server_status; }
     bool    getfd() { return _socket_fd; }
-    bool    pop_fd(int fd);
+    std::map<int, connection>::iterator    pop_connec(std::map<int, connection>::iterator it) {
+
+        std::map<int, connection>::iterator next = it;
+        next++;
+        connection& client = it->second;
+
+std::cerr << RED "closing: " RESET << client;
+        if (client._request.headers["connection"] == "keep-alive") {
+            client._request = http_request(); // clear just
+            client._answer = http_answer(); // clear just
+            client._buffer.clear();
+            client._status = READING_HEADER;
+        }
+        else
+            _clients.erase(it);
+        return next;
+    }
 
 
 
 // STATIC
 private:
     static bool create_listening_socket(Server& dis);
+    void    accept_client( void );
 };
 
 

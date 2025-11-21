@@ -31,6 +31,7 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
 ///////////////////////////////////////////////////////////////////////////////]
 Server::~Server( void ) { if (_socket_fd >= 0) close(_socket_fd); }
 
+#include <fcntl.h>
 ///////////////////////////////////////////////////////////////////////////////]
 // SOCKET > BIND > LISTEN
 bool    Server::create_listening_socket(Server& dis) {
@@ -63,6 +64,8 @@ bool    Server::create_listening_socket(Server& dis) {
         return printErr(RED "listen() failed" RESET);
     }
 
+    if (!set_flags(dis._socket_fd, O_NONBLOCK))
+        return false;
     return true;
 }
 
@@ -86,16 +89,16 @@ so in short:
 */  // >> SO TECHNICALY LISTEN 0 IS POSSIBLE
 ///////////////////////////////////////////////////////////////////////////////]
 // check that the config file has the minimum settings, set them if missing
-typedef std::map<std::string, std::string> map;
+typedef std::map<std::string, std::string> map_strstr;
 bool    check_settings(server_settings& settings) {
 
-    map defaults;
+    map_strstr defaults;
     defaults["listen"]      = "8080";
     defaults["server_name"] = "myserver.local";
     defaults["root"]        = "/var/www/html";
     defaults["index"]       = "index.html";
 
-    for (map::iterator it = defaults.begin(); it != defaults.end(); ++it) {
+    for (map_strstr::iterator it = defaults.begin(); it != defaults.end(); ++it) {
         if (settings.global_settings.find(it->first) == settings.global_settings.end()) {
             std::cerr << RED "Necessary setting (" RESET << it->first << RED ") missing from config" RESET << std::endl;
             std::cerr << it->first << C_142 ": set to default (" RESET << it->second << C_142 ")" RESET << std::endl;

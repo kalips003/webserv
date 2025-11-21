@@ -27,13 +27,24 @@ struct server_settings {
 };
 
 ///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
 // GET /index.html HTTP/1.1\r\n
 // Host: example.com\r\n
 // User-Agent: curl/7.81.0\r\n
 // Accept: */*\r\n
 // \r\n
 // <body content if any...>
+enum BodyMode {
+    BODY_NONE,
+    BODY_CONTENT_LENGTH,
+    BODY_CHUNKED
+};
+
 #include <sstream>
+#include <unistd.h>
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+// "GET /index.html HTTP/1.1\r\nHost: example.com\r\n\r\n<body>"
 struct http_request {
 
     std::string method; // GET
@@ -43,13 +54,23 @@ struct http_request {
     std::map<std::string, std::string>  headers;
 
     std::string body;
+    int         fd_body;
+    size_t      body_bytes_received;
+    ssize_t     body_size;
+    enum BodyMode   body_type; // content-length mode; chunked-transfer mode; no body expected (GET, HEAD); multipart (POST form/file)
 
-    int         status_delim; // where are we of "\r\n\r\n"
-    ssize_t      body_size;
+    int         header_delim_progress; // where are we of "\r\n\r\n"
 
-    http_request() : status_delim(0), body_size(-1) {}
+    http_request() : fd_body(-1), body_bytes_received(0), body_size(0),
+        body_type(BODY_NONE), header_delim_progress(0) {}
+    ~http_request() { if (fd_body > 0) close(fd_body); }
+
+/*  parse the headers to find if there is body, return its length */
+    ssize_t      isThereBody();
 };
 
+std::ostream& operator<<(std::ostream& os, http_request& r);
+///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 // HTTP/1.1 200 OK
 struct http_answer {
@@ -58,66 +79,24 @@ struct http_answer {
     int         status; // 200
     std::string msg_status; // OK
 
-    std::map<std::string, std::string>  headers;
+    std::map<std::string, std::string>  _headers;
 
-    std::string body;
+    std::string     head; // 1) <body>, after ini(): head<body>
+    std::string     body_leftover;
+    int             fd_body;
 
-    http_answer() : version("HTTP/1"), status(200), msg_status("OK") {}
-};
-
-///////////////////////////////////////////////////////////////////////////////]
-struct connection {
-
-    int                 _client_fd;
-    struct sockaddr_in  _client_addr;
-    socklen_t           _addr_len;
-
-    std::string     _buffer;
-// _buffer.reserve(8192); // optional
-
-    http_request    _request;
-    http_answer     _answer;
-
-    ssize_t         _bytes_received;
-    ssize_t         _bytes_sent;
-
-    int             _status; // READING 0 SENDING 1 CLOSED 2
-
-    connection() :
-        _client_fd(-1), _addr_len(sizeof(_client_addr)), 
-        _bytes_received(0), _bytes_sent(0), _status(0) {}
-
-    connection(int fd, struct sockaddr_in c, socklen_t a) :
-        _client_fd(fd), _client_addr(c), _addr_len(a), 
-        _bytes_received(0), _bytes_sent(0), _status(0) {}
+    size_t          _full_size;
+    size_t          _bytes_sent;
 
 
+    http_answer() : version("HTTP/1.1"), status(200), msg_status("OK"), 
+        fd_body(-1), _full_size(0), _bytes_sent(0) {}
+    ~http_answer() {
+        if (fd_body >= 0) close(fd_body);
+    }
 
-/*  loop on recv() until all is received from client */
-    int     recv_all_buffer();
-
-
-/*  read from provided buffer once. append to msg
-        before append check if delimitor is found in buffer "\r\n\r\n" 
-        if delim found, parse it into request, copy the rest into msg, change status to DOING*/
-    int     read_buffer(char *buff, size_t sizeofbuff);
-
-/*  check each buffer for the presence of delim "\r\n\r\n" 
-        keep in memory where we are at, in _request.status_delim */
-    bool    check_buffer(char *buff);
-
-/*  called after the first read, to make sure request is valid "METHOD /path HTTP/1.1" */    
-    bool    parse_header_firstline();
-
-/*  true return function, called once "\r\n\r\n" is found
-        does the parsing / error handling on the fully downloaded headers */
-    bool    parse_header_wrapper(char *buf);
-
-/*  parse _buffer into _request, return false if any pb */
-    bool    parse_header();
-
-    bool    create_answer();
-    
+/*  take the filled answer, concatenate headers into head */
+    void http_answer_ini();
 };
 
 #endif

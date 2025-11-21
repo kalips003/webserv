@@ -19,25 +19,29 @@ all: $(NAME)
 
 CONF_FILE = data/config_file.conf
 
+# RUN SERVER
 a:	$(NAME)
 	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )
 	-./$(NAME) $(CONF_FILE)
 
-c:	$(CLIENT)
-	@$(call random_shmol_cat, "cREAting client", "does it work?", $(CLS), )
-	-./$(CLIENT)
-
+# RUN SERVER + CLIENT (client is child process of parent)
 TERMINAL = konsole -e
 b:	$(NAME) $(CLIENT)
+	make w
 	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )
 	@./$(NAME) $(CONF_FILE) & \
 	sleep 1; \
 	$(TERMINAL) ./$(CLIENT) \
 	wait
 
+# RUN CLIENT
+c:	$(CLIENT)
+	@$(call random_shmol_cat, "cREAting client", "does it work?", $(CLS), )
+	-./$(CLIENT)
+
 v:	$(NAME)
 	@$(call random_shmol_cat, "vlgrininnng ... $(NAME)!", "...", $(CLS), );
-	-$(VALGRIND) ./$(word 1, $^)
+	-$(VALGRIND) ./$(word 1, $^) $(CONF_FILE)
 
 LISTENING_PORT = 9999
 # tcp   LISTEN 0      4    0.0.0.0:9999       0.0.0.0:*    users:(("webserv",pid=321011,fd=3))

@@ -4,6 +4,8 @@
 #define BUFFER_SIZE 1024
 #define HOW_MANY_REQUEST_PER_LISTEN 4
 
+#define MAX_BODY_SIZE   8192
+
 #include <map>
 #include <vector>
 
@@ -33,7 +35,7 @@ enum HttpMethod {
 
 
 typedef std::pair<std::string, std::string> kv;
-typedef std::map<std::string, std::string> map;
+typedef std::map<std::string, std::string> map_strstr;
 
 // WebDAV += {PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK}
 static const std::string method_array[] = {
