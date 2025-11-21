@@ -43,21 +43,31 @@ std::cout << C_314 "HELLO...?" RESET << std::endl;
     }
     set_flags(sockfd, O_NONBLOCK);
     // std::string input = "ahah\r\nheader: fun!\r\n\r\n";  
-    std::string input = "GET /index.html HTTP/1.1\r\nHost: example.com\r\n\r\n";
+    std::string input1 = "GET /index.html HTTP";
+    std::string input2 = "/1.1\r\nHost: example.com\r\n\r\n";
+
     bool sent = false;
+    bool sent_what = false;
     while (true) {
         
 //         std::cout << "> ";
 //         if (!std::getline(std::cin, input)) break;   // Ctrl-D ends the loop
 // std::cout << C_314 "Input: " RESET << input << C_314 "\n\tsending...?" RESET << std::endl;
         if (!sent) {
-            ssize_t s = send(sockfd, input.c_str(), input.length(), 0);
+            ssize_t s;
+            if (!sent_what && (sent_what = true))
+                s = send(sockfd, input1.c_str(), input1.length(), 0);
+            else
+                s = send(sockfd, input2.c_str(), input2.length(), 0);
+
             if (s < 0) {
                 perror("send");
                 break;
             }
 std::cout << C_114 "Message sent, waiting answer..." RESET << std::endl;
-            sent = true;
+            sent = sent_what & !sent;
+            if (!sent)
+                continue;
         }
         
         char buffer[4096];
