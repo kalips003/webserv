@@ -1,3 +1,3 @@
 -----------------------------------
-ADDED: make git3
-    use the content of data/.gitmsg as commit message
+updated: make git3
+    file data/.gitmsg cleared after a successful commit

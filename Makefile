@@ -250,13 +250,14 @@ git2: fclean
 GIT_MSG_FILE = data/.gitmsg
 git3: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
-	@{ \	
-		msg="$$(cat .gitmessage 2>/dev/null)"; \
-		[ -z "$$msg" ] && { echo "Empty message file"; exit 1; }; \
+	@{ \
+		msg="$$(cat $(GIT_MSG_FILE) 2>/dev/null)"; \
+		[ -z "$$msg" ] && { $(call random_shmol_cat_blink, error, file is empty, , ); exit 1; }; \
 		git add . && \
 		git commit -m "$$msg" && \
 		git push && \
-		: > .gitmessage; \
+		: > $(GIT_MSG_FILE) && \
+		$(call random_shmol_cat_blink, success!, $(GIT_MSG_FILE) cleared., , ); \
 	}
 # --------------------------------------------------------------------------------- >
 # 																				CLEAN
