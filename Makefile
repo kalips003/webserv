@@ -234,7 +234,7 @@ V_FLAG = --suppressions=data/ignore_valgrind
 # ↑さ↓ぎょう  を  ↓ほ↑ぞん
 git: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
-	@current_date=$$(date); \	
+	@current_date=$$(date); \
 	git add .; \
 	git commit -m "$$current_date: unimportant small changes"; \
 	git push
@@ -250,12 +250,14 @@ git2: fclean
 GIT_MSG_FILE = data/.gitmsg
 git3: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
-	@msg="$$(cat $(GIT_MSG_FILE) 2>/dev/null)"; \
-	[ -z "$$msg" ] && { echo "Empty message file"; exit 1; }; \
-	git add .; \
-	git commit -m "$$msg"; \
-	git push
-
+	@{ \	
+		msg="$$(cat .gitmessage 2>/dev/null)"; \
+		[ -z "$$msg" ] && { echo "Empty message file"; exit 1; }; \
+		git add . && \
+		git commit -m "$$msg" && \
+		git push && \
+		: > .gitmessage; \
+	}
 # --------------------------------------------------------------------------------- >
 # 																				CLEAN
 clean:
