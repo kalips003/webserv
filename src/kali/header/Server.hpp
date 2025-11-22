@@ -27,6 +27,7 @@ public:
     void    run_simple( void );
     void    run_better( void );
     bool    getStatus() { return _server_status; }
+    server_settings    getSettings() { return _settings; }
     bool    getfd() { return _socket_fd; }
     std::map<int, connection>::iterator    pop_connec(std::map<int, connection>::iterator it) {
 

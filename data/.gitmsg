@@ -1,0 +1,3 @@
+-----------------------------------
+ADDED: make git3
+    use the content of data/.gitmsg as commit message

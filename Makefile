@@ -234,15 +234,24 @@ V_FLAG = --suppressions=data/ignore_valgrind
 # ↑さ↓ぎょう  を  ↓ほ↑ぞん
 git: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
-	@current_date=$$(date); \
+	@current_date=$$(date); \	
 	git add .; \
-	git commit -m "$$current_date"; \
+	git commit -m "$$current_date: unimportant small changes"; \
 	git push
 
 git2: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
 	@read -p "Enter commit message: " msg; \
 	[ -z "$$msg" ] && msg=$$(date); \
+	git add .; \
+	git commit -m "$$msg"; \
+	git push
+
+GIT_MSG_FILE = data/.gitmsg
+git3: fclean
+	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
+	@msg="$$(cat $(GIT_MSG_FILE) 2>/dev/null)"; \
+	[ -z "$$msg" ] && { echo "Empty message file"; exit 1; }; \
 	git add .; \
 	git commit -m "$$msg"; \
 	git push
@@ -390,7 +399,7 @@ rscs:
 define random_shmol_cat_surligne
 	COLOR=$$(printf "\033[0m\033[38;5;%dm" $$(shuf -i 0-255 -n 1)); \
 	COLOR2=$$(printf "\033[48;5;%dm" $$(shuf -i 0-255 -n 1)); \
-	echo "$(3)$${COLOR2}\
+	echo -e "$(3)$${COLOR2}\
 	\tにゃ~$${COLOR}\t⠀╱|、\n\
 	\t\t(˚ˎ。7⠀⠀⠀$${COLOR2}~ $(1) ~$${COLOR}\n\
 	\t\t⠀|、˜\\\\\t\t$${COLOR2}~ $(2)$${COLOR}\n\
@@ -403,7 +412,7 @@ rscb:
 define random_shmol_cat_blink
 	COLOR=$$(printf "\033[0m\033[38;5;%dm" $$(shuf -i 0-255 -n 1)); \
 	COLOR2=$$(printf "\e[5m\033[38;5;%dm" $$(shuf -i 0-255 -n 1)); \
-	echo "$(3)\n$${COLOR2}\
+	echo -e "$(3)\n$${COLOR2}\
 	\tにゃ~$${COLOR}\t⠀╱|、\n\
 	\t\t(˚ˎ。7⠀⠀⠀$${COLOR2}~ $(1) ~$${COLOR}\n\
 	\t\t⠀|、˜\\\\\t\t$${COLOR2}~ $(2)$${COLOR}\n\
@@ -414,7 +423,7 @@ endef
 # @$(call shmol_cat_error, $(RED), $(RED_L));
 # $(1) = $(C_c)$2) = $(C_ttN CLS
 define shmol_cat_error
-	echo "$(2)\
+	echo -e "$(2)\
 	\tにゃ~$(1)\t⠀╱|、\n\
 	\t\t(˚ˎ。7⠀⠀⠀$(2)~ somshin wen wong ~$(1)\n\
 	\t\t⠀|、˜\\\\\n\

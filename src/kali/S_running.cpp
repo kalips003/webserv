@@ -15,7 +15,7 @@ typedef std::map<int, connection>::iterator c_it;
 void    Server::accept_client() {
 
     struct sockaddr_in  client_addr;
-    socklen_t           addr_len = sizeof(client_addr);
+    socklen_t           addr_len = sizeof(client_addr); 
 
 // std::cerr << C_115 "waiting accept" RESET << std::endl;
     int client_fd = accept(_socket_fd, (struct sockaddr*)&client_addr, &addr_len);

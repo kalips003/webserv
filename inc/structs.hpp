@@ -24,6 +24,20 @@ struct server_settings {
     int                                 port_num;
 
     server_settings() : port_num(-1) {}
+    std::string find_setting(const std::string& set) const {
+
+        map_strstr::const_iterator it = global_settings.begin();
+        it = global_settings.find(set);
+        if (it == global_settings.end()) {
+            std::cerr << RED "setting not found: " RESET << set << std::endl;
+            return "";
+        }
+        else 
+            return it->second;
+    }
+    std::string find_setting_inBlock(const std::string& set) {
+        return "";
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -67,6 +81,17 @@ struct http_request {
 
 /*  parse the headers to find if there is body, return its length */
     ssize_t      isThereBody();
+    std::string find_setting(const std::string& set) const {
+
+        map_strstr::const_iterator it = headers.begin();
+        it = headers.find(set);
+        if (it == headers.end()) {
+            std::cerr << RED "setting not found: " RESET << set << std::endl;
+            return "";
+        }
+        else 
+            return it->second;    
+    }
 };
 
 std::ostream& operator<<(std::ostream& os, http_request& r);
