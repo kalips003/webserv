@@ -1,3 +1,4 @@
------------------------------------
-updated: make git3
-    file data/.gitmsg cleared after a successful commit
+added folder structure for classes
+
+CHANGED: httpAnswer is now a class
+    the class handle operations on itself or its content, like sending, or adding.

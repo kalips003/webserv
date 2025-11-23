@@ -48,31 +48,3 @@ std::ostream& operator<<(std::ostream& os, http_request& r) {
     os << C_542 "---------------------------------------------\n" RESET;
     return os;       
 }
-
-///////////////////////////////////////////////////////////////////////////////]
-// http_answer
-///////////////////////////////////////////////////////////////////////////////]
-static std::string  concatenateHeaders(map_strstr& headers);
-std::string itostr(int n);
-///////////////////////////////////////////////////////////////////////////////]
-// use the filled _answer to fill body, set bytes_tosend ...
-void http_answer::http_answer_ini() {
-
-    std::string     headers;
-    headers.reserve(4096); // optional
-    headers = version + " " + itostr(status) + " " + msg_status 
-        + "\r\n" + concatenateHeaders(_headers) + "\r\n";
-
-    head.reserve(headers.size() + head.size());
-    head.insert(0, headers);
-    _full_size += head.size();
-}
-
-/*  return a string of all headers separated by '\r\n' */
-static std::string    concatenateHeaders(map_strstr& headers) {
-    std::string s;
-    for (map_strstr::const_iterator it = headers.begin(); it != headers.end(); it++)
-        s += it->first + ": " + it->second + "\r\n";
-
-    return s;
-}

@@ -36,6 +36,7 @@ enum HttpMethod {
 
 typedef std::pair<std::string, std::string> kv;
 typedef std::map<std::string, std::string> map_strstr;
+typedef std::map<std::string, std::string> map_istr;
 
 // WebDAV += {PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK}
 static const std::string method_array[] = {

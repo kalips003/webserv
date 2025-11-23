@@ -96,32 +96,5 @@ struct http_request {
 
 std::ostream& operator<<(std::ostream& os, http_request& r);
 ///////////////////////////////////////////////////////////////////////////////]
-///////////////////////////////////////////////////////////////////////////////]
-// HTTP/1.1 200 OK
-struct http_answer {
-
-    std::string version; // HTTP/1.1
-    int         status; // 200
-    std::string msg_status; // OK
-
-    std::map<std::string, std::string>  _headers;
-
-    std::string     head; // 1) <body>, after ini(): head<body>
-    std::string     body_leftover;
-    int             fd_body;
-
-    size_t          _full_size;
-    size_t          _bytes_sent;
-
-
-    http_answer() : version("HTTP/1.1"), status(200), msg_status("OK"), 
-        fd_body(-1), _full_size(0), _bytes_sent(0) {}
-    ~http_answer() {
-        if (fd_body >= 0) close(fd_body);
-    }
-
-/*  take the filled answer, concatenate headers into head */
-    void http_answer_ini();
-};
 
 #endif
