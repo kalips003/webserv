@@ -14,7 +14,7 @@ httpAnswer::~httpAnswer() {
 bool    httpAnswer::addToHeaders(std::string& parameter, std::string& value) {
     _headers[parameter] = value;
     return true;
-//  temp, need to make better
+//  temp, need to make better   
     map_strstr::iterator it = _headers.begin();
 }
 
