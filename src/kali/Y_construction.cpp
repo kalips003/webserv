@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 ///////////////////////////////////////////////////////////////////////////////]
-bool    check_settings(server_settings& settings);
+bool    check_settings(ServerSettings& settings);
 
 ///////////////////////////////////////////////////////////////////////////////]
 // Constructor for the Server.
@@ -25,7 +25,7 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
         return ;
 
     _server_status = true;
-    std::cout << C_151 "Server up and running on port: " RESET << _settings.port_num << std::endl;
+    std::cout << C_151 "Server up and running on port: " RESET << _settings._port_num << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -40,7 +40,7 @@ bool    Server::create_listening_socket(Server& dis) {
     if (dis._socket_fd < 0) {
         return printErr(RED "socket() failed" RESET);
     }
-    dis._addr.sin_port = htons(dis._settings.port_num);
+    dis._addr.sin_port = htons(dis._settings._port_num);
     dis._addr.sin_family = AF_INET;
     dis._addr.sin_addr.s_addr = INADDR_ANY; //  or: inet_addr("192.168.1.100");
 
@@ -87,29 +87,4 @@ so in short:
     it’s valid, but not what you usually want for a web server, since clients won’t know which port to connect to.
 
 */  // >> SO TECHNICALY LISTEN 0 IS POSSIBLE
-///////////////////////////////////////////////////////////////////////////////]
-// check that the config file has the minimum settings, set them if missing
-typedef std::map<std::string, std::string> map_strstr;
-bool    check_settings(server_settings& settings) {
 
-    map_strstr defaults;
-    defaults["listen"]      = "8080";
-    defaults["server_name"] = "myserver.local";
-    defaults["root"]        = "/var/www/html";
-    defaults["index"]       = "index.html";
-
-    for (map_strstr::iterator it = defaults.begin(); it != defaults.end(); ++it) {
-        if (settings.global_settings.find(it->first) == settings.global_settings.end()) {
-            std::cerr << RED "Necessary setting (" RESET << it->first << RED ") missing from config" RESET << std::endl;
-            std::cerr << it->first << C_142 ": set to default (" RESET << it->second << C_142 ")" RESET << std::endl;
-            settings.global_settings[it->first] = it->second;
-        }
-    }
-    if (!atoi_v2(settings.global_settings["listen"], settings.port_num) || 
-        settings.port_num <= 0 || settings.port_num > 65535) {
-            std::cerr << ERR3 "Invalid port number: " << settings.port_num << std::endl;
-            return false;
-    }
-/* CHECK IF WE CAN OPEN THE SETTING DIRECTORIES */
-    return true;
-}

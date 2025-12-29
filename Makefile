@@ -232,6 +232,7 @@ V_FLAG = --suppressions=data/ignore_valgrind
 # HELLGRIND = valgrind --tool=helgrind ?-g3?
 
 # ↑さ↓ぎょう  を  ↓ほ↑ぞん
+# Default git push
 git: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
 	@current_date=$$(date); \
@@ -239,6 +240,7 @@ git: fclean
 	git commit -m "$$current_date: unimportant small changes"; \
 	git push
 
+# Git Push that asks for commit msg
 git2: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
 	@read -p "Enter commit message: " msg; \
@@ -247,6 +249,8 @@ git2: fclean
 	git commit -m "$$msg"; \
 	git push
 
+# Git Push use the content of .gitmsg to push
+# if .gitmsg empty, return error
 GIT_MSG_FILE = data/.gitmsg
 git3: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );

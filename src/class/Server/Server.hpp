@@ -2,17 +2,21 @@
 #define SERVER_HPP
 
 #include <netinet/in.h>
-
-#include "webserv.hpp"
-
+#include <map>
 #include "connection.hpp"
+#include "ServerSettings.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
+/**
+ * Represents a full Server
+ *
+ * Owns a map of Clients
+ */
 class Server {
 
 private:
     struct sockaddr_in      _addr;
-    struct server_settings  _settings;
+    struct ServerSettings  _settings;
 
     int                     _socket_fd;
     bool                    _server_status;
@@ -20,6 +24,18 @@ private:
     std::map<int, connection>   _clients;
 
 public:
+/**
+ * Constructor for the Server.
+ *
+ * Takes as argument a VALID char* with the path of the config file for the server.
+ *
+ * Once the construction is finished, _server_status holds the status of the construction (OK / NOK).
+ *
+ * If _server_status == OK, the server is listening and ready for accept() / epoll()
+ *
+ * @param confi_file   Path of config file.
+ * @return         _server_status true if parsing succeeded, false otherwise.
+ */
     Server( const char* confi_file );
     ~Server( void );
 
@@ -27,7 +43,7 @@ public:
     void    run_simple( void );
     void    run_better( void );
     bool    getStatus() { return _server_status; }
-    server_settings    getSettings() { return _settings; }
+    ServerSettings    getSettings() { return _settings; }
     bool    getfd() { return _socket_fd; }
     std::map<int, connection>::iterator    pop_connec(std::map<int, connection>::iterator it) {
 

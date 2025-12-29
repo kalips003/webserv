@@ -11,7 +11,7 @@ public:
     std::string             _buffer; 
     http_request&           _request;
     http_answer&            _answer;
-    const server_settings&  _settings;
+    const ServerSettings&  _settings;
 
     int             _status; // 404
 

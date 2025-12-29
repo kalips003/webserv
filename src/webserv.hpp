@@ -36,7 +36,7 @@ std::string trim_any(const std::string& s, const char *to_trim);
 std::vector<std::string> splitOnDelimitor(const std::string& s, std::string delimit);
 std::vector<std::string> splitOnWhite(const std::string& s);
 //  OTHERS
-bool    parse_config_file(const char* confi_file, server_settings& serv_sett);
+bool    parse_config_file(const char* confi_file, ServerSettings& serv_sett);
 bool    parse_key_value(std::string& line, std::pair<std::string, std::string>& rtrn);
 bool    parse_blocks(std::ifstream& file, std::string& line, size_t pos, block& b);
 bool    read_header_first_line(std::string& line, http_request& to_fill);

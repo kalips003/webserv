@@ -16,30 +16,6 @@ struct block {
     std::map<std::string, std::string>  settings;
 };
 
-// name arg
-// name arg { set1 a; set2 b }
-struct server_settings {
-    std::map<std::string, std::string>  global_settings;
-    std::vector<block>                  block_settings;
-    int                                 port_num;
-
-    server_settings() : port_num(-1) {}
-    std::string find_setting(const std::string& set) const {
-
-        map_strstr::const_iterator it = global_settings.begin();
-        it = global_settings.find(set);
-        if (it == global_settings.end()) {
-            std::cerr << RED "setting not found: " RESET << set << std::endl;
-            return "";
-        }
-        else 
-            return it->second;
-    }
-    std::string find_setting_inBlock(const std::string& set) {
-        return "";
-    }
-};
-
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 // GET /index.html HTTP/1.1\r\n

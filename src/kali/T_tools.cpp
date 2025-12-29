@@ -10,6 +10,14 @@ std::vector<std::string> splitOnWhite(const std::string& s);
 ///////////////////////////////////////////////////////////////////////////////]
 #include <climits>
 #include <cstdlib>
+
+/**
+ * Better Atoi
+ *
+ * @param input   String to convert into int
+ * @param rtrn   ref to an int to fill with the result
+ * @return      TRUE if the number is valid, FALSE otherwise (overflow, letters, ...)
+ */
 bool    atoi_v2(const std::string& input, int& rtrn) {
 
     char* end = NULL;
