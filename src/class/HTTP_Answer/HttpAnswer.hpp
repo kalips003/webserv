@@ -1,5 +1,5 @@
-#ifndef ANSWER_HPP
-#define ANSWER_HPP
+#ifndef HTTPANSWER_HPP
+#define HTTPANSWER_HPP
 
 #include <string>
 #include <map>
@@ -19,22 +19,22 @@
 class httpAnswer {
 
 public:
-    std::string _version; // HTTP/1.1
-    int         _status; // 200
-    std::string _msg_status; // OK
+    std::string     _version; // HTTP/1.1
+    int             _status; // 200
+    std::string     _msg_status; // OK
 
-    std::map<std::string, std::string>  _headers; // Content-Length: 25
+    map_strstr      _headers; // Content-Length: 25
 
     std::string     _head; // 1) <body>, after ini(): head<body>
-    std::string     body_leftover;
-    int             fd_body;
+    std::string     _body_leftover;
+    int             _fd_body;
 
     size_t          _full_size;
     size_t          _bytes_sent;
 
 
     httpAnswer() : _version("HTTP/1.1"), _status(200), _msg_status("OK"), 
-        fd_body(-1), _full_size(0), _bytes_sent(0) {}
+        _fd_body(-1), _full_size(0), _bytes_sent(0) {}
     ~httpAnswer();
     
 /*  take the filled answer, concatenate headers into _head */

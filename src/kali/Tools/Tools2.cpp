@@ -1,5 +1,6 @@
 #include <fcntl.h>
-#include "T_tools.cpp"
+#include "Tools1.hpp"
+#include "_colors.h"
 
 ///////////////////////////////////////////////////////////////////////////////]
 //	int     fcntl(int fd, int cmd, ... /* arg */ );

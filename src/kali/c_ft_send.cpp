@@ -15,7 +15,7 @@
     increment _bytes_sent
     return the status of the connection
 */
-enum ConnectionStatus connection::ft_send(char *buff, size_t sizeofbuff) {
+enum ConnectionStatus Connection::ft_send(char *buff, size_t sizeofbuff) {
 
     ssize_t bytes_to_send;
     ssize_t bytes_loaded = 0;

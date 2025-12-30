@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 
+
 enum    ConnectionStatus {
 
     FIRST = 0,
@@ -42,17 +43,6 @@ enum HttpMethod {
 typedef std::pair<std::string, std::string> kv;
 typedef std::map<std::string, std::string> map_strstr;
 typedef std::map<std::string, std::string> map_istr;
-
-
-// WebDAV += {PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK}
-static const std::string method_array[] = {
-    "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"
-};
-
-static const std::vector<std::string> HTTP_METHODS(
-    method_array,
-    method_array + sizeof(method_array) / sizeof(method_array[0])
-);
 
 
 

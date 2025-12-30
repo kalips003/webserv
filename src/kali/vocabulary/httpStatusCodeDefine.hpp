@@ -81,5 +81,4 @@
 #define HTTP_NOT_EXTENDED                 510
 #define HTTP_NETWORK_AUTH_REQUIRED        511
 
-
 #endif

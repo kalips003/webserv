@@ -7,7 +7,7 @@
 #include "connection.hpp"
 #include "ServerSettings.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
-typedef std::map<int, connection>::iterator c_it;
+typedef std::map<int, Connection>::iterator c_it;
 ///////////////////////////////////////////////////////////////////////////////]
 /**
  * Represents a full Server
@@ -24,7 +24,7 @@ private:
     int                     _socket_fd;
     bool                    _server_status;
 
-    std::map<int, connection>   _clients;
+    std::map<int, Connection>   _clients;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:

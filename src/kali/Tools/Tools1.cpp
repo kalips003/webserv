@@ -1,23 +1,17 @@
-#include "webserv.hpp"
+#include "Tools1.hpp"
 
-///////////////////////////////////////////////////////////////////////////////]
-bool    atoi_v2(const std::string& input, int& rtrn);
-bool printErr(const char* errmsg);
-std::string trim_white(const std::string& s);
-std::string trim_any(const std::string& s, const char *to_trim);
-std::vector<std::string> splitOnDelimitor(const std::string& s, std::string delimit);
-std::vector<std::string> splitOnWhite(const std::string& s);
-///////////////////////////////////////////////////////////////////////////////]
+#include "_colors.h"
+
+#include <iostream>
 #include <climits>
 #include <cstdlib>
 
-/**
- * Better Atoi
- *
- * @param input   String to convert into int
- * @param rtrn   ref to an int to fill with the result
- * @return      TRUE if the number is valid, FALSE otherwise (overflow, letters, ...)
- */
+#include <stdio.h> // perror
+#include <cerrno> // perror
+
+#include <sstream>
+
+///////////////////////////////////////////////////////////////////////////////]
 bool    atoi_v2(const std::string& input, int& rtrn) {
 
     char* end = NULL;
@@ -31,8 +25,6 @@ bool    atoi_v2(const std::string& input, int& rtrn) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-#include <stdio.h> // perror
-#include <cerrno> // perror
 bool printErr(const char* errmsg) {
 
     perror(errmsg);
@@ -42,29 +34,27 @@ bool printErr(const char* errmsg) {
 
 ///////////////////////////////////////////////////////////////////////////////]
 std::string trim_white(const std::string& s) {
+
     size_t start = s.find_first_not_of(" \t\n\r");
-    if (start == std::string::npos) return ""; // all whitespace
+    if (start == std::string::npos) 
+        return ""; // all whitespace
     size_t end = s.find_last_not_of(" \t\n\r");
     return s.substr(start, end - start + 1);
 }
 
+///////////////////////////////////////////////////////////////////////////////]
 std::string trim_any(const std::string& s, const char *to_trim) {
+
     size_t start = s.find_first_not_of(to_trim);
-    if (start == std::string::npos) return "";
+    if (start == std::string::npos) 
+        return "";
     size_t end = s.find_last_not_of(to_trim);
     return s.substr(start, end - start + 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-// ft_split, on delimitor, return vector
-// "adfdasfdasfdsafdfafd[delim]morestuff"
-// >> "asfdadsfasdf" + "morestuff"
-// work in progress
 std::vector<std::string> splitOnDelimitor(const std::string& s, std::string delimit) {
-
-// std::cerr << RED "_buffer BEFORE SPLIT:\n" RESET;
-// std::cerr << s << std::endl;
-// std::cerr << RED "---------------------" RESET << std::endl;                
+           
     std::vector<std::string> rtrn;
     std::string line;
     size_t pos1 = 0;
@@ -74,7 +64,6 @@ std::vector<std::string> splitOnDelimitor(const std::string& s, std::string deli
         line = s.substr(pos1, pos2 - pos1);
         rtrn.push_back(line);
         pos1 = pos2 + delimit.size();
-        pos2 = s.find(delimit, pos1);
     }
     line = s.substr(pos1);
     rtrn.push_back(line); 
@@ -82,7 +71,7 @@ std::vector<std::string> splitOnDelimitor(const std::string& s, std::string deli
     return rtrn;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////]
 std::vector<std::string> splitOnWhite(const std::string& s) {
 
     std::vector<std::string> rtrn;
@@ -94,6 +83,7 @@ std::vector<std::string> splitOnWhite(const std::string& s) {
     return rtrn;
 }
 
+///////////////////////////////////////////////////////////////////////////////]
 std::string itostr(int n) {
 
     std::ostringstream oss;

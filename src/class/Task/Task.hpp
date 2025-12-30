@@ -1,7 +1,7 @@
 #ifndef TASK_HPP
 #define TASK_HPP
 
-#include "webserv.hpp"
+// #include "webserv.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
@@ -15,7 +15,7 @@ public:
 
     int             _status; // 404
 
-    Task(connection& connec, Server& s) : 
+    Task(Connection& connec, Server& s) : 
         _request(connec._request), _answer(connec._answer), _settings(s.getSettings()), _status(0) {}
 
     virtual int ft_do() { return 0; }
@@ -72,7 +72,7 @@ class   Ft_get : public Task {
 
 
 public:
-    Ft_get(connection& connec, Server& s) : Task(connec, s) {
+    Ft_get(Connection& connec, Server& s) : Task(connec, s) {
 
         std::string server_path = _settings.find_setting("root");
         if (server_path.empty()) {

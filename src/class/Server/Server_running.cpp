@@ -12,7 +12,7 @@ void    Server::run_better( void ) {
     
         for (c_it it = _clients.begin(); it != _clients.end(); ) {
 
-            connection &connec = it->second;
+            Connection &connec = it->second;
             
             if (connec._status <= READING_BODY) {
                 std::cerr << C_515 "-----------------------------------------]\n";
@@ -65,7 +65,7 @@ std::cout << C_431 "waiting on accept()" RESET << std::endl;
 std::cout << C_431 "\taccepted..." RESET << std::endl;
 
 
-        connection    request(client_fd, client_addr, addr_len);
+        Connection    request(client_fd, client_addr, addr_len);
         _clients[client_fd] = request;
 std::cout << C_241 "\trequest created..." RESET << std::endl;
 

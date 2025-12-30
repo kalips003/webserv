@@ -1,11 +1,13 @@
-#include <string>
-#include "defines.hpp"
+#include "HttpStatusCode.hpp"
 
+///////////////////////////////////////////////////////////////////////////////]
+//  {404, "Not Found"}
 struct StatusEntry {
     int code;
     const char *message;
 };
 
+///////////////////////////////////////////////////////////////////////////////]
 static const StatusEntry g_HttpStatusCode[] = {
 // --- 1xx: Informational ---
     {100, "Continue"},
@@ -80,23 +82,31 @@ static const StatusEntry g_HttpStatusCode[] = {
     {511, "Network Authentication Required"}
 };
 
-///////////////////////////////////////////////////////////////////////////////]\
-// return static map like above, initialized once
+///////////////////////////////////////////////////////////////////////////////]
+/**
+ * Initializer for the HTTP status code map
+ *
+ * if first called, create the map as a static
+ * 
+ * @return      a const ref to the map
+ */
 const std::map<int, std::string>&   http_status_map() {
 
-    static std::map<int, std::string>   m;
-    if (m.empty()) {
+    static std::map<int, std::string>   httpmap;
+    if (httpmap.empty()) {
 
         const size_t n = sizeof(g_HttpStatusCode) / sizeof(g_HttpStatusCode[0]);
         for (size_t i = 0; i < n; i++)
-            m[g_HttpStatusCode[i].code] = g_HttpStatusCode[i].message;
+            httpmap[g_HttpStatusCode[i].code] = g_HttpStatusCode[i].message;
 
     }
-    return m;
+    return httpmap;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-//  return the message associated with the code. empty if error
+/** Return the string msg associated with the input code
+* 
+* Return empty string "" if code invalid */
 std::string   return_http_from_code(int code) {
 
     std::map<int, std::string>::const_iterator it = http_status_map().find(code);

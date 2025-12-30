@@ -5,7 +5,7 @@ c_it	Server::pop_connec(c_it it) {
 
 	c_it next = it;
 	next++;
-	connection& client = it->second;
+	Connection& client = it->second;
 
 	std::cout << RED "closing: " RESET << client;
 
@@ -43,7 +43,7 @@ void	Server::accept_client() {
 	if (!set)
 		return ;
 
-	_clients[client_fd] = connection(client_fd, client_addr, addr_len);
+	_clients[client_fd] = Connection(client_fd, client_addr, addr_len);
 
 	std::cerr << C_115 "-----------------------------------------]\n";
 	std::cerr << "New client Accepted: " RESET << _clients[client_fd] << std::endl;

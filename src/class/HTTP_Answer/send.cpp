@@ -1,4 +1,4 @@
-#include "Answer.hpp"
+#include "HttpAnswer.hpp"
 
 #include <unistd.h>
 #include <cstring>
@@ -28,14 +28,14 @@ enum ConnectionStatus httpAnswer::sendToBuffer(int fd, char* buff, size_t sizeof
         memcpy(buff, _head.c_str() + _bytes_sent, bytes_to_send);
     }
     else {
-        if (!body_leftover.empty()) { // CASE: some leftover from previous send
-            bytes_to_send = body_leftover.size();
-            memcpy(buff, body_leftover.c_str(), bytes_to_send); // load and send leftover
+        if (!_body_leftover.empty()) { // CASE: some leftover from previous send
+            bytes_to_send = _body_leftover.size();
+            memcpy(buff, _body_leftover.c_str(), bytes_to_send); // load and send leftover
         }
-        else if (fd_body >= 0) { // CASE: there is a body
+        else if (_fd_body >= 0) { // CASE: there is a body
             bytes_to_send = std::min(_full_size - _bytes_sent, sizeofbuff); 
 
-            bytes_loaded = read(fd_body, buff, bytes_to_send);
+            bytes_loaded = read(_fd_body, buff, bytes_to_send);
             if (bytes_loaded < 0)
                 std::cerr << C_511 "errrrooorr heere" RESET << std::endl; //error
             else if (bytes_loaded < bytes_to_send)
@@ -62,10 +62,10 @@ enum ConnectionStatus httpAnswer::sendToBuffer(int fd, char* buff, size_t sizeof
     if (_head.empty()) {
         if (bytes_sent < bytes_to_send) {
             buff[bytes_to_send] = '\0';
-            body_leftover = std::string(buff + bytes_sent);
+            _body_leftover = std::string(buff + bytes_sent);
         }
         else
-            body_leftover.clear();
+            _body_leftover.clear();
     }
     if (_bytes_sent == _head.size())
         _head.clear();

@@ -12,7 +12,7 @@ Task* createTask(const std::string& method, http_request& req, http_answer& ans)
 }
 
 
-std::ostream& operator<<(std::ostream& os, const connection& c) {
+std::ostream& operator<<(std::ostream& os, const Connection& c) {
 
     os << C_152 "Client n." RESET << c._client_fd;
     // os << C_152 "Client n." RESET << c._client_fd << std::endl;
