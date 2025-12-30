@@ -26,7 +26,7 @@ private:
     httpAnswer          _answer;
     Task                *_body_task;
 
-    int                 _status; // READING 0 SENDING 1 CLOSED 2
+    ConnectionStatus    _status; // READING 0 SENDING 1 CLOSED 2
 ///////////////////////////////////////////////////////////////////////////////]
 
     Connection() :

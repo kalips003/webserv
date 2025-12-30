@@ -2,6 +2,11 @@
 
 #include "_colors.h"
 #include <iostream>
+
+///////////////////////////////////////////////////////////////////////////////]
+#include <unistd.h>
+HttpRequest::~HttpRequest() { if (_fd_body > 0) close(_fd_body); }
+
 ///////////////////////////////////////////////////////////////////////////////]
 std::string HttpRequest::find_setting(const std::string& set) const {
 
@@ -15,46 +20,93 @@ std::string HttpRequest::find_setting(const std::string& set) const {
         return it->second;    
 }
 
-#include <netinet/in.h>
-
 ///////////////////////////////////////////////////////////////////////////////]
-enum ConnectionStatus HttpRequest::ft_read(char *buff, size_t sizeofbuff, int client_fd) {
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+#include "HttpMethods.hpp"
+#include <sstream>
+///////////////////////////////////////////////////////////////////////////////]
+int    HttpRequest::parse_header_first_read() {
 
-    ssize_t bytes_recv = recv(client_fd, buff, sizeofbuff - 1, 0);
+    if (_buffer.find("\r\n") == std::string::npos)
+        return FIRST;
 
-    // std::cerr << C_425 "bytes received: " << bytes << std::endl;
-    if (bytes_recv == 0) { //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<????>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        std::cerr << RED "connection closed (FIN received)" RESET << std::endl;
-        return CLOSED;
-    }
-    else if (bytes_recv < 0) {// treat as generic fail (no errno)
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
-            return static_cast<ConnectionStatus>(_status); // fcntl()'s fault, no data to read yet
-        printErr(RED "recv() failed" RESET);
-        return CLOSED; //?
-        // else if (errno == EINTR)
-        //     return -2; // interrupted by signal, retry
-    }
+    std::stringstream ss(_buffer);
+    std::string word;
 
-    buff[bytes_recv] = '\0';
-    std::string str_buff(buff, bytes_recv);
-    std::cerr << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes): \n[" RESET << str_buff << C_134 "]" RESET << std::endl;
+    ss >> word;
+    
+    if (isMethodValid(word) < 0)
+        return 405;
+    if (!(ss >> word >> word) || word != "HTTP/1.1")
+        return 400;
+    return READING_HEADER;
+}
 
-    if (_status == FIRST)
-        _status = parse_header_first_read(_buffer + str_buff);
+void    HttpRequest::addBuffer(std::string& s) {
 
-    if (_status <= READING_HEADER)
-        _status = check_buffer_for_rnrn(buff);
-    else if (_status == READING_BODY) {
+    _buffer += s;
+}
 
-        if (_request._body_size < 4096)
-            _request._body += str_buff;
-        else if (_request._fd_body >= 0)
-            write(_request._fd_body, buff, bytes_recv); // write(_request.fd_body, buff, bytes)
-        _request._body_bytes_received += bytes_recv;
-        if (_request._body_bytes_received >= static_cast<size_t>(_request._body_size))
-            return DOING;
+int    HttpRequest::check_buffer_for_rnrn(std::string& buff) {
 
+    std::string delim = "\r\n\r\n";
+
+    while (*buff != '\0') {
+
+        if (*buff == delim[_request._header_delim_progress]) {
+            _request._header_delim_progress++;
+
+            if (_request._header_delim_progress == delim.size()) {
+                _buffer.push_back(*buff);
+                buff++;
+                return parse_header_wrapper(buff);
+            }
+        }
+        else
+            _request._header_delim_progress = (*buff == delim[0]);
+        
+        _buffer.push_back(*buff);
+        buff++;
     }
     return static_cast<ConnectionStatus>(_status);
+}
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+#include "Tools1.hpp"
+ssize_t      HttpRequest::isThereBody() {
+
+    std::map<std::string, std::string>::iterator it = _headers.find("body-size");
+    if (it == _headers.end())
+        return 0;
+    int r;
+    if (!atoi_v2(it->second, r) || r < 0)
+        return -1;
+    return static_cast<ssize_t>(r);
+}
+
+std::ostream& operator<<(std::ostream& os, HttpRequest& r) {
+
+    os << C_542 "---------------------------------------------\n" RESET;
+    os << C_542 "\tREQUEST:\n" RESET;
+    os << r.getMethod() << " " << r.getPath() << " " << r.getVersion() << std::endl;
+    os << C_542 "\tHEADERS:\n" RESET;
+    for (map_strstr::const_iterator  h = r.getHeaders().begin(); h != r.getHeaders().end(); h++) {
+        os << C_114 << h->first << RESET ": " << h->second << std::endl;
+    }
+
+    os << C_542 "\tBODY:\n[" RESET << r.getBody() << C_542 "]" RESET << std::endl;
+    os << C_542 "fd_body: " RESET << r.getFdBody() << std::endl;
+    os << C_542 "body_bytes_received: " RESET << r.getBodyBytesReceived() << std::endl;
+    os << C_542 "body_size: " RESET << r.getBodySize() << std::endl;         
+    os << C_542 "---------------------------------------------\n" RESET;
+    return os;       
 }

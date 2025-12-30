@@ -1,7 +1,9 @@
 #include "Connection.hpp"
 
 #include "_colors.h"
+
 #include <iostream>
+#include <sstream>
 
 #include "Tools1.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
@@ -9,14 +11,13 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 
     ssize_t bytes_recv = recv(_client_fd, buff, sizeofbuff - 1, 0);
 
-    // std::cerr << C_425 "bytes received: " << bytes << std::endl;
-    if (bytes_recv == 0) { //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<????>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if (bytes_recv == 0) {
         std::cerr << RED "connection closed (FIN received)" RESET << std::endl;
         return CLOSED;
     }
     else if (bytes_recv < 0) {// treat as generic fail (no errno)
         if (errno == EAGAIN || errno == EWOULDBLOCK)
-            return static_cast<ConnectionStatus>(_status); // fcntl()'s fault, no data to read yet
+            return _status; // fcntl()'s fault, no data to read yet
         printErr(RED "recv() failed" RESET);
         return CLOSED; //?
         // else if (errno == EINTR)
@@ -43,10 +44,24 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
             return DOING;
 
     }
-    return static_cast<ConnectionStatus>(_status);
+    return _status;
 }
 
+
+#include "HttpMethods.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
+/**
+ * Called as long as the request is in FIRST state
+ * meaning as long as the "\r\n" delimitor of the Request Line isnt found
+ *
+ * If delimitor is found, check if the Request Line is valid (valid Method & HTTP/1.1)
+ *
+ * If invalid, fills the _answer with the correct error
+
+ * @param first_rec   Concatenation of everything received (_buffer + last recv())
+ * @return      FIRST if delim not found, READING_HEADER if Request Line received in full and valid, 
+ SENDING if error.
+ */
 enum ConnectionStatus Connection::parse_header_first_read(std::string first_rec) {
 
     if (first_rec.find("\r\n") == std::string::npos)
@@ -58,27 +73,37 @@ enum ConnectionStatus Connection::parse_header_first_read(std::string first_rec)
     ss >> word;
     
     if (isMethodValid(word) < 0)
-        return create_error(400);
+        return create_error(405);
     if (!(ss >> word >> word) || word != "HTTP/1.1")
         return create_error(400);
     return READING_HEADER;
 }
 
+#include <string.h>
 ///////////////////////////////////////////////////////////////////////////////]
 // helper function to find the end of header delimitor ("\r\n\r\n")
 // keep in memory where we are at in finding such delimitor in:
     // _request.header_delim_progress
 // once parsing compete, push in _buffer
+/**
+ * Helper function to find the end of header delimitor ("\r\n\r\n")
+ * keep in memory where we are at in finding such delimitor in: _header_delim_progress
+ *
+ *
+
+ * @param first_rec   C
+ * @return      F
+ */
 enum ConnectionStatus    Connection::check_buffer_for_rnrn(char *buff) {          
   
-    const char* delim = "\r\n\r\n";
-    int         size_delim = strlen(delim);
+    std::string delim = "\r\n\r\n";
+
     while (*buff != '\0') {
 
         if (*buff == delim[_request._header_delim_progress]) {
             _request._header_delim_progress++;
 
-            if (_request._header_delim_progress == size_delim) {
+            if (_request._header_delim_progress == delim.size()) {
                 _buffer.push_back(*buff);
                 buff++;
                 return parse_header_wrapper(buff);
