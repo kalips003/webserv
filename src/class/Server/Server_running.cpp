@@ -1,43 +1,6 @@
-#include "webserv.hpp"
-
-#include <sys/socket.h>
-#include <unistd.h>
-#include <cstring>
-
 #include "Server.hpp"
 
-#include <fcntl.h>
-
-typedef std::map<int, connection>::iterator c_it;
-
-#include <cerrno>
-///////////////////////////////////////////////////////////////////////////////]
-void    Server::accept_client() {
-
-    struct sockaddr_in  client_addr;
-    socklen_t           addr_len = sizeof(client_addr); 
-
-// std::cerr << C_115 "waiting accept" RESET << std::endl;
-    int client_fd = accept(_socket_fd, (struct sockaddr*)&client_addr, &addr_len);
-    if (client_fd < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
-            std::cerr << ""; // fcntl()'s fault, no data to read yet
-        else 
-            printErr(RED "accept() failed" RESET);
-        return ;
-    }
-
-    bool set = set_flags(client_fd, O_NONBLOCK);
-    if (!set)
-        return ;
-
-    _clients[client_fd] = connection(client_fd, client_addr, addr_len);
-
-    std::cerr << C_115 "-----------------------------------------]\n";
-    std::cerr << "New client Accepted: " RESET << _clients[client_fd] << std::endl;
-    std::cerr << C_115 "-----------------------------------------]" << std::endl;
-}
-
+#include "defines.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run_better( void ) {
 
@@ -61,7 +24,7 @@ void    Server::run_better( void ) {
             if (connec._status == DOING) {
                 std::cerr << C_512 "-----------------------------------------]\n";
                 std::cerr << connec << C_512 "\n\tstatus: " RESET << C_411 "- DOING -\n";
-                connec._status = connec.ft_doing(); // parsing
+                connec._status = connec.ft_doing();
                 std::cerr << C_512 "-----------------------------------------]" << std::endl;
             }
             
@@ -84,6 +47,7 @@ void    Server::run_better( void ) {
     }
 }
 
+#include <string.h>
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run_simple( void ) {
 

@@ -3,9 +3,11 @@
 
 #include <netinet/in.h>
 #include <map>
+
 #include "connection.hpp"
 #include "ServerSettings.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
+typedef std::map<int, connection>::iterator c_it;
 ///////////////////////////////////////////////////////////////////////////////]
 /**
  * Represents a full Server
@@ -15,6 +17,7 @@
 class Server {
 
 private:
+///////////////////////////////////////////////////////////////////////////////]
     struct sockaddr_in      _addr;
     struct ServerSettings  _settings;
 
@@ -22,8 +25,10 @@ private:
     bool                    _server_status;
 
     std::map<int, connection>   _clients;
+///////////////////////////////////////////////////////////////////////////////]
 
 public:
+///////////////////////////////////////////////////////////////////////////////]
 /**
  * Constructor for the Server.
  *
@@ -37,38 +42,47 @@ public:
  * @return         _server_status true if parsing succeeded, false otherwise.
  */
     Server( const char* confi_file );
-    ~Server( void );
+///////////////////////////////////////////////////////////////////////////////]
+    Server::~Server( void ) { if (_socket_fd >= 0) close(_socket_fd); }
 
+///////////////////////////////////////////////////////////////////////////////]
+//	RUNNING
+///////////////////////////////////////////////////////////////////////////////]
     void    run( void ) {};
     void    run_simple( void );
     void    run_better( void );
-    bool    getStatus() { return _server_status; }
-    ServerSettings    getSettings() { return _settings; }
-    bool    getfd() { return _socket_fd; }
-    std::map<int, connection>::iterator    pop_connec(std::map<int, connection>::iterator it) {
-
-        std::map<int, connection>::iterator next = it;
-        next++;
-        connection& client = it->second;
-
-std::cerr << RED "closing: " RESET << client;
-        if (client._request.headers["connection"] == "keep-alive") {
-            client._request = http_request(); // clear just
-            client._answer = http_answer(); // clear just
-            client._buffer.clear();
-            client._status = READING_HEADER;
-        }
-        else
-            _clients.erase(it);
-        return next;
-    }
 
 
+///////////////////////////////////////////////////////////////////////////////]
+// SETTERS / GETTERS
+///////////////////////////////////////////////////////////////////////////////]
+    bool			getStatus() { return _server_status; }
+    bool			getfd() { return _socket_fd; }
+    ServerSettings	getSettings() { return _settings; }
 
-// STATIC
+/**
+ * Remove the given Client from the list
+ *
+ * @param it   std::map<int, connection> iterator to pop
+ * @return     next client in the list
+ */
+	c_it	pop_connec(c_it it);
+
+///////////////////////////////////////////////////////////////////////////////]
+// PRIVATE
+///////////////////////////////////////////////////////////////////////////////]
 private:
-    static bool create_listening_socket(Server& dis);
-    void    accept_client( void );
+/**
+ * Create the listening socket.
+ *
+ * Fills the struct sockaddr_in _addr
+ *
+ * If return True, the socket is listening and ready to accept
+ *
+ * @return         FALSE on any error (and print the err msg), TRUE otherwise
+ */
+	bool	create_listening_socket( void );
+	void	accept_client( void );
 };
 
 

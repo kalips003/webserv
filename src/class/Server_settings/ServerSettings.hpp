@@ -20,17 +20,21 @@
 struct ServerSettings {
 
 private:
+///////////////////////////////////////////////////////////////////////////////]
 	std::map<std::string, std::string>  _global_settings;
 	std::vector<block>                  _block_settings;
 	int                                 _port_num;
+///////////////////////////////////////////////////////////////////////////////]
 
 public:
 	ServerSettings() : _port_num(-1) {}
 
+///////////////////////////////////////////////////////////////////////////////]
 // SETTERS / GETTERS
 	int		getPortNum( void ) { return _port_num; }
 	void	addSetting(std::string& name, std::string& value) { _global_settings[name] = value; }
 	void	addBlock(block& b) { _block_settings.push_back(b); }
+///////////////////////////////////////////////////////////////////////////////]
 /**
  * Getter for a setting
  *
@@ -38,12 +42,14 @@ public:
  * @return      String of the setting value, empty string "" otherwise
  */
 	std::string find_setting(const std::string& setting) const;
+///////////////////////////////////////////////////////////////////////////////]
 /**
  * Getter for a block setting
  *
  * <TODO> empty for now 
  */
 	std::string find_setting_inBlock(const std::string& set) const;
+///////////////////////////////////////////////////////////////////////////////]
 /**
  * MAIN function parsing the infile.conf
  *
@@ -55,6 +61,7 @@ public:
  *
  */
 	bool	parse_config_file(const char* confi_file);
+///////////////////////////////////////////////////////////////////////////////]
 /**
  * Check that the config file has the minimum settings
  , set them to default if missing
