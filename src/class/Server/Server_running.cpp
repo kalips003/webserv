@@ -14,28 +14,28 @@ void    Server::run_better( void ) {
 
             Connection &connec = it->second;
             
-            if (connec._status <= READING_BODY) {
+            if (connec.getStatus() <= READING_BODY) {
                 std::cerr << C_515 "-----------------------------------------]\n";
                 std::cerr << connec << C_515 "\n\tstatus: " RESET << C_411 "- READING -\n";
-                connec._status = connec.ft_read(buffer, sizeof(buffer));
+                connec.ft_read(buffer, sizeof(buffer));
                 std::cerr << C_515 "-----------------------------------------]" << std::endl;
             }
 
-            if (connec._status == DOING) {
+            if (connec.getStatus() == DOING) {
                 std::cerr << C_512 "-----------------------------------------]\n";
                 std::cerr << connec << C_512 "\n\tstatus: " RESET << C_411 "- DOING -\n";
                 connec._status = connec.ft_doing();
                 std::cerr << C_512 "-----------------------------------------]" << std::endl;
             }
             
-            if (connec._status == SENDING) {
+            if (connec.getStatus() == SENDING) {
                 std::cerr << C_431 "-----------------------------------------]\n";
                 std::cerr << connec << C_431 "\n\tstatus: " RESET << C_411 "- SENDING -\n";
                 connec._status = connec.ft_send(buffer, sizeof(buffer));
                 std::cerr << C_431 "-----------------------------------------]" << std::endl;
             }
 
-            if (connec._status == CLOSED) {
+            if (connec.getStatus() == CLOSED) {
                 std::cerr << C_330 "-----------------------------------------]\n";
                 std::cerr << connec << C_330 "\n\tstatus: " RESET << C_411 "- CLOSED -\n";
                 it = pop_connec(it);

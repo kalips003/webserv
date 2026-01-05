@@ -27,8 +27,9 @@ private:
     Task                *_body_task;
 
     ConnectionStatus    _status; // READING 0 SENDING 1 CLOSED 2
-///////////////////////////////////////////////////////////////////////////////]
 
+public:
+///////////////////////////////////////////////////////////////////////////////]
     Connection() :
         _client_fd(-1), _addr_len(sizeof(_client_addr)), 
         _body_task(NULL), _status(FIRST) {}
@@ -38,7 +39,10 @@ private:
         _body_task(NULL), _status(FIRST) {}
 
 
-
+///////////////////////////////////////////////////////////////////////////////]
+// SETTERS / GETTERS
+    enum ConnectionStatus getStatus() { return _status; }
+    void setStatus(ConnectionStatus newStatus) { _status = newStatus; }
 
 
 public:
@@ -62,6 +66,11 @@ public:
         before append check if delimitor is found in buffer "\r\n\r\n" 
         if delim found, parse it into request, copy the rest into msg, change status to DOING*/
     enum ConnectionStatus   ft_read(char *buff, size_t sizeofbuff);
+    void ft_read_v2(char *buff, size_t sizeofbuff);
+
+
+
+
 private:
 /*  called after the first read, to make sure request is valid "METHOD /path HTTP/1.1" */    
     enum ConnectionStatus   parse_header_first_read(std::string first_rec);

@@ -59,10 +59,10 @@ public:
     size_t getBodySize() const { return _body_size; }
 
 ///////////////////////////////////////////////////////////////////////////////]
-    int    parse_header_first_read();
+    int    parse_header_first_read(std::string& str_buff);
     void   addBuffer(std::string& s);
-    int    check_buffer_for_rnrn();
-
+    int    check_buffer_for_rnrn(std::string& buff);
+    void    f1(std::string& str_buff);
 
 };
 

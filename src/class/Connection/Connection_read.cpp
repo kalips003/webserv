@@ -47,6 +47,58 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
     return _status;
 }
 
+/*  v2 */
+void Connection::ft_read_v2(char *buff, size_t sizeofbuff) {
+
+    ssize_t bytes_recv = recv(_client_fd, buff, sizeofbuff - 1, 0);
+
+    if (bytes_recv == 0) {
+        std::cerr << RED "connection closed (FIN received)" RESET << std::endl;
+        _status = CLOSED;
+        return;
+    }
+    else if (bytes_recv < 0) {// treat as generic fail (no errno)
+        if (!(errno == EAGAIN || errno == EWOULDBLOCK)) {
+            printErr(RED "recv() failed" RESET);
+            _status = CLOSED;
+        }
+        return ; // (else) fcntl()'s fault, no data to read yet
+    }
+
+    buff[bytes_recv] = '\0';
+    std::string str_buff(buff, bytes_recv);
+    std::cerr << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes): \n[" RESET << str_buff << C_134 "]" RESET << std::endl;
+
+    if (_status == FIRST) {
+        int err_rtrn = _request.parse_header_first_read();
+        if (err_rtrn < 100)
+            _status = static_cast<ConnectionStatus>(err_rtrn);
+        else
+            return create_error(err_rtrn);
+    }
+
+    if (_status <= READING_HEADER) {
+        int err_rtrn = _request.check_buffer_for_rnrn();
+        if (err_rtrn < 100)
+            _status = static_cast<ConnectionStatus>(err_rtrn);
+        else
+            return create_error(err_rtrn);
+    }
+        _status = check_buffer_for_rnrn(buff);
+    
+    else if (_status == READING_BODY) {
+
+        if (_request._body_size < 4096)
+            _request._body += str_buff;
+        else if (_request._fd_body >= 0)
+            write(_request._fd_body, buff, bytes_recv); // write(_request.fd_body, buff, bytes)
+        _request._body_bytes_received += bytes_recv;
+        if (_request._body_bytes_received >= static_cast<size_t>(_request._body_size))
+            return DOING;
+
+    }
+    return _status;
+}
 
 #include "HttpMethods.hpp"
 ///////////////////////////////////////////////////////////////////////////////]

@@ -5,6 +5,8 @@
 #define HOW_MANY_REQUEST_PER_LISTEN 4
 
 #define MAX_BODY_SIZE   8192
+#define MAX_LIMIT_FOR_HEAD 1000
+
 
 #include <map>
 #include <vector>
