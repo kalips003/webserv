@@ -70,21 +70,22 @@ void Connection::ft_read_v2(char *buff, size_t sizeofbuff) {
     std::cerr << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes): \n[" RESET << str_buff << C_134 "]" RESET << std::endl;
 
     if (_status == FIRST) {
-        int err_rtrn = _request.parse_header_first_read();
-        if (err_rtrn < 100)
-            _status = static_cast<ConnectionStatus>(err_rtrn);
-        else
-            return create_error(err_rtrn);
+        int err_rtrn = _request.parse_header_first_read(str_buff);
+        if (err_rtrn >= 100) {
+            _status = create_error(err_rtrn);
+            return ;
+        }
+        _status = static_cast<ConnectionStatus>(err_rtrn);
     }
 
     if (_status <= READING_HEADER) {
-        int err_rtrn = _request.check_buffer_for_rnrn();
-        if (err_rtrn < 100)
-            _status = static_cast<ConnectionStatus>(err_rtrn);
-        else
-            return create_error(err_rtrn);
+        int err_rtrn = _request.check_buffer_for_rnrn(str_buff);
+        if (err_rtrn >= 100) {
+            _status = create_error(err_rtrn);
+            return ;
+        }
+        _status = static_cast<ConnectionStatus>(err_rtrn);
     }
-        _status = check_buffer_for_rnrn(buff);
     
     else if (_status == READING_BODY) {
 

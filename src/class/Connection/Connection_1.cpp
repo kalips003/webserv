@@ -34,8 +34,3 @@ enum ConnectionStatus    Connection::create_error(int err_code) {
     }
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////]
-    enum ConnectionStatus Connection::getStatus();
-    void Connection::setStatus(ConnectionStatus newStatus);

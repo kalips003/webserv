@@ -9,7 +9,7 @@ class Task {
 
 public:
     std::string             _buffer; 
-    http_request&           _request;
+    const http_request&           _request;
     http_answer&            _answer;
     const ServerSettings&  _settings;
 
@@ -68,7 +68,6 @@ public:
 // Accept-Encoding: gzip, deflate
 // Connection: keep-alive
 class   Ft_get : public Task {
-
 
 
 public:

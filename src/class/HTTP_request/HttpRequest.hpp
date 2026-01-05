@@ -63,6 +63,7 @@ public:
     void   addBuffer(std::string& s);
     int    check_buffer_for_rnrn(std::string& buff);
     void    f1(std::string& str_buff);
+    bool	isPathValid(std::string& path);
 
 };
 

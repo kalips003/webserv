@@ -24,7 +24,7 @@ void    Server::run_better( void ) {
             if (connec.getStatus() == DOING) {
                 std::cerr << C_512 "-----------------------------------------]\n";
                 std::cerr << connec << C_512 "\n\tstatus: " RESET << C_411 "- DOING -\n";
-                connec._status = connec.ft_doing();
+                connec._status = connec._body_task.do();
                 std::cerr << C_512 "-----------------------------------------]" << std::endl;
             }
             

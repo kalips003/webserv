@@ -77,6 +77,13 @@ int    HttpRequest::check_buffer_for_rnrn(std::string& buff) {
 
     std::string delim = "\r\n\r\n";
 
+    size_t  pos = buff.find(delim[_header_delim_progress]);
+
+    for (size_t i = _header_delim_progress; i < delim.size(); ++i) {
+    
+        if ()
+    }
+
     while (*buff != '\0') {
 
         if (*buff == delim[_request._header_delim_progress]) {
