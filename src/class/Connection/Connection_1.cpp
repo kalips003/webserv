@@ -34,3 +34,13 @@ enum ConnectionStatus    Connection::create_error(int err_code) {
     }
 }
 
+
+std::ostream& operator<<(std::ostream& os, const Connection& c) {
+
+    os << C_152 "Client n." RESET << c._client_fd;
+    // os << C_152 "Client n." RESET << c._client_fd << std::endl;
+    // os << C_434 "addr: " RESET << c._client_addr.sin_addr.s_addr << std::endl;
+    return os;
+}
+
+

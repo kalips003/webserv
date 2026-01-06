@@ -86,7 +86,7 @@ std::vector<std::string> splitOnWhite(const std::string& s) {
 ///////////////////////////////////////////////////////////////////////////////]
 std::string itostr(int n) {
 
-    std::ostringstream oss;
-    oss << n;
-    return oss.str();
+    std::stringstream ss;
+    ss << n;
+    return ss.str();
 }

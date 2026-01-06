@@ -166,11 +166,15 @@ src/$(OBJ_FOLDER0)/%.o: src/%.cpp
 # ╰──────────────────────────────────────────────────────────────────────╯
 
 TEST_FOLDER = data/tests
+TEST_PATH_FILE = src/class/HTTP_request/
+FILES_TEST = $(TEST_PATH_FILE)HttpRequest.cpp \
+	src/kali/_A.cpp \
+	$(wildcard src/Tools/*.cpp) $(wildcard src/vocabulary/*.cpp)
 
 test: $(TEST_FOLDER)/main.cpp
 	@rm -f $(TEST_FOLDER)/a.out
 	@clear
-	-@$(CC) $(FLAGS_LESS) $(TEST_FOLDER)/main.cpp -o $(TEST_FOLDER)/a.out
+	-@$(CC) $(FLAGS_LESS) $(INC) $(FILES_TEST) $(TEST_FOLDER)/main.cpp -o $(TEST_FOLDER)/a.out
 	@if [ ! -e $(TEST_FOLDER)/a.out ]; then\
 		$(call print_cat, "", $(RED), $(GOLD), $(RED_L), $(call pad_word, 10, "The⠀Cake"), $(call pad_word, 12, "Is⠀A⠀Lie..")); \
 		exit 3; \

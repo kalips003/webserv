@@ -20,6 +20,16 @@ public:
 
     virtual int ft_do() { return 0; }
 };
+
+///////////////////////////////////////////////////////////////////////////////]
+Task* createTask(const std::string& method, http_request& req, http_answer& ans) {
+    if (method == "GET")       return new Ft_get(req, ans);
+    // else if (method == "POST") return new Ft_post(req, ans);
+    // else if (method == "PUT")  return new Ft_put(req, ans);
+    // ... other methods
+    else return NULL;  // unknown method → 405 or reject
+}
+
 ///////////////////////////////////////////////////////////////////////////////]
 /*
 | Method      | Purpose / Client asks                         | Body allowed?                                |

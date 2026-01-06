@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
 
 ///////////////////////////////////////////////////////////////////////////////]
 /**
@@ -64,9 +65,9 @@ std::string itostr(int n);
 template <typename Num>
 std::string itostr(Num n) {
 
-    std::ostringstream oss;
-    oss << n;
-    return oss.str();
+    std::stringstream ss;
+    ss << n;
+    return ss.str();
 }
 
 #endif

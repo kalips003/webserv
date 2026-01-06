@@ -3,22 +3,37 @@
 #include <string>
 #include <iostream>
 
-#include "../../src/webserv.hpp"
+#include "HttpRequest.hpp"
+#include "Tools1.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
+
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 int main(int ac, char** av)
 {
-    int a = isMethodValid("GET");
-    std::cout << "a: " << a << std::endl;
+	HttpRequest	h;
+	std::string s = "GET /index.html HTTP/1.1\r\nHost: ex";
+	int r = h.parse_header_first_read(s);
+	std::cout << C_154 "rtrn: " RESET << r << std::endl;
+	std::cout << C_234 "_method: " RESET << h.getMethod() << std::endl;
+	std::cout << C_234 "_path: " RESET << h.getPath() << std::endl;
+	std::cout << C_234 "_version: " RESET << h.getVersion() << std::endl;
+	std::cout << C_234 "_buffer: " RESET << h.getBuffer() << std::endl;
+	std::cout << h;
 
+	std::cout << "-----------------------------------\n";
+	std::string s2 = "GET /index.html HTTP/1.1\r\n\r\n";
 
-    const std::vector<std::string>&    reqHeader = http_method_list();
-    for (size_t i = 0; i < reqHeader.size(); ++i) {
-        std::cout << reqHeader[i] << std::endl;
-    }
-	return 0;                  
+    std::vector<std::string> v;
+    v = splitOnDelimitor(s2, "\r\n");
+	for (std::vector<std::string>::iterator it = v.begin(); it != v.end(); ++it) {
+		std::cout << C_552 "[" RESET << *it << C_552 "]" RESET << std::endl;
+	}
+	std::cout << "-----------------------------------\n";
+	std::cout << "size: " << v.size();
+
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
