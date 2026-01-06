@@ -4,6 +4,9 @@
 #include <iostream>
 #include <unistd.h>
 #include <sstream>
+#include <algorithm>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "Tools1.hpp"
 #include "HttpMethods.hpp"
@@ -11,8 +14,14 @@
 // #include <unistd.h>
 HttpRequest::~HttpRequest() { if (_fd_body > 0) close(_fd_body); }
 
-///////////////////////////////////////////////////////////////////////////////]
 // #include "Tools1.hpp" // atoi
+///////////////////////////////////////////////////////////////////////////////]
+/** parse the headers to find if there is a body, return its length
+*
+* @return length of "body-size"
+*
+* if no "body-size" is found, return 0,
+* if "body-size" is incorrect, return -1			---*/
 ssize_t      HttpRequest::isThereBody() const {
 
     map_istr::const_iterator it = _headers.find("body-size");
@@ -25,6 +34,10 @@ ssize_t      HttpRequest::isThereBody() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
+/** find the given setting in the _headers
+*	@return the string value of the setting
+*
+* if setting not found, return "" empty string	---*/
 std::string HttpRequest::find_setting(const std::string& set) const {
 
     map_strstr::const_iterator it = _headers.begin();
@@ -37,10 +50,18 @@ std::string HttpRequest::find_setting(const std::string& set) const {
         return it->second;    
 }
 
-///////////////////////////////////////////////////////////////////////////////]
 // #include "HttpMethods.hpp"
 // #include <sstream>
-int    HttpRequest::parse_header_first_read(std::string& str_buff) {
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+/** Add given string to _buffer, parse it for "\r\n"
+* 
+* if found, parse the HEAD of request, and remove it from _buffer
+* 
+* @return if delim found, return READING_HEADER if HEAD valid, errCode if not
+* 
+* if delim ("\r\n") not found, return FIRST			---*/
+int    HttpRequest::readingFirstLine(std::string& str_buff) {
 
     _buffer += str_buff;
 
@@ -85,7 +106,8 @@ int    HttpRequest::parse_header_first_read(std::string& str_buff) {
     return READING_HEADER;
 }
 
-///////////////////////////////////////////////////////////////////////////////]
+//-----------------------------------------------------------------------------]
+/** Check the syntax validity of the path, doesnt check if file exist	---*/
 bool	HttpRequest::isPathValid(std::string& path) {
 
 	if (path.empty())
@@ -103,7 +125,18 @@ bool	HttpRequest::isPathValid(std::string& path) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-int    HttpRequest::check_buffer_for_rnrn(std::string& buff) {
+///////////////////////////////////////////////////////////////////////////////]
+/** Called while reading headers, 
+check _buffer + buff for CRLF
+*
+* @return READING_HEADER if not found
+*
+* DOING if no body
+*
+* READING_BODY if body and parsing went well
+* 
+* errCode if parsing went bad			---*/
+int    HttpRequest::readingHeaders(std::string& buff) {
 
     std::string delim = "\r\n\r\n";
 
@@ -115,87 +148,155 @@ int    HttpRequest::check_buffer_for_rnrn(std::string& buff) {
 	_buffer += buff;
 	if (pos == std::string::npos)
 		return READING_HEADER;
-	else {
-		pos = _buffer.find(delim);
-		_body = _buffer.substr(pos + delim.size());
-		_buffer = _buffer.substr(0, pos + 2); // leave one '\r\n' after the last header
-		_body_bytes_received += _body.size();
-	}
-	
-    return READING_BODY;
-    // return parse_header_wrapper(buff);
+	else
+		return parsingHeaders(delim);
 }
 
+//-----------------------------------------------------------------------------]
+/** Wrapper for all the parsing and checking
+* @return READING_BODY if body, DOING if not, errCode if error 	---*/
+int	HttpRequest::parsingHeaders(std::string& delim) {
 
-#include <algorithm>
-//?????????????????????????????????????????????????????????????????????????????]
-// takes the string containing all the headers, ending in "\r\n\r\n"
-// fills the struct http_request, return false on error (parsing errors, invalid http request)
-//  parse only invalid syntax, not validity of the content
-// bool HttpRequest::parse_header_for_syntax() {
+// Move the start of the body into _body
+	size_t pos = _buffer.find(delim);
+	_body = _buffer.substr(pos + delim.size());
+	_buffer = _buffer.substr(0, pos + 2); // leave one '\r\n' after the last header
+	_body_bytes_received += _body.size();
 
-//     std::vector<std::string> v;
-//     v = splitOnDelimitor(_buffer, "\r\n");
-//     if (!v.size())
-//         return printErr(ERR9 "emtpy vector"); // emtpy vector, no headers
+	int errRtrn = parse_header_for_syntax();
+	if (errRtrn != READING_BODY) {
+		std::cerr << RED "ERROR SYNTAX - " RESET "while parsing headers" << std::endl;
+		return errRtrn;
+	}
 
-// 	v.erase(v.begin());
-//     std::vector<std::string>::iterator it = v.begin();
-//     ++it;
-//     int i = 0;
-//     while (!(*it).empty()) {
-//         i++;
-//         size_t colon_pos = it->find(':');
-//         if (colon_pos == std::string::npos)
-//             return printErr(ERR8 "bad header?, no colon");           
+	errRtrn = parse_headers_for_validity();
+	if (errRtrn > 100) {
+		std::cerr << RED "ERROR - " RESET "while parsing headers" << std::endl;
+		return errRtrn;
+	}
+
+	return errRtrn;
+}
+
+// #include <algorithm>
+//-----------------------------------------------------------------------------]
+/** Parse the _buffer containing CRLF,
+* split it into _headers
+*
+* Parse only invalid syntax, not validity of the content
+*
+* @return READING_BODY if parsing was succesful, errCode otherwise
+*
+* clear _buffer memory after parsing			---*/
+int HttpRequest::parse_header_for_syntax() {
+
+    std::vector<std::string> v;
+    v = splitOnDelimitor(_buffer, "\r\n");
+    if (!v.size()) {
+		_buffer.clear();
+		printErr(ERR9 "emtpy vector (should never see this)");
+        return 400;
+	}
+
+    std::vector<std::string>::iterator it = v.begin();
+    ++it; // move past first line: "GET /index.html HTTP/1.1"
+
+    while (it != v.end()) {
+
+        size_t colon_pos = it->find(':');
+        if (colon_pos == std::string::npos) {
+			std::cerr << ERR8 "bad header: " RESET << *it << std::endl;
+			_buffer.clear();
+            return 400;
+		}
             
-//         std::string key = trim_white(it->substr(0, colon_pos));
-//         std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-//         std::string value = trim_white(it->substr(colon_pos + 1));
-//         _headers[key] = value;
+        std::string key = trim_white(it->substr(0, colon_pos));
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+        std::string value = trim_white(it->substr(colon_pos + 1));
+        _headers[key] = value;
 
-//         ++it;
-//     }
-//     return true;
-// }
+        ++it;
+    }
+	_buffer.clear();
+    return READING_BODY;
+}
 
+//-----------------------------------------------------------------------------]
+/** Parse the _headers,
+* fill _body_size
+*
+* @return READING_BODY if body, DOING if not, errCode if error 	---*/
+int    HttpRequest::parse_headers_for_validity() {
 
+    _body_size = isThereBody();
+    if (_body_size < 0)
+        return printErr(ERR9 "bad body-size"), 400;
 
+	if (_body_size > MAX_BODY_SIZE) { // <-----------------------------------------------------]
+		openFdBody("./temp/todolater");
+	}
 
+// *** OTHER CHECKS AND FILLINGS HERE
+	// std::string temp;
+	// temp = find_setting("content-length");
 
+    if (!_body_size || _body_bytes_received >= static_cast<size_t>(_body_size))
+        return DOING;
+    else 
+        return READING_BODY;
+}
 
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+/**	Manage the new read and append it to the correct body 
+*
+* if body small, append to _body
+* if big, write to _fd_body
+*
+* @return DOING if body finished to be received, READING_BODY otherwise	---*/
+int	HttpRequest::readingBody(std::string& buff) {
 
+	if (_body_size < MAX_BODY_SIZE)
+		_body += buff;
+	else if (_fd_body >= 0)
+		write(_fd_body, buff.c_str(), buff.size());
 
-// //?????????????????????????????????????????????????????????????????????????????]
-// enum ConnectionStatus    HttpRequest::parse_header_wrapper(char *buf) {
+	_body_bytes_received += buff.size();
 
-//     bool    request_good = parse_header_for_syntax();
-//     if (!request_good)
-//         return create_error(400);
+	if (_body_bytes_received >= static_cast<size_t>(_body_size))
+		return DOING;
+	return READING_BODY;
+}
 
-//     _request._body_size = _request.isThereBody();
-//     if (_request._body_size < 0) {
-//         printErr(ERR9 "bad body-size");
-//         return create_error(400);
-//     }
+// #include <sys/stat.h>
+// #include <fcntl.h>
+///////////////////////////////////////////////////////////////////////////////]
+/**	Open the Fd for the big body, 
+* copy the remainder of _body into it (and clear it)
+*
+* @return READING_BODY if all good, errCode otherwise
+*
+* @flags:
+* O_CREAT (if not exist),
+* O_RDWR (read/write rights),
+* O_TRUNC (safety if name reused),
+* 0600 (server-only access)
+*	---*/
+int	HttpRequest::openFdBody(const char* path) {
 
-//     _request._body = std::string(buf);
-//     _request._body_bytes_received = _request._body.size();
-//     // _buffer = "";
-//     _buffer.clear();
-    
-//     _body_task = createTask(_request._method, _request, _answer);
-//     if (_body_task->_status) {
-//         std::cerr << "BodyTask status: " << _body_task->_status << std::endl;
-//         // return create_error(_body_task->_status);
-//     }
-//     if (!_request._body_size || _request._body_bytes_received >= static_cast<size_t>(_request._body_size))
-//         return DOING;
-//     else 
-//         return READING_BODY;
-// }
+	_fd_body = open(path, O_CREAT | O_RDWR | O_TRUNC, 0600);
 
+	if (_fd_body < 0)
+		return printErr(ERR9 "bad body-size"), 400;
+ 
+	_tmp_body_path = path;
 
+	write(_fd_body, _body.c_str(), _body.size());
+
+	_body.clear();
+
+	return READING_BODY;
+}
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]

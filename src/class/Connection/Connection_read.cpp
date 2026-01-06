@@ -70,7 +70,7 @@ void Connection::ft_read_v2(char *buff, size_t sizeofbuff) {
     std::cerr << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes): \n[" RESET << str_buff << C_134 "]" RESET << std::endl;
 
     if (_status == FIRST) {
-        int err_rtrn = _request.parse_header_first_read(str_buff);
+        int err_rtrn = _request.readingFirstLine(str_buff);
         if (err_rtrn >= 100) {
             _status = create_error(err_rtrn);
             return ;
@@ -79,7 +79,7 @@ void Connection::ft_read_v2(char *buff, size_t sizeofbuff) {
     }
 
     if (_status <= READING_HEADER) {
-        int err_rtrn = _request.check_buffer_for_rnrn(str_buff);
+        int err_rtrn = _request.readingHeaders(str_buff);
         if (err_rtrn >= 100) {
             _status = create_error(err_rtrn);
             return ;

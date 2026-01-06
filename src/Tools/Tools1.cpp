@@ -62,11 +62,13 @@ std::vector<std::string> splitOnDelimitor(const std::string& s, std::string deli
 
     while ((pos2 = s.find(delimit, pos1)) != std::string::npos) {
         line = s.substr(pos1, pos2 - pos1);
-        rtrn.push_back(line);
+		if (!line.empty())
+        	rtrn.push_back(line);
         pos1 = pos2 + delimit.size();
     }
     line = s.substr(pos1);
-    rtrn.push_back(line); 
+	if (!line.empty())
+    	rtrn.push_back(line); 
 
     return rtrn;
 }

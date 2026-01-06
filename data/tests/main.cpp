@@ -13,17 +13,20 @@
 int main(int ac, char** av)
 {
 	HttpRequest	h;
-	std::string s = "GET /index.html HTTP/1.1\r\nHost: ex";
-	int r = h.parse_header_first_read(s);
+	std::string s = "GET /index.html HTTP/1.1\r\nHost: ex\r";
+	std::string s3 = "\nbody-size: 25\r\n\r\n";
+	int r = h.readingFirstLine(s);
 	std::cout << C_154 "rtrn: " RESET << r << std::endl;
 	std::cout << C_234 "_method: " RESET << h.getMethod() << std::endl;
 	std::cout << C_234 "_path: " RESET << h.getPath() << std::endl;
 	std::cout << C_234 "_version: " RESET << h.getVersion() << std::endl;
 	std::cout << C_234 "_buffer: " RESET << h.getBuffer() << std::endl;
+
+	h.readingHeaders(s3);
 	std::cout << h;
 
 	std::cout << "-----------------------------------\n";
-	std::string s2 = "GET /index.html HTTP/1.1\r\n\r\n";
+	std::string s2 = "GET /index.html HTTP/1.1\r\nHost: ex\r\n\r\n";
 
     std::vector<std::string> v;
     v = splitOnDelimitor(s2, "\r\n");
