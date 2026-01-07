@@ -35,12 +35,12 @@ private:
     std::string         _tmp_body_path; // "./tmp/body_12345.tmp"
     enum BodyMode       _body_type; // content-length mode; chunked-transfer mode; no body expected (GET, HEAD); multipart (POST form/file)
 
-    int                 _header_delim_progress; // where are we of "\r\n\r\n"
+	bool				_bodyistemp; // if no need to keep the temp body file, delete from temp
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
     HttpRequest() : _body_size(0), _body_bytes_received(0), _fd_body(-1),
-        _body_type(BODY_NONE), _header_delim_progress(0) {}
+        _body_type(BODY_NONE) {}
     ~HttpRequest();
 
 //-----------------------------------------------------------------------------]

@@ -228,9 +228,9 @@ int HttpRequest::parse_header_for_syntax() {
 * @return READING_BODY if body, DOING if not, errCode if error 	---*/
 int    HttpRequest::parse_headers_for_validity() {
 
-    _body_size = isThereBody();
-    if (_body_size < 0)
-        return printErr(ERR9 "bad body-size"), 400;
+	_body_size = isThereBody();
+	if (_body_size < 0)
+		return printErr(ERR9 "bad body-size"), 400;
 
 	if (_body_size > MAX_BODY_SIZE) { // <-----------------------------------------------------]
 		openFdBody("./temp/todolater");
@@ -240,10 +240,10 @@ int    HttpRequest::parse_headers_for_validity() {
 	// std::string temp;
 	// temp = find_setting("content-length");
 
-    if (!_body_size || _body_bytes_received >= static_cast<size_t>(_body_size))
-        return DOING;
-    else 
-        return READING_BODY;
+	if (!_body_size || _body_bytes_received >= static_cast<size_t>(_body_size))
+		return DOING;
+	else 
+		return READING_BODY;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

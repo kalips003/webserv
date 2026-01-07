@@ -1,7 +1,9 @@
-#include "webserv.hpp"
 
 #include <unistd.h>
 #include <cstring>
+#include <iostream>
+#include "Tools1.hpp"
+#include "_colors.h"
 ///////////////////////////////////////////////////////////////////////////////]
 // v 1.0
 /*

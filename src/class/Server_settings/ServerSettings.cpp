@@ -17,6 +17,6 @@ std::string ServerSettings::find_setting(const std::string& setting) const {
 
 ///////////////////////////////////////////////////////////////////////////////]
 std::string ServerSettings::find_setting_inBlock(const std::string& set) const {
-
+	(void)set;
 	return "";
 }

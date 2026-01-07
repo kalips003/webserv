@@ -1,34 +1,30 @@
 #ifndef TASK_HPP
 #define TASK_HPP
 
-// #include "webserv.hpp"
+class Connection;
+class Server;
+class HttpRequest;
+class httpAnswer;
+class ServerSettings;
 
+#include <string>
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 class Task {
 
+private:
+	std::string				_buffer; 
+	const HttpRequest&		_request;
+	httpAnswer&				_answer;
+	const ServerSettings&	_settings;
+
+	int						_status; // 404
+
 public:
-    std::string             _buffer; 
-    const http_request&           _request;
-    http_answer&            _answer;
-    const ServerSettings&  _settings;
+	Task(Connection& connec, Server& s);
 
-    int             _status; // 404
-
-    Task(Connection& connec, Server& s) : 
-        _request(connec._request), _answer(connec._answer), _settings(s.getSettings()), _status(0) {}
-
-    virtual int ft_do() { return 0; }
+	virtual int ft_do() { return 0; }
 };
-
-///////////////////////////////////////////////////////////////////////////////]
-Task* createTask(const std::string& method, http_request& req, http_answer& ans) {
-    if (method == "GET")       return new Ft_get(req, ans);
-    // else if (method == "POST") return new Ft_post(req, ans);
-    // else if (method == "PUT")  return new Ft_put(req, ans);
-    // ... other methods
-    else return NULL;  // unknown method → 405 or reject
-}
 
 ///////////////////////////////////////////////////////////////////////////////]
 /*
@@ -44,15 +40,6 @@ Task* createTask(const std::string& method, http_request& req, http_answer& ans)
 | **CONNECT** | Ask server to open a tunnel (HTTPS proxy)     | No body; used to establish tunnel            |
 | **TRACE**   | Echo back the request                         | No body                                      |
 */
-
-
-
-// once we know the method after header parsing, we can know how to 
-//      execute it
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////]
 /*
@@ -70,49 +57,6 @@ Task* createTask(const std::string& method, http_request& req, http_answer& ans)
 | `Referer`           | URL of the page linking to this resource                                  |
 | `Cookie`            | session cookies, auth tokens                                              |
 */
-
-// GET /index.html HTTP/1.1
-// Host: example.com
-// User-Agent: curl/8.0
-// Accept: text/html
-// Accept-Encoding: gzip, deflate
-// Connection: keep-alive
-class   Ft_get : public Task {
-
-
-public:
-    Ft_get(Connection& connec, Server& s) : Task(connec, s) {
-
-        std::string server_path = _settings.find_setting("root");
-        if (server_path.empty()) {
-            std::cerr << ERR7 "ERROR?" << std::endl;
-        }
-        std::string requested_path = server_path + "/" + _request.path;
-        if (access(requested_path.c_str(), F_OK)) {
-            std::cerr << ERR7 "path invalid: " << requested_path << std::endl;
-            printErr(RED "access" RESET);
-            _status = 404;
-            return;
-            if (access(requested_path.c_str(), R_OK)) {
-                std::cerr << ERR7 "not readable: " << requested_path << std::endl;
-                printErr(RED "access" RESET);
-                _status = 403;
-                return;
-            }
-        }
-        struct stat st;
-        if (stat(requested_path.c_str(), &st) == 0)
-            if (S_ISDIR(st.st_mode))
-                requested_path += "/index.html";
-
-        // ....
-    }
-    int ft_do() {
-        std::cout << C_431 "IM ALIVE! (GET)" RESET << std::endl;
-        return 0;
-    }
-    // ....
-};
 
 
 

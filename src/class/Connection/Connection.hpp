@@ -3,13 +3,15 @@
 
 #include <string>
 
-// #include <sys/socket.h>
 #include <netinet/in.h>
 
 #include "defines.hpp"
-#include "Task.hpp"
+
 #include "HttpAnswer.hpp"
 #include "HttpRequest.hpp"
+
+class Task;
+///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 class Connection {
@@ -20,87 +22,64 @@ private:
     struct sockaddr_in  _client_addr; // struct with informations about the client
     socklen_t           _addr_len; // ?
 
-    std::string         _buffer;
-
     HttpRequest         _request;
     httpAnswer          _answer;
     Task                *_body_task;
 
-    ConnectionStatus    _status; // READING 0 SENDING 1 CLOSED 2
+    ConnectionStatus    _status; // FIRST = 0, READING_HEADER, READING_BODY, DOING, SENDING, CLOSED
+///////////////////////////////////////////////////////////////////////////////]
 
 public:
-///////////////////////////////////////////////////////////////////////////////]
-    Connection() :
-        _client_fd(-1), _addr_len(sizeof(_client_addr)), 
-        _body_task(NULL), _status(FIRST) {}
+	Connection() :
+		_client_fd(-1), _addr_len(sizeof(_client_addr)), 
+		_body_task(NULL), _status(FIRST) {}
 
-    Connection(int fd, struct sockaddr_in c, socklen_t a) :
-        _client_fd(fd), _client_addr(c), _addr_len(a), 
-        _body_task(NULL), _status(FIRST) {}
+	Connection(int fd, struct sockaddr_in c, socklen_t al) :
+		_client_fd(fd), _client_addr(c), _addr_len(al), 
+		_body_task(NULL), _status(FIRST) {}
+	
+	~Connection();
 
-
-///////////////////////////////////////////////////////////////////////////////]
-// SETTERS / GETTERS
-    enum ConnectionStatus getStatus() { return _status; }
-    void setStatus(ConnectionStatus newStatus) { _status = newStatus; }
-
-
+//-----------------------------------------------------------------------------]
 public:
-/*  fills _answer with err_code, */
-    enum ConnectionStatus   create_error(int err_code);
-///////////////////////////////////////////////////////////////////////////////]
-//          FT READ
+	bool					ft_update(char *buff, size_t sizeofbuff);
+//-----------------------------------------------------------------------------]
 public:
-/**
- * Read from provided buffer once
- *
- * Stores received data into _buffer, keep doing so until the first "\r\n" is found
- * Internally update the _Request object
- *
- *
- * @param buff   Buffer to read from
- * @param sizeofbuff   Size of said buffer
- * @return      enum ConnectionStatus corresponding to the state of the connection after this one read
- */
-/*  read from provided buffer once. append to msg
-        before append check if delimitor is found in buffer "\r\n\r\n" 
-        if delim found, parse it into request, copy the rest into msg, change status to DOING*/
-    enum ConnectionStatus   ft_read(char *buff, size_t sizeofbuff);
-    void ft_read_v2(char *buff, size_t sizeofbuff);
+    enum ConnectionStatus	ft_read(char *buff, size_t sizeofbuff);
 
-
-
-
-private:
-/*  called after the first read, to make sure request is valid "METHOD /path HTTP/1.1" */    
-    enum ConnectionStatus   parse_header_first_read(std::string first_rec);
-/*  check each buffer for the presence of delim "\r\n\r\n" 
-        keep in memory where we are at, in _request.status_delim */
-    enum ConnectionStatus   check_buffer_for_rnrn(char *buff);
-/*  true return function, called once "\r\n\r\n" is found
-        does the parsing / error handling on the fully downloaded headers */
-    enum ConnectionStatus   parse_header_wrapper(char *buf);
-/*  parse _buffer into _request, return false if any pb */
-    bool                    parse_header_for_syntax();
-
-///////////////////////////////////////////////////////////////////////////////]
-//          FT DOING
+//-----------------------------------------------------------------------------]
 public:
-    enum ConnectionStatus     ft_doing( void ) {
-        if (!_body_task)
-            return SENDING; // error
-        int r = _body_task->ft_do();
-        if (r)
-            create_error(r);
-        else
-            _answer.http_answer_ini();
-        return SENDING;
-    }
-///////////////////////////////////////////////////////////////////////////////]
-//          FT SEND
+    enum ConnectionStatus	ft_doing( void );
+
+//-----------------------------------------------------------------------------]
 public:
-    enum ConnectionStatus     ft_send(char *buff, size_t sizeofbuff);
-private:
+    enum ConnectionStatus	ft_send(char *buff, size_t sizeofbuff);
+
+
+
+//-----------------------------------------------------------------------------]
+public:
+///////////////////////////////////////////////////////////////////////////////]
+/***  GETTERS  ***/
+    int                         getClientFd() const { return _client_fd; }
+    const struct sockaddr_in&   getClientAddr() const { return _client_addr; }
+    socklen_t                   getAddrLen() const { return _addr_len; }
+//
+    HttpRequest&                getRequest() { return _request; }
+    httpAnswer&                 getAnswer() { return _answer; }
+//
+    Task*                       getBodyTask() const { return _body_task; }
+    ConnectionStatus            getStatus() const { return _status; }
+//
+	const std::string			findRequestHeader(std::string header) { return _request.find_setting(header); }
+	// const std::string&			findAnswerHeader(std::string header) { return _answer.find_setting(header); }
+
+/***  SETTERS  ***/
+	void	setStatus(ConnectionStatus s) { _status = s; }
+//
+	void	resetRequest( void ) { _request = HttpRequest(); }
+	void	resetAnswer( void ) { _answer = httpAnswer(); }
+///////////////////////////////////////////////////////////////////////////////]
 
 };
 

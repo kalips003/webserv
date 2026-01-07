@@ -22,6 +22,14 @@ enum    ConnectionStatus {
     CLOSED
 };
 
+enum    AnswerStatus {
+
+    SENDING_HEAD = 0,
+    SENDING_BODY,
+    SENDING_BODY_FD,
+    ENDED
+};
+
 enum BodyMode {
     BODY_NONE,
     BODY_CONTENT_LENGTH,
@@ -45,7 +53,6 @@ enum HttpMethod {
 typedef std::pair<std::string, std::string> kv;
 typedef std::map<std::string, std::string> map_strstr;
 typedef std::map<std::string, std::string> map_istr;
-
 
 
 

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <sys/types.h>
 
 #include "_colors.h"
 #include "defines.hpp"
@@ -18,32 +19,77 @@
 // "HTTP/1.1 200 OK\r\n\r\n"
 class httpAnswer {
 
-public:
+private:
+///////////////////////////////////////////////////////////////////////////////]
     std::string     _version; // HTTP/1.1
     int             _status; // 200
     std::string     _msg_status; // OK
 
     map_strstr      _headers; // Content-Length: 25
 
-    std::string     _head; // 1) <body>, after ini(): head<body>
-    std::string     _body_leftover;
+    std::string     _head; // "HTTP/1.1 200 OK\r\n<headers>\r\n\r\n"
+    std::string     _body;
+    std::string     _leftover; // leftover of a partial send of data from fd_file
     int             _fd_body;
 
-    size_t          _full_size;
+    size_t          _body_size;
     size_t          _bytes_sent;
+	AnswerStatus	_sending_status; // SENDING_HEAD = 0, SENDING_BODY, SENDING_BODY_FD, ENDED
+///////////////////////////////////////////////////////////////////////////////]
 
-
+public:
     httpAnswer() : _version("HTTP/1.1"), _status(200), _msg_status("OK"), 
-        _fd_body(-1), _full_size(0), _bytes_sent(0) {}
+        _fd_body(-1), _body_size(0), _bytes_sent(0), _sending_status(SENDING_HEAD) {}
     ~httpAnswer();
     
-/*  take the filled answer, concatenate headers into _head */
-    void http_answer_ini();
-/*  concatenate and return first line: <HTTP/1.1 200 OK\r\n\r\n> */
-    std::string rtrnFistLine();
-/*  send the next chunk of data into the buffer provided, to client fd */
-    enum ConnectionStatus   sendToBuffer(int fd, char* buff, size_t sizeofbuff);
-    bool    addToHeaders(std::string& parameter, std::string& value);
+//-----------------------------------------------------------------------------]
+public:
+	enum ConnectionStatus    create_error(int errCode);
+
+//-----------------------------------------------------------------------------]
+public:
+	void			http_answer_ini();
+	std::string		rtrnFistLine();
+private:
+	std::string		concatenateHeaders();
+
+//-----------------------------------------------------------------------------]
+public:
+	enum ConnectionStatus	sending(char *buff, size_t size_buff, int fd_client);
+private:
+	ssize_t					fillBuffer(char *buff, size_t size_buff);
+	void					updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesSent);
+
+
+//-----------------------------------------------------------------------------]
+	
+public:
+//-----------------------------------------------------------------------------] 
+///////////////////////////////////////////////////////////////////////////////]
+/***  GETTERS  ***/
+    const std::string& getVersion() const { return _version; }
+    int                getStatus()  const { return _status; }
+    const std::string& getMsgStatus() const { return _msg_status; }
+//
+    const map_strstr&  getHeaders() const { return _headers; }
+//
+    const std::string& getHead() const { return _head; }
+    const std::string& getBodyLeftover() const { return _leftover; }
+    int                getBodyFd() const { return _fd_body; }
+//
+    size_t             getFullSize() const { return _body_size; }
+    size_t             getBytesSent() const { return _bytes_sent; }
+//-----------------------------------------------------------------------------]
+    std::string 	   find_setting(const std::string& set) const ;
+    AnswerStatus	   isThereBody() const ;
+
+/***  SETTERS  ***/
+	void	setVersion(std::string& s) { _version = s; }
+	void	setStatus(int errCode) { _status = errCode; }
+	void	setMsgStatus(std::string& s) { _msg_status = s; }
+//-----------------------------------------------------------------------------]
+    void    addToHeaders(std::string& parameter, std::string& value) { _headers[parameter] = value; }
+///////////////////////////////////////////////////////////////////////////////]
 };
 
 std::ostream& operator<<(std::ostream& os, httpAnswer& r);

@@ -1,14 +1,25 @@
 #include "Server.hpp"
+#include "_colors.h"
 
 #include <iostream>
+#include <unistd.h>
 
-#include "T_tools.cpp"
-#include "T_tools2.cpp"
-#include "defines.hpp"
+#include "Tools1.hpp"
+#include "Tools2.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
+/** Constructor for the Server.
+ *
+ * Takes as argument a VALID char* with the path of the config file for the server.
+ *
+ * Once the construction is finished, _server_status holds the status of the construction (OK / NOK).
+ *
+ * If _server_status == OK, the server is listening and ready for accept() / epoll()
+ *
+ * @param confi_file   Path of config file.
+ * @return         _server_status true if parsing succeeded, false otherwise.		---*/
 Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_status(false) {
 
 	_server_status = _settings.parse_config_file(confi_file);
@@ -27,8 +38,21 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
 	std::cout << C_151 "Server up and running on port: " RESET << _settings.getPortNum() << std::endl;
 }
 
+// #include <unistd.h>
+///////////////////////////////////////////////////////////////////////////////]
+Server::~Server( void ) { if (_socket_fd >= 0) close(_socket_fd); }
+
 #include <fcntl.h>
 ///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+/**  Create the listening socket.
+ *
+ * Fills the struct sockaddr_in _addr
+ *
+ * If return True, the socket is listening and ready to accept
+ *
+ * @return         FALSE on any error (and print the err msg), TRUE otherwise	---*/
 bool	Server::create_listening_socket() {
 
 	_socket_fd = socket(AF_INET, SOCK_STREAM, 0);

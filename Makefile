@@ -241,7 +241,7 @@ git: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
 	@current_date=$$(date); \
 	git add .; \
-	git commit -m "$$current_date: unimportant small changes"; \
+	git commit -m "unimportant small updates"; \
 	git push
 
 # Git Push that asks for commit msg
