@@ -255,7 +255,7 @@ git2: fclean
 
 # Git Push use the content of .gitmsg to push
 # if .gitmsg empty, return error
-# clear .gitmsg on succesfull push
+# clear .gitmsg on succesfull push.
 GIT_MSG_FILE = data/.gitmsg
 git3: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
