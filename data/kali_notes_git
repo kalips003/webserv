@@ -1,0 +1,58 @@
+git checkout -b my_branch
+
+is short for:
+
+git branch my_branch   # create the branch
+git checkout my_branch # move into it
+
+after that:
+
+First time:
+git push -u origin your_branch_name
+
+After that:
+git push (no branch name needed)
+
+============================================================
+-u (used with git push)
+
+Meaning: “set the upstream (tracking) branch.”
+
+git push -u origin my_branch
+does two things:
+
+Pushes your branch to the remote (GitHub).
+Links your local my_branch to the remote origin/my_branch.
+After that, you can simply run git push or git pull — no need to specify branch names again.
+
+============================================================
+# setup user name
+git config --global user.name "Your Real Name"
+
+
+
+
+
+
+
+============================================================
+============================================================
+============================================================
+#branch: Lists, creates, or deletes branches, but does not switch to them by default.
+git branch              # list all local branches
+git branch temp-work    # create a new branch called temp-work (stays on current branch)
+	# copy the last commit of current HEAD into the new branch
+	# Your local commit history is copied in the sense that the branch points to the same HEAD
+git branch -d temp-work # delete a branch
+============================================================
+#checkout: Switches between branches or restores files, depending on context.
+git checkout main       # switch to branch 'main'
+git checkout -b temp-work  # create a new branch AND switch to it immediately
+git checkout -B
+
+============================================================
+#stash: unique and independant of branch
+git stash               # save changes
+git checkout new-branch
+git stash pop           # apply them on new branch
+

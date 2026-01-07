@@ -1,4 +1,5 @@
 NAME = webserv
+CLIENT = client
 
 all: $(NAME)
 
@@ -16,22 +17,44 @@ all: $(NAME)
 # │─────██████─────██████████████─██████████████─────██████─────██████████─██████──────────██████─██████████████─│
 # ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
-a: $(NAME)
-	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )
-	-./$(NAME)
+CONF_FILE = data/config_file.conf
 
-TERMINAL = konsole -e
-b: $(NAME) $(CLIENT)
+# RUN SERVER
+a:	$(NAME)
 	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )
-	@./$(NAME) & \
+	-./$(NAME) $(CONF_FILE)
+
+# RUN SERVER + CLIENT (client is child process of parent)
+TERMINAL = konsole -e
+b:	$(NAME) $(CLIENT)
+	make w
+	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )
+	@./$(NAME) $(CONF_FILE) & \
 	sleep 1; \
 	$(TERMINAL) ./$(CLIENT) \
 	wait
 
-v: $(NAME)c
-	@$(call random_shmol_cat, "vlgrininnng ... $(NAME)!", "...", $(CLS), );
-	-$(VALGRIND) ./$(word 1, $^)
+# RUN CLIENT
+c:	$(CLIENT)
+	@$(call random_shmol_cat, "cREAting client", "does it work?", $(CLS), )
+	-./$(CLIENT)
 
+v:	$(NAME)
+	@$(call random_shmol_cat, "vlgrininnng ... $(NAME)!", "...", $(CLS), );
+	-$(VALGRIND) ./$(word 1, $^) $(CONF_FILE)
+
+LISTENING_PORT = 9999
+# tcp   LISTEN 0      4    0.0.0.0:9999       0.0.0.0:*    users:(("webserv",pid=321011,fd=3))
+w:
+	@clear
+	@echo -e "$(C_410) listening on port $(LISTENING_PORT): $(RESET)"
+	@PID=$$(ss -tulnup | awk '/$(LISTENING_PORT)/ { match($$0, /pid=([0-9]+)/, a); print a[1] }'); \
+	if [ -z "$$PID" ]; then \
+		$(call shmol_cat_color, $(C_241), $(C_035), me good kitten, nothing to kill.., , $(RESET)); \
+	else \
+		$(call shmol_cat_color, $(C_431), $(C_511), BAD PID:, $$PID... KILLEEED!, , ); \
+		kill $$PID; \
+	fi
 
 # --------------------------------------------------------------------------------- >
 # $(1)=$(ARGS) $(2)=$(TXT_cat) $(3)=$(TXT_below) $(4)=$(VALGRIND)(timeout 15s)
@@ -56,10 +79,10 @@ define rules
 	echo "The input file update in real time"
 endef
 
-CLIENT = client
-$(CLIENT): data/client.cpp
+CLIENT_PATH = data/client.cpp
+$(CLIENT):	$(CLIENT_PATH)
 	@clear
-	@if ! $(CC) $(FLAGS_LESS) $(INC) data/client.cpp -o $(CLIENT); then \
+	@if ! $(CC) $(FLAGS_LESS) $(INC) $(CLIENT_PATH) -o $(CLIENT); then \
 		$(call print_cat, "", $(RED), $(GOLD), $(RED_L), $(call pad_word, 10, "ERROR"), $(call pad_word, 12, "COMPILING..")); \
 		exit 1; \
 	fi
@@ -143,11 +166,15 @@ src/$(OBJ_FOLDER0)/%.o: src/%.cpp
 # ╰──────────────────────────────────────────────────────────────────────╯
 
 TEST_FOLDER = data/tests
+TEST_PATH_FILE = src/class/HTTP_request/
+FILES_TEST = $(TEST_PATH_FILE)HttpRequest.cpp \
+	src/kali/_A.cpp \
+	$(wildcard src/Tools/*.cpp) $(wildcard src/vocabulary/*.cpp)
 
 test: $(TEST_FOLDER)/main.cpp
 	@rm -f $(TEST_FOLDER)/a.out
 	@clear
-	-@$(CC) $(FLAGS_LESS) $(TEST_FOLDER)/main.cpp -o $(TEST_FOLDER)/a.out
+	-@$(CC) $(FLAGS_LESS) $(INC) $(FILES_TEST) $(TEST_FOLDER)/main.cpp -o $(TEST_FOLDER)/a.out
 	@if [ ! -e $(TEST_FOLDER)/a.out ]; then\
 		$(call print_cat, "", $(RED), $(GOLD), $(RED_L), $(call pad_word, 10, "The⠀Cake"), $(call pad_word, 12, "Is⠀A⠀Lie..")); \
 		exit 3; \
@@ -161,11 +188,13 @@ test: $(TEST_FOLDER)/main.cpp
 # 	@$(call random_cat, $(call pad_word, 12, "TESTING"), $(call pad_word, 14, "SCIENCE"), $(CLS), $(RESET));
 # 	-@$(VALGRIND) lib/a.out
 
-# test2:	libft $(OBJ) inc/$(NAME).h
-# 	@rm -f ./TEST/a.out
-# 	@$(CC) $(FLAGS_TEST) $(OBJ) ./lib/test.c lib/libft.a $(ADD_FLAGS) -o ./lib/a.out
-# 	@$(call random_cat, $(call pad_word, 12, "TESTING"), $(call pad_word, 14, "SCIENCE"), $(CLS), $(RESET));
-# 	-@$(VALGRIND) lib/a.out
+INPUT_FILE = data/config_file.conf
+test2: $(OBJ) $(TEST_FOLDER)/main.cpp $(HEAD)
+	@rm -f $(TEST_FOLDER)/a.out
+	@clear
+	@$(CC) $(FLAGS_TEST) $(INC) $(OBJ) $(TEST_FOLDER)/main.cpp -o $(TEST_FOLDER)/a.out
+	@$(call random_cat, $(call pad_word, 12, "TESTING"), $(call pad_word, 14, "SCIENCE"), $(CLS), $(RESET));
+	@$(TEST_FOLDER)/a.out $(INPUT_FILE)
 
 # f_d=$${rule:0:1}; s_d=$${rule:1:1};
 # %:
@@ -207,13 +236,15 @@ V_FLAG = --suppressions=data/ignore_valgrind
 # HELLGRIND = valgrind --tool=helgrind ?-g3?
 
 # ↑さ↓ぎょう  を  ↓ほ↑ぞん
+# Default git push
 git: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
 	@current_date=$$(date); \
 	git add .; \
-	git commit -m "$$current_date"; \
+	git commit -m "^^._, work in progress, small changes"; \
 	git push
 
+# Git Push that asks for commit msg
 git2: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
 	@read -p "Enter commit message: " msg; \
@@ -222,6 +253,21 @@ git2: fclean
 	git commit -m "$$msg"; \
 	git push
 
+# Git Push use the content of .gitmsg to push
+# if .gitmsg empty, return error
+# clear .gitmsg on succesfull push
+GIT_MSG_FILE = data/.gitmsg
+git3: fclean
+	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
+	@{ \
+		msg="$$(cat $(GIT_MSG_FILE) 2>/dev/null)"; \
+		[ -z "$$msg" ] && { $(call random_shmol_cat_blink, error, file is empty, , ); exit 1; }; \
+		git add . && \
+		git commit -m "$$msg" && \
+		git push && \
+		: > $(GIT_MSG_FILE) && \
+		$(call random_shmol_cat_blink, success!, $(GIT_MSG_FILE) cleared., , ); \
+	}
 # --------------------------------------------------------------------------------- >
 # 																				CLEAN
 clean:
@@ -336,7 +382,7 @@ define random_cat
 endef
 
 # --------------------------------------------------------------------------------- >
-# @$(call shmol_cat_color, $(C_c)$C_t)txt1, txt2, $(CLS), $(RESET));
+# @$(call shmol_cat_color, $(C_c), $(C_t), txt1, txt2, $(CLS), $(RESET));
 define shmol_cat_color
 	echo -e "$(5)$(2)\
 	\tにゃ~$(1)\t⠀╱|、\n\
@@ -365,7 +411,7 @@ rscs:
 define random_shmol_cat_surligne
 	COLOR=$$(printf "\033[0m\033[38;5;%dm" $$(shuf -i 0-255 -n 1)); \
 	COLOR2=$$(printf "\033[48;5;%dm" $$(shuf -i 0-255 -n 1)); \
-	echo "$(3)$${COLOR2}\
+	echo -e "$(3)$${COLOR2}\
 	\tにゃ~$${COLOR}\t⠀╱|、\n\
 	\t\t(˚ˎ。7⠀⠀⠀$${COLOR2}~ $(1) ~$${COLOR}\n\
 	\t\t⠀|、˜\\\\\t\t$${COLOR2}~ $(2)$${COLOR}\n\
@@ -378,7 +424,7 @@ rscb:
 define random_shmol_cat_blink
 	COLOR=$$(printf "\033[0m\033[38;5;%dm" $$(shuf -i 0-255 -n 1)); \
 	COLOR2=$$(printf "\e[5m\033[38;5;%dm" $$(shuf -i 0-255 -n 1)); \
-	echo "$(3)\n$${COLOR2}\
+	echo -e "$(3)\n$${COLOR2}\
 	\tにゃ~$${COLOR}\t⠀╱|、\n\
 	\t\t(˚ˎ。7⠀⠀⠀$${COLOR2}~ $(1) ~$${COLOR}\n\
 	\t\t⠀|、˜\\\\\t\t$${COLOR2}~ $(2)$${COLOR}\n\
@@ -389,7 +435,7 @@ endef
 # @$(call shmol_cat_error, $(RED), $(RED_L));
 # $(1) = $(C_c)$2) = $(C_ttN CLS
 define shmol_cat_error
-	echo "$(2)\
+	echo -e "$(2)\
 	\tにゃ~$(1)\t⠀╱|、\n\
 	\t\t(˚ˎ。7⠀⠀⠀$(2)~ somshin wen wong ~$(1)\n\
 	\t\t⠀|、˜\\\\\n\
