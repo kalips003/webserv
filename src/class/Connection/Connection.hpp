@@ -79,6 +79,7 @@ public:
 //
 	void	resetRequest( void ) { _request = HttpRequest(); }
 	void	resetAnswer( void ) { _answer = httpAnswer(); }
+	void	closeFd();
 ///////////////////////////////////////////////////////////////////////////////]
 
 };

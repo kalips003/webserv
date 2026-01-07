@@ -25,6 +25,7 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 		return CLOSED;
 	}
 	else if (bytes_recv < 0) {// treat as generic fail (no errno)
+		std::cerr << C_134 "bytes_recv: " RESET << bytes_recv << std::endl;
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			return _status; // fcntl()'s fault, no data to read yet
 		printErr(RED "recv() failed" RESET);

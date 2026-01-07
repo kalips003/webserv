@@ -56,3 +56,5 @@ git stash               # save changes
 git checkout new-branch
 git stash pop           # apply them on new branch
 
+============================================================
+git checkout kali -- . # copy all files from kali into current branch (main)

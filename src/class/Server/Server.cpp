@@ -24,8 +24,10 @@ c_it	Server::pop_connec(c_it it) {
 		client.resetRequest();
 		client.setStatus(FIRST);
 	}
-	else
+	else {
+		it->second.closeFd();
 		_clients.erase(it);
+	}
 	return next;
 }
 
@@ -51,7 +53,7 @@ void	Server::accept_client() {
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			std::cerr << ERR7 "???\n"; // fcntl()'s fault, no data to read yet
 		else 
-			printErr(RED "accept() failed" RESET);
+			printErr(ERR8 "accept() failed");
 		return ;
 	}
 
@@ -59,6 +61,7 @@ void	Server::accept_client() {
 	if (!set)
 		return ;
 
+	// _clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, client_addr, addr_len)));
 	_clients[client_fd] = Connection(client_fd, client_addr, addr_len);
 
 	std::cout << C_115 "-----------------------------------------]\n";
