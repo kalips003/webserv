@@ -19,30 +19,31 @@ Connection::~Connection() {
 bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 
 	if (_status <= READING_BODY) {
-		std::cerr << C_515 "-----------------------------------------]\n";
-		std::cerr << *this << C_515 "\n\tstatus: " C_411 "- READING -\n";
+		std::cout << C_515 "-----------------------------------------]\n";
+		std::cout << *this << C_515 "\n\tstatus: " C_411 "- READING -\n";
+		std::cout << C_515 "-----------------------------------------]" << std::endl;
 		ft_read(buff, sizeofbuff);
-		std::cerr << C_515 "-----------------------------------------]" << std::endl;
+		std::cout << C_515 "-----------------------------------------]" << std::endl;
 	}
 
 	if (_status == DOING) {
-		std::cerr << C_512 "-----------------------------------------]\n";
-		std::cerr << *this << C_512 "\n\tstatus: " C_411 "- DOING -\n";
+		std::cout << C_512 "-----------------------------------------]\n";
+		std::cout << *this << C_512 "\n\tstatus: " C_411 "- DOING -\n";
 		ft_doing();
-		std::cerr << C_512 "-----------------------------------------]" << std::endl;
+		std::cout << C_512 "-----------------------------------------]" << std::endl;
 	}
 	
 	if (_status == SENDING) {
-		std::cerr << C_431 "-----------------------------------------]\n";
-		std::cerr << *this << C_431 "\n\tstatus: " C_411 "- SENDING -\n";
+		std::cout << C_431 "-----------------------------------------]\n";
+		std::cout << *this << C_431 "\n\tstatus: " C_411 "- SENDING -\n";
 		ft_send(buff, sizeofbuff);
-		std::cerr << C_431 "-----------------------------------------]" << std::endl;
+		std::cout << C_431 "-----------------------------------------]" << std::endl;
 	}
 
 	if (_status == CLOSED) {
-		std::cerr << C_330 "-----------------------------------------]\n";
-		std::cerr << *this << C_330 "\n\tstatus: " C_411 "- CLOSED -\n";
-		std::cerr << C_330 "\n-----------------------------------------]" << std::endl;
+		std::cout << C_330 "-----------------------------------------]\n";
+		std::cout << *this << C_330 "\n\tstatus: " C_411 "- CLOSED -\n";
+		std::cout << C_330 "\n-----------------------------------------]" << std::endl;
 		return false;
 	}
 	return true;

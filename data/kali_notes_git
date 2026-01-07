@@ -24,3 +24,7 @@ does two things:
 Pushes your branch to the remote (GitHub).
 Links your local my_branch to the remote origin/my_branch.
 After that, you can simply run git push or git pull — no need to specify branch names again.
+
+============================================================
+# setup user name
+git config --global user.name "Your Real Name"
