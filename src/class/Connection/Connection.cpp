@@ -21,39 +21,29 @@ void	Connection::closeFd() {
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Use internal _status do decide what to do with the given buffer */
 bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
-std::cout << C_244 "[----------------------------------------]\n"
-	<< *this << C_244 "[----------------------------------------]" RESET << std::endl;
+std::cout << *this;
 
 	if (_status <= READING_BODY) {
-		std::cout << C_515 "-----------------------------------------]\n";
-		std::cout << C_515 "\n\tstatus: " C_411 "- READING -\n";
-		std::cout << C_515 "-----------------------------------------]" << std::endl;
+		std::cout << C_515 "- " C_411 "READING" C_515 " -------------------------------]\n";
 		ft_read(buff, sizeofbuff);
-		std::cout << C_515 "-----------------------------------------]" << std::endl;
 	}
 
 	if (_status == DOING) {
-		std::cout << C_512 "-----------------------------------------]\n";
-		std::cout << C_512 "\n\tstatus: " C_411 "- DOING -\n";
-		ft_doing();
-		std::cout << C_512 "-----------------------------------------]" << std::endl;
+		std::cout << C_512 "- " C_411 "DOING" C_512 " ---------------------------------]\n";
+		_status = ft_doing();
 	}
 	
 	if (_status == SENDING) {
-		std::cout << C_431 "-----------------------------------------]\n";
-		std::cout << C_431 "\n\tstatus: " C_411 "- SENDING -\n";
-		ft_send(buff, sizeofbuff);
-		std::cout << C_431 "-----------------------------------------]" << std::endl;
+		std::cout << C_431 "- " C_123 "SENDING" C_431 " -------------------------------]\n";
+		_status = ft_send(buff, sizeofbuff);
 	}
 
 	if (_status == CLOSED) {
-		std::cout << C_330 "-----------------------------------------]\n";
-		std::cout << C_330 "\n\tstatus: " C_411 "- CLOSED -\n";
-		std::cout << C_330 "\n-----------------------------------------]" << std::endl;
+		std::cout << C_330 "- " C_512 "CLOSED" C_330 " --------------------------------]\n";
 		return false;
 	}
+	std::cout << RED "- END LOOP --------------------------------]\n";
 
-	std::cout << C_025 "- ONE CONNECTION FINISHED -\n" RESET << std::endl;
 	sleep(1);
 	return true;
 }
@@ -62,8 +52,16 @@ std::cout << C_244 "[----------------------------------------]\n"
 //?????????????????????????????????????????????????????????????????????????????]
 enum ConnectionStatus	Connection::ft_doing( void ) {
 	if (!_body_task)
+//
+	{
+		std::cerr << RED "no bodytask" << std::endl;
+		_answer.create_error(404);
+		return SENDING;
+	}
+//
 		return SENDING; // error
 	int r = _body_task->ft_do();
+
 	if (r)
 		_answer.create_error(r);
 	else

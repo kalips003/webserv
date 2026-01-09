@@ -17,9 +17,10 @@ c_it	Server::pop_connec(c_it it) {
 	next++;
 	Connection& client = it->second;
 
-	std::cout << RED "closing: " RESET << client;
+	std::cout << RED "closing: " RESET << client.getClientFd() << std::endl;
 
 	if (client.findRequestHeader("connection") == "keep-alive") {
+		std::cout << BLUE "we wnat to keep this connec alive" RESET << std::endl;
 		client.resetAnswer();
 		client.resetRequest();
 		client.setStatus(FIRST);
@@ -28,6 +29,7 @@ c_it	Server::pop_connec(c_it it) {
 		it->second.closeFd();
 		_clients.erase(it);
 	}
+	std::cout << RED "how many clients?: " RESET << _clients.size() << std::endl;
 	return next;
 }
 
