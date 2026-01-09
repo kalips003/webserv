@@ -23,7 +23,7 @@ class Server {
 private:
 ///////////////////////////////////////////////////////////////////////////////]
     struct sockaddr_in      _addr;
-    struct ServerSettings   _settings;
+    // struct ServerSettings   _settings;
 
     int                     _socket_fd;
     bool                    _server_status;
@@ -55,7 +55,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
     bool					getAddr() { return _server_status; }
-    const ServerSettings&	getSettings() { return _settings; }
     int						getfd() { return _socket_fd; }
     bool					getStatus() { return _server_status; }
     const map_clients&		getClients() const { return _clients; }

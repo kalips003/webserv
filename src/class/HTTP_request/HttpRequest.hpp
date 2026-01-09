@@ -26,7 +26,7 @@ private:
     map_strstr          _headers; // Accept: html
 
     std::string         _body; // buffer for the body
-    std::string         _buffer; // buffer ???
+    std::string         _buffer; // buffer
 
     ssize_t             _body_size; // size of body in bytes, -1 if no body?
     size_t              _body_bytes_received;

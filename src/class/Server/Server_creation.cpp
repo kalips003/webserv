@@ -22,11 +22,11 @@
  * @return         _server_status true if parsing succeeded, false otherwise.		---*/
 Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_status(false) {
 
-	_server_status = _settings.parse_config_file(confi_file);
+	_server_status = g_settings.parse_config_file(confi_file);
 	if (!_server_status)
 		return ;
 
-	_server_status = _settings.check_settings();
+	_server_status = g_settings.check_settings();
 	if (!_server_status)
 		return ;
 
@@ -35,7 +35,7 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
 		return ;
 
 	_server_status = true;
-	std::cout << C_151 "Server up and running on port: " RESET << _settings.getPortNum() << std::endl;
+	std::cout << C_151 "Server up and running on port: " RESET << g_settings.getPortNum() << std::endl;
 }
 
 // #include <unistd.h>
@@ -59,7 +59,7 @@ bool	Server::create_listening_socket() {
 	if (_socket_fd < 0) {
 		return printErr(RED "socket() failed" RESET);
 	}
-	_addr.sin_port = htons(_settings.getPortNum());
+	_addr.sin_port = htons(g_settings.getPortNum());
 	_addr.sin_family = AF_INET;
 	_addr.sin_addr.s_addr = INADDR_ANY;
 

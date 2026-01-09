@@ -9,6 +9,12 @@
 static bool    parse_key_value(std::string& line, std::pair<std::string, std::string>& rtrn);
 static bool    parse_blocks(std::ifstream& file, std::string& line, size_t pos, block& b);
 ///////////////////////////////////////////////////////////////////////////////]
+/** MAIN function parsing the infile.conf
+ *
+ * DOES NOT check for the validity of the settings 
+ *
+ * @param confi_file   Valid char* of the path to the config file
+ * @return      FALSE on any parsing error, TRUE otherwise			---*/
 bool	ServerSettings::parse_config_file(const char* confi_file) {
 
 	std::string s(confi_file);
@@ -118,7 +124,15 @@ static bool    parse_blocks(std::ifstream& file, std::string& line, size_t pos, 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
-// check that the config file has the minimum settings, set them if missing
+/** Check that the config file has the minimum settings
+ , set them to default if missing
+ *
+ * Also set the _port_num from which the server will listen (default 8080)
+ *
+ * DOES NOT YET check for the validity of the others settings 
+ *
+ * <TODO> check if the settings directory can be opened
+ * @return      FALSE on any error, TRUE otherwise				---*/
 bool	ServerSettings::check_settings() {
 
 	map_strstr defaults;

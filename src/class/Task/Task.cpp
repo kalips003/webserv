@@ -4,13 +4,13 @@
 #include "Server.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
-Task::Task(Connection& connec, Server& s) : _request(connec.getRequest()), _answer(connec.getAnswer()), _settings(s.getSettings()), _status(0) {}
-
+Task::Task(Connection& connec)
+ : _request(connec.getRequest()), _answer(connec.getAnswer()), _status(0) {}
 
 ///////////////////////////////////////////////////////////////////////////////]
 #include "Ft_Get.hpp"
-Task* createTask(const std::string& method, Connection& connec, Server& s) {
-    if (method == "GET")       return new Ft_Get(connec, s);
+Task* Task::createTask(const std::string& method, Connection& connec) {
+    if (method == "GET")       return new Ft_Get(connec);
     // else if (method == "POST") return new Ft_post(req, ans);
     // else if (method == "PUT")  return new Ft_put(req, ans);
     // ... other methods

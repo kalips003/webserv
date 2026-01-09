@@ -64,7 +64,12 @@ void	Server::accept_client() {
 		return ;
 
 	// _clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, client_addr, addr_len)));
-	_clients[client_fd] = Connection(client_fd, client_addr, addr_len);
+	
+
+        // Connection    request(client_fd, client_addr, addr_len);
+    _clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, client_addr, addr_len)));
+        // _clients[client_fd] = request;
+	// _clients[client_fd] = Connection(client_fd, client_addr, addr_len, _settings);
 
 	std::cout << C_115 "-----------------------------------------]\n";
 	std::cout << "New client Accepted: " RESET << _clients[client_fd] << std::endl;

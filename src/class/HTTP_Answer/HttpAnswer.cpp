@@ -32,10 +32,10 @@ enum ConnectionStatus    httpAnswer::create_error(int errCode) {
 	else {
 		_status = errCode;
 		_msg_status = s;
-		_head = "<html><body><h1>" + itostr(errCode) + " " + _msg_status + "</h1></body></html>";
+		_body = "<html><body><h1>" + itostr(errCode) + " " + _msg_status + "</h1></body></html>";
 		_headers["Content-Type"] = "text/html";
-		_headers["Content-Length"] = itostr(_head.size());
-		_body_size = 0;
+		_body_size = _body.size();
+		_headers["Content-Length"] = itostr(_body.size());
 
 		if (_fd_body >= 0) {
 			close(_fd_body);
@@ -175,7 +175,7 @@ void	httpAnswer::updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesS
 
 		case SENDING_BODY_FD :
 			if (_bytes_sent == _body_size) {
-				close(_fd_body);
+				close(_fd_body); // ------------------------------------?????????????????????????????????????????
 				_fd_body = -1;
 			}
 			else if (bytesSent != bytesLoaded)

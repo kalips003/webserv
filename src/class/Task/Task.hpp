@@ -16,14 +16,29 @@ private:
 	std::string				_buffer; 
 	const HttpRequest&		_request;
 	httpAnswer&				_answer;
-	const ServerSettings&	_settings;
 
 	int						_status; // 404
 
+
 public:
-	Task(Connection& connec, Server& s);
+	static Task* createTask(const std::string& method, Connection& connec);
+
+public:
+	Task(Connection& connec);
 
 	virtual int ft_do() { return 0; }
+
+///////////////////////////////////////////////////////////////////////////////]
+/***  GETTERS  ***/
+    const std::string& getBuffer() const { return _buffer; }
+    const HttpRequest& getRequest() const { return _request; }
+    httpAnswer& getAnswer() { return _answer; }
+// 
+    int 	getStatus() const { return _status; }
+
+/***  SETTERS  ***/
+    void   addBuffer(std::string& s) { _buffer += s; };
+///////////////////////////////////////////////////////////////////////////////]
 };
 
 ///////////////////////////////////////////////////////////////////////////////]

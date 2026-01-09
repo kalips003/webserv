@@ -3,6 +3,8 @@
 
 #include "Task.hpp"
 
+
+#include <fstream>
 ///////////////////////////////////////////////////////////////////////////////]
 //* GET *     | Request a resource  | No body (technically allowed but ignored)|
 ///////////////////////////////////////////////////////////////////////////////]
@@ -32,38 +34,30 @@
 // Connection: keep-alive
 class   Ft_Get : public Task {
 
+private:
+
 
 public:
-    Ft_Get(Connection& connec, Server& s) : Task(connec, s) {}
+    Ft_Get(Connection& connec) : Task(connec) {}
 
-    //     std::string server_path = _settings.find_setting("root");
-    //     if (server_path.empty()) {
-    //         std::cerr << ERR7 "ERROR?" << std::endl;
-    //     }
-    //     std::string requested_path = server_path + "/" + _request.path;
-    //     if (access(requested_path.c_str(), F_OK)) {
-    //         std::cerr << ERR7 "path invalid: " << requested_path << std::endl;
-    //         printErr(RED "access" RESET);
-    //         _status = 404;
-    //         return;
-    //         if (access(requested_path.c_str(), R_OK)) {
-    //             std::cerr << ERR7 "not readable: " << requested_path << std::endl;
-    //             printErr(RED "access" RESET);
-    //             _status = 403;
-    //             return;
-    //         }
-    //     }
-    //     struct stat st;
-    //     if (stat(requested_path.c_str(), &st) == 0)
-    //         if (S_ISDIR(st.st_mode))
-    //             requested_path += "/index.html";
+    int ft_do() {
+        std::cout << C_431 "IM ALIVE! (GET)" RESET << std::endl;
 
-    //     // ....
-    // }
-    // int ft_do() {
-    //     std::cout << C_431 "IM ALIVE! (GET)" RESET << std::endl;
-    //     return 0;
-    // }
+        std::string path = getRequest().getPath(); // / index.html
+        std::string root = g_settings.getRoot();
+
+        path = root + path;
+        std::cout << "path: " << path << std::endl;
+        // if (path.notexist???) // /var/www/html + / index.html
+
+
+
+
+
+
+
+        return 0;
+    }
     // ....
 };
 
