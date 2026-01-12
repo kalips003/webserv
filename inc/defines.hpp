@@ -7,6 +7,7 @@
 #define MAX_BODY_SIZE   8192
 #define MAX_LIMIT_FOR_HEAD 1000
 
+#define PATH_MAX   1024
 
 #include <map>
 #include <vector>

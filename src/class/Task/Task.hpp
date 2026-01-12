@@ -22,6 +22,7 @@ private:
 
 public:
 	static Task* createTask(const std::string& method, Connection& connec);
+	virtual ~Task() {}
 
 public:
 	Task(Connection& connec);
@@ -37,7 +38,8 @@ public:
     int 	getStatus() const { return _status; }
 
 /***  SETTERS  ***/
-    void   addBuffer(std::string& s) { _buffer += s; };
+    void 	setStatus(int status)  { _status = status; }
+    void  	addBuffer(std::string& s) { _buffer += s; };
 ///////////////////////////////////////////////////////////////////////////////]
 };
 

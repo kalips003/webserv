@@ -10,7 +10,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////]
 Connection::~Connection() {
-	// if (_client_fd >= 0) close(_client_fd);
+	if (_body_task) {
+		delete _body_task;
+		_body_task = NULL;
+	}
 }
 
 void	Connection::closeFd() {
@@ -53,22 +56,24 @@ std::cout << *this;
 enum ConnectionStatus	Connection::ft_doing( void ) {
 
 	_body_task = Task::createTask(_request.getMethod(), *this);
-	if (!_body_task)
+	if (!_body_task) {
+		std::cout << RED "_body task NULL\n";
 		return SENDING; // error
-// //
-	{
-		std::cerr << RED "no bodytask" << std::endl;
-		_answer.create_error(404);
-		return SENDING;
 	}
-// //
-	// std::cout << "heelelelelelelelellooo\n";
+// // //
+// 	{
+// 		std::cerr << RED "no bodytask" << std::endl;
+// 		_answer.create_error(404);
+// 		return SENDING;
+// 	}
+// // //
 	int r = _body_task->ft_do();
 
 	if (r)
 		_answer.create_error(r);
 	else
 		_answer.http_answer_ini();
+	
 	return SENDING;
 }
 

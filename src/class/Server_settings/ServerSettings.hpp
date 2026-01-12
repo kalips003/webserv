@@ -41,6 +41,7 @@ private:
 	std::map<std::string, std::string>  _global_settings;
 	std::vector<block>                  _block_settings;
 	int                                 _port_num;
+	std::string							_root;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
@@ -55,10 +56,10 @@ public:
 public:
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
-	int			getPortNum( void ) const { return _port_num; }
-	std::string	getRoot( void ) const { return find_setting("root"); }
-	std::string find_setting(const std::string& setting) const;
-	std::string find_setting_inBlock(const std::string& set) const;
+	int					getPortNum( void ) const { return _port_num; }
+	std::string			getRoot( void ) const { return _root; }
+	std::string 		find_setting(const std::string& setting) const;
+	std::string 		find_setting_inBlock(const std::string& set) const;
 	const ServerSettings& getConstSettings() const { return *this; }
 
 private:
@@ -67,7 +68,8 @@ private:
 public:
 	void	addSetting(std::string& name, std::string& value) { _global_settings[name] = value; }
 	void	addBlock(block& b) { _block_settings.push_back(b); }
-
+private:
+	bool 	setRoot();
 ///////////////////////////////////////////////////////////////////////////////]
 
 	friend class Server;

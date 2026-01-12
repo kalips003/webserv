@@ -84,6 +84,8 @@ public:
     AnswerStatus	   isThereBody() const ;
 
 /***  SETTERS  ***/
+
+	void	setStrBody(std::string& s) { _body = s; _body_size = s.size(); }
 	void	setVersion(std::string& s) { _version = s; }
 	void	setStatus(int errCode) { _status = errCode; }
 	void	setMsgStatus(std::string& s) { _msg_status = s; }

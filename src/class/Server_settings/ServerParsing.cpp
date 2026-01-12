@@ -138,11 +138,11 @@ bool	ServerSettings::check_settings() {
 	map_strstr defaults;
 	defaults["listen"]		= "8080";
 	defaults["server_name"] = "myserver.local";
-	defaults["root"]		= "/var/www/html";
+	defaults["root"]		= "/www";
 	defaults["index"]		= "index.html";
 
 	for (map_strstr::iterator it = defaults.begin(); it != defaults.end(); ++it) {
-		if (_global_settings.find(it->first) == _global_settings.end()) {
+		if (_global_settings.find(it->first) == _global_settings.end() || _global_settings.find(it->first)->second.empty()) {
 			std::cerr << RED "Necessary setting (" RESET << it->first << RED ") missing from config" RESET << std::endl;
 			std::cerr << it->first << C_142 ": set to default (" RESET << it->second << C_142 ")" RESET << std::endl;
 			_global_settings[it->first] = it->second;
@@ -153,6 +153,6 @@ bool	ServerSettings::check_settings() {
 			std::cerr << ERR3 "Invalid port number: " << _port_num << std::endl;
 			return false;
 	}
-/* CHECK IF WE CAN OPEN THE SETTING DIRECTORIES */
-    return true;
+	
+    return setRoot();
 }

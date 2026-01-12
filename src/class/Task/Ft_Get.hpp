@@ -3,7 +3,6 @@
 
 #include "Task.hpp"
 
-
 #include <fstream>
 ///////////////////////////////////////////////////////////////////////////////]
 //* GET *     | Request a resource  | No body (technically allowed but ignored)|
@@ -40,24 +39,10 @@ private:
 public:
     Ft_Get(Connection& connec) : Task(connec) {}
 
-    int ft_do() {
-        std::cout << C_431 "IM ALIVE! (GET)" RESET << std::endl;
+    int ft_do();
 
-        std::string path = getRequest().getPath(); // / index.html
-        std::string root = g_settings.getRoot();
-
-        path = root + path;
-        std::cout << "path: " << path << std::endl;
-        // if (path.notexist???) // /var/www/html + / index.html
-
-
-
-
-
-
-
-        return 0;
-    }
+private:
+    int generate_listing(std::string path);
     // ....
 };
 
