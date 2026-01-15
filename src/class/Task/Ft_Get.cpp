@@ -40,7 +40,7 @@ int Ft_Get::ft_do() {
 
 	if (S_ISREG(ressource_info.st_mode)) { // if file
 	
-		if (access(ressource.c_str(), R_OK) != 0) {
+		if (access(ressource.c_str(), R_OK) != 0) { // even if file exist, might not be readable by server
 			// not readable → 403
 		}
 
@@ -139,7 +139,10 @@ int Ft_Get::generate_listing(std::string path) {
 	return 0; // <------------------------------------------------------------------------????
 }
 
-/**	return MIME type of the file <media-type> == text/html */
+/**	return MIME type of the file <media-type> == text/html 
+*
+* The headers of the aContent-Type
+*/
 static std::string find_MIME_type(const std::string& path) {
 
 	size_t pos = path.find_last_of('.');
