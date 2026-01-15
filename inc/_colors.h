@@ -6,7 +6,7 @@
 /*   By: kalipso <kalipso@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/14 14:19:41 by kmendes-          #+#    #+#             */
-/*   Updated: 2024/09/23 15:06:53 by kalipso          ###   ########.fr       */
+/*   Updated: 2026/01/14 14:36:14 by kalipso          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,9 @@
 # define CLS "\e[2J\e[H"
 # define INV "\e[7m"
 # define BLINK "\e[5m"
+# define UNDER "\e[4m"
 # define R_BLINK "\e[25m"
+# define R_UNDER "\e[24m"
 
 # define RESET "\e[0m"
 # define END "\e[0m\n"

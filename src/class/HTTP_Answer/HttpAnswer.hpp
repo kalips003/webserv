@@ -87,10 +87,12 @@ public:
 
 	void	setStrBody(std::string& s) { _body = s; _body_size = s.size(); }
 	void	setVersion(std::string& s) { _version = s; }
+	void	setFd(int fd) { _fd_body = fd; }
+	void	setBodySize(size_t size) { _body_size = size; }
 	void	setStatus(int errCode) { _status = errCode; }
 	void	setMsgStatus(std::string& s) { _msg_status = s; }
 //-----------------------------------------------------------------------------]
-    void    addToHeaders(std::string& parameter, std::string& value) { _headers[parameter] = value; }
+    void    addToHeaders(std::string parameter, std::string value) { _headers[parameter] = value; }
 ///////////////////////////////////////////////////////////////////////////////]
 };
 
