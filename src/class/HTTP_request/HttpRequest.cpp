@@ -43,8 +43,8 @@ std::string HttpRequest::find_setting(const std::string& set) const {
 	map_strstr::const_iterator it = _headers.begin();
 	it = _headers.find(set);
 	if (it == _headers.end()) {
-		oss msg; msg << RED "setting not found: " RESET << set;
-		printLog(ERROR, msg.str(), 1);
+		// oss msg; msg << RED "setting not found: " RESET << set;
+		// printLog(ERROR, msg.str(), 1);
 		return "";
 	}
 	else 

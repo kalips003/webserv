@@ -47,6 +47,10 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 		rtrn = _request.readingFirstLine(str_buff);
 		if (rtrn >= 100)
 			return _answer.create_error(rtrn);
+		if (rtrn == READING_HEADER) {
+			oss msg; msg << "[#" C_431 << _client_fd << RESET "] → " << _request.getMethod() << " " << _request.getPath();
+			printLog(INFO, msg.str(), 1);
+		}
 		_status = static_cast<ConnectionStatus>(rtrn);
 	}
 
