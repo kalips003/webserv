@@ -17,19 +17,20 @@ c_it	Server::pop_connec(c_it it) {
 	next++;
 	Connection& client = it->second;
 
-	std::cout << RED "closing: " RESET << client.getClientFd() << std::endl;
+	std::cout << INFO "[#" C_431 << client.getClientFd() <<  RESET "] closing: ";
 
 	if (client.findRequestHeader("connection") == "keep-alive") {
-		std::cout << BLUE "we wnat to keep this connec alive" RESET << std::endl;
+		std::cout << "Connection kept-alive." << std::endl;
 		client.resetAnswer();
 		client.resetRequest();
 		client.setStatus(FIRST);
 	}
 	else {
+		std::cout << "Connection deleted." << std::endl;
 		it->second.closeFd();
 		_clients.erase(it);
 	}
-	std::cout << RED "how many clients?: " RESET << _clients.size() << std::endl;
+	if (DEBUG_MODE == true) std::cout << INFO "Remaining: " C_431 << _clients.size() << RESET " clients." << std::endl;
 	return next;
 }
 
@@ -71,9 +72,8 @@ void	Server::accept_client() {
         // _clients[client_fd] = request;
 	// _clients[client_fd] = Connection(client_fd, client_addr, addr_len, _settings);
 
-	std::cout << C_115 "-----------------------------------------]\n";
-	std::cout << "New client Accepted: " RESET << _clients[client_fd] << std::endl;
-	std::cout << C_115 "-----------------------------------------]" << std::endl;
+	if (DEBUG_MODE == true) std::cout << INFO "New client Accepted: [#" C_431 << client_fd <<  RESET "] " << _clients[client_fd];
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

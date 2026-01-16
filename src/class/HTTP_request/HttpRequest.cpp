@@ -24,13 +24,13 @@ HttpRequest::~HttpRequest() { if (_fd_body > 0) close(_fd_body); }
 * if "body-size" is incorrect, return -1			---*/
 ssize_t      HttpRequest::isThereBody() const {
 
-    map_istr::const_iterator it = _headers.find("body-size");
-    if (it == _headers.end())
-        return 0;
-    int r;
-    if (!atoi_v2(it->second, r) || r < 0)
-        return -1;
-    return static_cast<ssize_t>(r);
+	map_istr::const_iterator it = _headers.find("body-size");
+	if (it == _headers.end())
+		return 0;
+	int r;
+	if (!atoi_v2(it->second, r) || r < 0)
+		return -1;
+	return static_cast<ssize_t>(r);
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -40,14 +40,15 @@ ssize_t      HttpRequest::isThereBody() const {
 * if setting not found, return "" empty string	---*/
 std::string HttpRequest::find_setting(const std::string& set) const {
 
-    map_strstr::const_iterator it = _headers.begin();
-    it = _headers.find(set);
-    if (it == _headers.end()) {
-        std::cerr << RED "setting not found: " RESET << set << std::endl;
-        return "";
-    }
-    else 
-        return it->second;    
+	map_strstr::const_iterator it = _headers.begin();
+	it = _headers.find(set);
+	if (it == _headers.end()) {
+		oss msg; msg << RED "setting not found: " RESET << set;
+		printLog(ERROR, msg.str(), 1);
+		return "";
+	}
+	else 
+		return it->second;
 }
 
 // #include "HttpMethods.hpp"
@@ -63,47 +64,54 @@ std::string HttpRequest::find_setting(const std::string& set) const {
 * if delim ("\r\n") not found, return FIRST			---*/
 int    HttpRequest::readingFirstLine(std::string& str_buff) {
 
-    _buffer += str_buff;
+	_buffer += str_buff;
 
-    if (_buffer.size() > MAX_LIMIT_FOR_HEAD) {
-		std::cerr << RED "Limit max reached before finding CRLF" RESET << std::endl;
-        return 400;
+	if (_buffer.size() > MAX_LIMIT_FOR_HEAD) {
+		oss msg; msg << "Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF";
+		printLog(WARNING, msg.str(), 1);
+		msg.str(""); msg << C_241 "_buffer: (" RESET << _buffer << C_241 ")" RESET;
+		printLog(DEBUG, _buffer, 1);
+		return 400;
 	}
 
-    size_t  pos = _buffer.find("\r\n");
-    if (pos == std::string::npos)
-        return FIRST;
+	size_t  pos = _buffer.find("\r\n");
+	if (pos == std::string::npos)
+		return FIRST;
 
-    std::string head = _buffer.substr(0, pos); // "GET /index.html HTTP/1.1"
-    // _buffer = _buffer.substr(pos + 2); // "Host: ex..."
+	std::string head = _buffer.substr(0, pos); // "GET /index.html HTTP/1.1"
+	// _buffer = _buffer.substr(pos + 2); // "Host: ex..."
 
-    std::stringstream ss(head);
-    std::string word;
+	std::stringstream ss(head);
+	std::string word;
 
-    if (!(ss >> word) || isMethodValid(word) < 0) {
-		std::cerr << RED "Invalid Method: " RESET << word << std::endl;
-        return 501; // or 400
+	if (!(ss >> word) || isMethodValid(word) < 0) {
+		oss msg; msg << RED "Invalid Method: " RESET << word;
+		printLog(WARNING, msg.str(), 1);
+		return 501; // or 400
 	}
-    _method = word;
+	_method = word;
 
-    if (!(ss >> word) || !isPathValid(word)) {
-		std::cerr << RED "Invalid Path: " RESET << word << std::endl;
-        return 400;
+	if (!(ss >> word) || !isPathValid(word)) {
+		oss msg; msg << RED "Invalid Path: " RESET << word;
+		printLog(WARNING, msg.str(), 1);
+		return 400;
 	}
-    _path = word;
+	_path = word;
 
-    if (!(ss >> word) || word != "HTTP/1.1") {
-		std::cerr << RED "Invalid Version: " RESET << word << std::endl;
-        return 505;
+	if (!(ss >> word) || word != "HTTP/1.1") {
+		oss msg; msg << RED "Invalid Version: " RESET << word;
+		printLog(WARNING, msg.str(), 1);
+		return 505;
 	}
-    _version = word;
+	_version = word;
 
-    if (ss >> word) { // extra garbage after the 3 tokens
-		std::cerr << RED "Invalid HEAD: " RESET << _buffer.substr(0, _buffer.find("\r\n")) << std::endl;
-        return 400;
+	if (ss >> word) { // extra garbage after the 3 tokens
+		oss msg; msg << RED "Invalid HEAD: " RESET << _buffer.substr(0, _buffer.find("\r\n"));
+		printLog(WARNING, msg.str(), 1);
+		return 400;
 	}
 
-    return READING_HEADER;
+	return READING_HEADER;
 }
 
 //-----------------------------------------------------------------------------]
@@ -165,13 +173,15 @@ int	HttpRequest::parsingHeaders(std::string& delim) {
 
 	int errRtrn = parse_header_for_syntax();
 	if (errRtrn != READING_BODY) {
-		std::cerr << RED "ERROR SYNTAX - " RESET "while parsing headers" << std::endl;
+		oss msg; msg << "SYNTAX ERROR - while parsing headers for syntax" << std::endl;
+		printLog(WARNING, msg.str(), 1);
 		return errRtrn;
 	}
 
 	errRtrn = parse_headers_for_validity();
 	if (errRtrn > 100) {
-		std::cerr << RED "ERROR - " RESET "while parsing headers" << std::endl;
+		oss msg; msg << "SYNTAX ERROR - while parsing headers for validity" << std::endl;
+		printLog(WARNING, msg.str(), 1);
 		return errRtrn;
 	}
 
@@ -190,35 +200,36 @@ int	HttpRequest::parsingHeaders(std::string& delim) {
 * clear _buffer memory after parsing			---*/
 int HttpRequest::parse_header_for_syntax() {
 
-    std::vector<std::string> v;
-    v = splitOnDelimitor(_buffer, "\r\n");
-    if (!v.size()) {
+	std::vector<std::string> v;
+	v = splitOnDelimitor(_buffer, "\r\n");
+	if (!v.size()) {
 		_buffer.clear();
-		printErr(ERR9 "emtpy vector (should never see this)");
-        return 400;
+		printErr(ERR9 "emtpy vector (you should never see this)");
+		return 400;
 	}
 
-    std::vector<std::string>::iterator it = v.begin();
-    ++it; // move past first line: "GET /index.html HTTP/1.1"
+	std::vector<std::string>::iterator it = v.begin();
+	++it; // move past first line: "GET /index.html HTTP/1.1"
 
-    while (it != v.end()) {
+	while (it != v.end()) {
 
-        size_t colon_pos = it->find(':');
-        if (colon_pos == std::string::npos) {
-			std::cerr << ERR8 "bad header: " RESET << *it << std::endl;
+		size_t colon_pos = it->find(':');
+		if (colon_pos == std::string::npos) {
+			oss msg; msg << "Bad header: " << *it;
+			printLog(WARNING, msg.str(), 1);
 			_buffer.clear();
-            return 400;
+			return 400;
 		}
-            
-        std::string key = trim_white(it->substr(0, colon_pos));
-        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-        std::string value = trim_white(it->substr(colon_pos + 1));
-        _headers[key] = value;
+			
+		std::string key = trim_white(it->substr(0, colon_pos));
+		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+		std::string value = trim_white(it->substr(colon_pos + 1));
+		_headers[key] = value;
 
-        ++it;
-    }
+		++it;
+	}
 	_buffer.clear();
-    return READING_BODY;
+	return READING_BODY;
 }
 
 //-----------------------------------------------------------------------------]
@@ -229,8 +240,11 @@ int HttpRequest::parse_header_for_syntax() {
 int    HttpRequest::parse_headers_for_validity() {
 
 	_body_size = isThereBody();
-	if (_body_size < 0)
-		return printErr(ERR9 "bad body-size"), 400;
+	if (_body_size < 0) {
+		oss msg; msg << "SYNTAX ERROR - Bad body-size: " << _headers.find("body-size")->second;
+		printLog(ERROR, msg.str(), 1);
+		return 400;
+	}
 
 	if (_body_size > MAX_BODY_SIZE) { // <-----------------------------------------------------]
 		openFdBody("./temp/todolater");
@@ -287,7 +301,7 @@ int	HttpRequest::openFdBody(const char* path) {
 	_fd_body = open(path, O_CREAT | O_RDWR | O_TRUNC, 0600);
 
 	if (_fd_body < 0)
-		return printErr(ERR9 "bad body-size"), 400;
+		return printErr("open()"), 400;
  
 	_tmp_body_path = path;
 

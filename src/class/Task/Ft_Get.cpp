@@ -21,7 +21,7 @@ static std::string find_MIME_type(const std::string& path);
  *
  * 
  *
- * @return      ---*/
+ * @return 0 on success, ErrCode on error. Fills answer in case of error	---*/
 int Ft_Get::ft_do() {
 	std::cout << C_431 "IM ALIVE! (GET)" RESET << std::endl;
 // add path to root
@@ -34,21 +34,18 @@ int Ft_Get::ft_do() {
 	int rtrn = isFileNOK(ressource, ressource_info);
 	if (rtrn) {
 		printErr("ressource not OK");
-		getAnswer().create_error(333);
 		return rtrn;
 	}
 
 	if (S_ISREG(ressource_info.st_mode)) { // if file
 	
-		if (access(ressource.c_str(), R_OK) != 0) { // even if file exist, might not be readable by server
-			// not readable → 403
-		}
+		if (access(ressource.c_str(), R_OK) != 0) // even if file exist, might not be readable by server
+			return 403;
 
 		int fd = open(ressource.c_str(), O_RDONLY);
 		if (fd < 0) {
 			printErr("open()");
-			getAnswer().create_error(333);
-			return 1;
+			return 500;
 		}
 		getAnswer().setFd(fd);
 		getAnswer().setBodySize(ressource_info.st_size);
@@ -139,16 +136,23 @@ int Ft_Get::generate_listing(std::string path) {
 	return 0; // <------------------------------------------------------------------------????
 }
 
-/**	return MIME type of the file <media-type> == text/html 
+///////////////////////////////////////////////////////////////////////////////]
+/**	return MIME type of the file "Content-Type" == text/html 
 *
-* The headers of the aContent-Type
-*/
+* The headers of the _answer "Content-Type" is filled with this return
+*
+* @return value of "Content-Type", or "application/octet-stream" in case of error	---*/
 static std::string find_MIME_type(const std::string& path) {
 
 	size_t pos = path.find_last_of('.');
-	if (pos == std::string::npos) // <------------------------------------------------------------------------????
-		return "";
-	return path.substr(pos + 1);
+	if (pos == std::string::npos)
+		return "application/octet-stream";
+	const std::string* rtrn = g_settings.find_setting_in_blocks("mime_types", "", path.substr(pos + 1));
+	if (!rtrn) {
+		std::cerr << RED "unknown MIME type: " RESET << path.substr(pos + 1) << std::endl;
+		return "application/octet-stream";
+	}
+	return *rtrn;
 }
 
 // {

@@ -4,7 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run_better( void ) {
 
-	char buffer[4096];
+	char buffer[BUFFER_SIZE];
 
 	while (true) {
 

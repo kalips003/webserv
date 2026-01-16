@@ -1,17 +1,29 @@
 #ifndef DEFINES_HPP
 #define DEFINES_HPP
 
-#define BUFFER_SIZE 1024
+#include "_colors.h"
+
+// #define BUFFER_SIZE 4096
+#define BUFFER_SIZE 8192
+
 #define HOW_MANY_REQUEST_PER_LISTEN 4
 
 #define MAX_BODY_SIZE   8192
 #define MAX_LIMIT_FOR_HEAD 1000
 
-#define PATH_MAX   1024
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
 
 #include <map>
 #include <vector>
 
+#define INFO "[" C_150 " INFO  " RESET "] "
+#define ERROR "[" C_510 " ERROR " RESET "] "
+#define WARNING "[" C_441 "WARNING" RESET "] "
+#define DEBUG "[" C_124 " DEBUG " RESET "] "
+
+#define DEBUG_MODE true
 
 enum    ConnectionStatus {
 
@@ -51,6 +63,7 @@ enum HttpMethod {
 };
 
 
+typedef std::ostringstream oss;
 typedef std::pair<std::string, std::string> kv;
 typedef std::map<std::string, std::string> map_strstr;
 typedef std::map<std::string, std::string> map_istr;

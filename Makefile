@@ -167,15 +167,16 @@ src/$(OBJ_FOLDER0)/%.o: src/%.cpp
 # ╰──────────────────────────────────────────────────────────────────────╯
 
 TEST_FOLDER = data/tests
+TEST_MAIN = $(TEST_FOLDER)/main_test.cpp
 TEST_PATH_FILE = src/class/HTTP_request/
 FILES_TEST = $(TEST_PATH_FILE)HttpRequest.cpp \
 	src/kali/_A.cpp \
 	$(wildcard src/Tools/*.cpp) $(wildcard src/vocabulary/*.cpp)
 
-test: $(TEST_FOLDER)/main.cpp
+test: $(TEST_MAIN)
 	@rm -f $(TEST_FOLDER)/a.out
 	@clear
-	-@$(CC) $(FLAGS_LESS) $(INC) $(FILES_TEST) $(TEST_FOLDER)/main.cpp -o $(TEST_FOLDER)/a.out
+	-@$(CC) $(FLAGS_LESS) $(INC) $(FILES_TEST) $(TEST_MAIN) -o $(TEST_FOLDER)/a.out
 	@if [ ! -e $(TEST_FOLDER)/a.out ]; then\
 		$(call print_cat, "", $(RED), $(GOLD), $(RED_L), $(call pad_word, 10, "The⠀Cake"), $(call pad_word, 12, "Is⠀A⠀Lie..")); \
 		exit 3; \
@@ -190,10 +191,10 @@ test: $(TEST_FOLDER)/main.cpp
 # 	-@$(VALGRIND) lib/a.out
 
 INPUT_FILE = data/config_file.conf
-test2: $(OBJ) $(TEST_FOLDER)/main.cpp $(HEAD)
+test2: $(OBJ) $(TEST_MAIN) $(HEAD)
 	@rm -f $(TEST_FOLDER)/a.out
 	@clear
-	@$(CC) $(FLAGS_TEST) $(INC) $(OBJ) $(TEST_FOLDER)/main.cpp -o $(TEST_FOLDER)/a.out
+	@$(CC) $(FLAGS_TEST) $(INC) $(OBJ) $(TEST_MAIN) -o $(TEST_FOLDER)/a.out
 	@$(call random_cat, $(call pad_word, 12, "TESTING"), $(call pad_word, 14, "SCIENCE"), $(CLS), $(RESET));
 	@$(TEST_FOLDER)/a.out $(INPUT_FILE)
 

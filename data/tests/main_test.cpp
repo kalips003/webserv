@@ -15,6 +15,10 @@ int main(int ac, char** av)
 	Server s(av[1]);
 
 	std::cout << g_settings;
+	std::cout << DEBUG << std::endl;
+	std::cout << WARNING << std::endl;
+	std::cout << ERROR << std::endl;
+	std::cout << INFO << std::endl;
 	return 0;
 }
 

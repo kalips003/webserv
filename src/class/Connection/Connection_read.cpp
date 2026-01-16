@@ -21,11 +21,11 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 	ssize_t bytes_recv = recv(_client_fd, buff, sizeofbuff - 1, 0);
 
 	if (bytes_recv == 0) {
-		std::cerr << RED "connection closed (FIN received)" RESET << std::endl;
+		printLog(INFO, RED "connection closed (FIN received)" RESET, 1);
 		return CLOSED;
 	}
 	else if (bytes_recv < 0) {// treat as generic fail (no errno)
-		std::cerr << C_134 "bytes_recv: " RESET << bytes_recv << std::endl;
+		printLog(WARNING, "bytes_recv: -1", 1);
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			return _status; // fcntl()'s fault, no data to read yet
 		printErr(RED "recv() failed" RESET);
@@ -36,7 +36,11 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 
 	buff[bytes_recv] = '\0';
 	std::string str_buff(buff, bytes_recv);
-	std::cerr << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes): \n[" RESET << str_buff << C_134 "]" RESET << std::endl;
+
+	oss msg; msg << "[#" C_431 << _client_fd << RESET "] " << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes)" RESET;
+	printLog(INFO, msg.str(), 1);
+	msg.str(""); msg << C_134 "Packet: [" RESET << str_buff << C_134 "]" RESET;
+	printLog(DEBUG, msg.str(), 1);
 
 	int rtrn;
     if (_status == FIRST) {
