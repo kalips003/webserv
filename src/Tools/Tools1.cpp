@@ -30,7 +30,7 @@ bool printErr(const char* errmsg) {
 
 	std::cerr << ERROR;
 	perror(errmsg);
-	std::cerr << C_412 "; [errno]: " RESET << errno << std::endl;
+	// std::cerr << C_412 "; [errno]: " RESET << errno << std::endl;
 	return false;
 }
 

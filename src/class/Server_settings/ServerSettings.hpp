@@ -65,12 +65,12 @@ private:
 	ServerSettings& getSettings() { return *this; }
 //	FIND IN THE BLOCKS
 public:
-	const std::string*				find_setting(const std::string setting) const;
-	const block*					find_global_block(const std::string block_name) const;
-	const std::vector<const block*>	find_arg_blocks(const std::string block_name) const;
-	const block*					find_arg_block_from_vector(const std::vector<const block*>& v, const std::string arg_name) const;
-	const std::string*				find_setting_in_block(const block* b, const std::string setting) const;
-	const std::string*				find_setting_in_blocks(const std::string block_name, const std::string arg, const std::string setting) const;
+	const std::string*				find_setting(const std::string& setting) const;
+	const block*					find_global_block(const std::string& block_name) const;
+	const std::vector<const block*>	find_arg_blocks(const std::string& block_name) const;
+	const block*					find_arg_block_from_vector(const std::vector<const block*>& v, const std::string& arg_name) const;
+	const std::string*				find_setting_in_block(const block* b, const std::string& setting) const;
+	const std::string*				find_setting_in_blocks(const std::string& block_name, const std::string& arg, const std::string& setting) const;
 /***  SETTERS  ***/
 public:
 	void	addSetting(std::string& name, std::string& value) { _global_settings[name] = value; }

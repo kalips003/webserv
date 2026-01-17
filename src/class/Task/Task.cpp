@@ -16,3 +16,21 @@ Task* Task::createTask(const std::string& method, Connection& connec) {
     // ... other methods
     else return NULL;  // unknown method → 405 or reject
 }
+
+///////////////////////////////////////////////////////////////////////////////]
+/** Check whether a requested resource should be handled as a CGI script
+ *
+ * Determines if the file extension of the given path matches a CGI handler
+ * defined in the server configuration.
+ *
+ * @param path  Requested resource path (without query string)
+ * @return      Pointer to the CGI interpreter path if the resource is CGI,
+ *              NULL otherwise			---*/
+const std::string* Task::isCGI(const std::string& path) const {
+
+	size_t pos = path.find_last_of('.');
+	if (pos == std::string::npos)
+		return NULL;
+	std::string extension = path.substr(pos);
+	return g_settings.find_setting_in_blocks("cgi", "", extension);
+}

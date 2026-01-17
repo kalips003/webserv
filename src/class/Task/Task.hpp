@@ -29,6 +29,8 @@ public:
 
 	virtual int ft_do() { return 0; }
 
+//-----------------------------------------------------------------------------]
+	const std::string* isCGI(const std::string& path) const;
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
     const std::string& getBuffer() const { return _buffer; }

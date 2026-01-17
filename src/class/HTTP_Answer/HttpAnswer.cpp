@@ -32,10 +32,13 @@ enum ConnectionStatus    httpAnswer::create_error(int errCode) {
 	else {
 		_status = errCode;
 		_msg_status = s;
-		_body = "<html><body><h1>" + itostr(errCode) + " " + _msg_status + "</h1></body></html>";
+		_body = "<html><body style=\"background:#111;color:#eee;text-align:center;\">"
+			"<h1>" + itostr(errCode) + " " + _msg_status + "</h1>"
+			"<img src=\"/errors/" + itostr(errCode) + ".jpg\" alt=\"error\">"
+			"</body></html>";
 		_headers["Content-Type"] = "text/html";
-		_body_size = _body.size();
-		_headers["Content-Length"] = itostr(_body.size());
+		// _body_size = _body.size();
+		// _headers["Content-Length"] = itostr(_body.size());
 
 		if (_fd_body >= 0) {
 			close(_fd_body);
@@ -51,6 +54,11 @@ enum ConnectionStatus    httpAnswer::create_error(int errCode) {
 void httpAnswer::http_answer_ini() {
 
 	_head.reserve(4096);
+
+	if (!_body.empty()) {
+		_body_size = _body.size();
+		_headers["Content-Length"] = itostr(_body.size());
+	}
 	_head = rtrnFistLine() + concatenateHeaders() + "\r\n";
 }
 
@@ -102,6 +110,8 @@ enum ConnectionStatus    httpAnswer::sending(char *buff, size_t size_buff, int f
 			return SENDING; 
 		return CLOSED;
 	}
+	oss msg; msg << "Packet sent: loaded [" << bytesLoaded << "] sent [" << bytesSent << "]\n" << "Packet: {" << std::string(buff, bytesSent) << "}";
+	printLog(DEBUG, msg.str(), 1);
 
 	updateAfterSend(buff, bytesLoaded, bytesSent);
 	if (_sending_status == ENDED)
@@ -126,7 +136,7 @@ ssize_t	httpAnswer::fillBuffer(char *buff, size_t size_buff) {
 			memcpy(buff, _head.c_str(), bytesLoaded);
 			break ;
 
-		case SENDING_BODY : 
+		case SENDING_BODY :
 			bytesLoaded = std::min(size_buff, _body.size() - _bytes_sent);
 			memcpy(buff, &(_body.c_str()[_bytes_sent]), bytesLoaded);
 			break ;
@@ -162,8 +172,11 @@ void	httpAnswer::updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesS
 	switch (_sending_status) {
 
 		case SENDING_HEAD :
-			if (bytesSent == static_cast<ssize_t>(_head.size()))
+			if (bytesSent == static_cast<ssize_t>(_head.size())) {
+				printLog(DEBUG, RED "HEAD cleared" RESET, 1);
 				_head.clear();
+				_bytes_sent = 0;
+			}
 			else
 				_head = _head.substr(bytesSent);
 			break ;
@@ -186,6 +199,8 @@ void	httpAnswer::updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesS
 			std::cout << C_350 "Answer ENDED" RESET << std::endl;
 	}
 	_sending_status = isThereBody();
+	oss msg; msg << C_431 "[_sending_status]" RESET << _sending_status;
+	printLog(DEBUG, msg.str(), 1);
 }
 
 

@@ -9,7 +9,7 @@ ServerSettings g_settings;
  *
  * @param set   Name of the setting to find
  * @return      String of the setting value, empty string "" otherwise		---*/
-const std::string* ServerSettings::find_setting(const std::string setting) const {
+const std::string* ServerSettings::find_setting(const std::string& setting) const {
 
 	map_strstr::const_iterator it = _global_settings.begin();
 	it = _global_settings.find(setting);
@@ -26,7 +26,7 @@ const std::string* ServerSettings::find_setting(const std::string setting) const
  *
  * @param block_name   Name of the global block to find
  * @return      Pointer to const block, NULL if not found		---*/
-const block* ServerSettings::find_global_block(const std::string block_name) const {
+const block* ServerSettings::find_global_block(const std::string& block_name) const {
 
 	std::vector<block>::const_iterator it = _block_settings.begin();
 	for ( ; it != _block_settings.end(); ++it) {
@@ -45,7 +45,7 @@ const block* ServerSettings::find_global_block(const std::string block_name) con
  *
  * @param block_name   Name of the blocks to find
  * @return      Vector of pointer to const block with said name		---*/
-const std::vector<const block*> ServerSettings::find_arg_blocks(const std::string block_name) const {
+const std::vector<const block*> ServerSettings::find_arg_blocks(const std::string& block_name) const {
 
 	std::vector<const block*> rtrn;
 	for (std::vector<block>::const_iterator it = _block_settings.begin(); it != _block_settings.end(); ++it) {
@@ -56,7 +56,7 @@ const std::vector<const block*> ServerSettings::find_arg_blocks(const std::strin
 }
 
 //-----------------------------------------------------------------------------]
-const block*	ServerSettings::find_arg_block_from_vector(const std::vector<const block*>& v, const std::string arg_name) const {
+const block*	ServerSettings::find_arg_block_from_vector(const std::vector<const block*>& v, const std::string& arg_name) const {
 
 	for (std::vector<const block*>::const_iterator it = v.begin(); it != v.end(); ++it) {
 		if ((*it)->arg == arg_name)
@@ -67,7 +67,7 @@ const block*	ServerSettings::find_arg_block_from_vector(const std::vector<const 
 
 
 //-----------------------------------------------------------------------------]
-const std::string*	ServerSettings::find_setting_in_block(const block* b, const std::string setting) const {
+const std::string*	ServerSettings::find_setting_in_block(const block* b, const std::string& setting) const {
 
 	if (!b)
 		return NULL;
@@ -84,7 +84,7 @@ const std::string*	ServerSettings::find_setting_in_block(const block* b, const s
 /** Getter for a block setting
  *
  * @return const pointer to the value of setting if found, NULL otherwise			---*/
-const std::string* ServerSettings::find_setting_in_blocks(const std::string block_name, const std::string arg, const std::string setting) const {
+const std::string* ServerSettings::find_setting_in_blocks(const std::string& block_name, const std::string& arg, const std::string& setting) const {
 
 	const block* b;
 	if (arg == "")

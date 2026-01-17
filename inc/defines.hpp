@@ -3,6 +3,9 @@
 
 #include "_colors.h"
 
+#define DEBUG_MODE true
+
+
 // #define BUFFER_SIZE 4096
 #define BUFFER_SIZE 8192
 
@@ -23,7 +26,6 @@
 #define WARNING "[" C_441 "WARNING" RESET "] "
 #define DEBUG "[" C_124 " DEBUG " RESET "] "
 
-#define DEBUG_MODE true
 
 enum    ConnectionStatus {
 

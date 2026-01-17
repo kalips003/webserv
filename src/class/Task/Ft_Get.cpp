@@ -13,81 +13,10 @@
 #include "Tools1.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
-static int	isFileNOK(std::string path, struct stat& ressource_info);
-static std::string find_MIME_type(const std::string& path);
-
-//-----------------------------------------------------------------------------]
-/** Does everything for the GET method. Fills the _answer
- *
- * 
- *
- * @return 0 on success, ErrCode on error. Fills answer in case of error	---*/
-int Ft_Get::ft_do() {
-	std::cout << C_431 "IM ALIVE! (GET)" RESET << std::endl;
-// add path to root
-	std::string ressource = g_settings.getRoot() + getRequest().getPath(); // /root/index.html
-
-	std::cout << "ressource_path: " << ressource << std::endl;
-
-// check existance
-	struct stat ressource_info;
-	int rtrn = isFileNOK(ressource, ressource_info);
-	if (rtrn) {
-		printErr("ressource not OK");
-		return rtrn;
-	}
-
-	if (S_ISREG(ressource_info.st_mode)) { // if file
-	
-		if (access(ressource.c_str(), R_OK) != 0) // even if file exist, might not be readable by server
-			return 403;
-
-		int fd = open(ressource.c_str(), O_RDONLY);
-		if (fd < 0) {
-			printErr("open()");
-			return 500;
-		}
-		getAnswer().setFd(fd);
-		getAnswer().setBodySize(ressource_info.st_size);
-		getAnswer().addToHeaders("Content-Type", find_MIME_type(ressource));
-	
-	}
-
-
-
-
-// what is it? directory or file?
-// if dir, check for default index, else generate listing
-	// if (S_ISDIR(ressource_info.st_mode)) { // <------------------------------------------------------------------------????
-	// 	std::string defaultt = g_settings.find_setting("index");
-	// 	if (!isFileNOK(ressource + defaultt)) {
-	// 		std::string autoindex = g_settings.find_setting("autoindex");
-	// 		if (autoindex == "on") {
-	// 			// generate directory listing
-	// 			std::cout << "hello\n";
-	// 		}
-		
-		
-	// 	}
-	// 	// it’s a directory
-	// } else if (S_ISREG(ressource_info.st_mode)) {
-	// 			std::cout << "hello2\n";
-	// 	// regular file
-	// } else {
-	// 			std::cout << "hello3\n";
-	// 	// maybe a symlink, device, etc
-	// 	// usually forbidden in web server
-	// }
-
-	// if (access(ressource.c_str(), R_OK) != 0) {
-	// 	// not readable → 403
-	// }
-	// off_t file_size = ressource_info.st_size; // bytes
-
-	return 0;
-}
-
-/**	@return 0 if all ok, ErrCode else */
+///////////////////////////////////////////////////////////////////////////////]
+/**	Fills the stat struct of the path
+*
+* @return 0 if all ok, ErrCode else (403 / 404)		*/
 static int	isFileNOK(std::string path, struct stat& ressource_info) {
 
 	int rtrn = stat(path.c_str(), &ressource_info);
@@ -101,6 +30,99 @@ static int	isFileNOK(std::string path, struct stat& ressource_info) {
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+static std::string find_MIME_type(const std::string& path);
+
+//-----------------------------------------------------------------------------]
+/** Does everything for the GET method. Fills the _answer
+ *
+ * @return 0 on success, ErrCode on error. Fills answer in case of error	---*/
+int Ft_Get::ft_do() {
+	printLog(DEBUG, "GET method called", 1);
+
+// is there query in the path? > /script.py?x=abc&y=42
+	const HttpRequest& req = getRequest();
+	size_t pos = req.getPath().find_first_of('?');
+	std::string path;
+	std::string query;
+	if (pos == std::string::npos)
+		path = req.getPath();
+	else {
+		path = req.getPath().substr(0, pos);
+		query = req.getPath().substr(pos + 1);
+	}
+
+// add path to root
+	std::string ressource = g_settings.getRoot() + path; // /root/index.html
+	oss msg; msg << "Full path of the asked ressource: " << ressource;
+	printLog(DEBUG, msg.str(), 1);
+
+// check existance
+	struct stat ressource_info;
+	int rtrn = isFileNOK(ressource, ressource_info);
+	if (rtrn) {
+		printErr("ressource not OK");
+		return rtrn;
+	}
+
+// is FILE
+	if (S_ISREG(ressource_info.st_mode)) { // if file
+		printLog(WARNING, "is FILE", 1);
+		const std::string* CGI_interpreter_path = isCGI(path);
+		int rtrn;
+		if (CGI_interpreter_path)
+			rtrn = handleCGI(ressource, query, CGI_interpreter_path);
+		else
+			rtrn = serveFile(ressource, ressource_info);
+		return rtrn;
+	}
+// is DIRECTORY
+	else if (S_ISDIR(ressource_info.st_mode)) {
+		printLog(WARNING, "is DIRECTORY", 1);
+		if (access(ressource.c_str(), X_OK) != 0) { // even if folder exist, we neeed the rights to traverse it
+			printErr(ressource.c_str());
+			return 403;
+		}
+												// Trailing slash edge case : '/dir' != '/dir/' = 301/302? --------------------------------< ???
+		std::string ressource_indexed = ressource + *g_settings.find_setting("index");
+		struct stat ressource_info2;
+		int rtrn = isFileNOK(ressource_indexed, ressource_info2);
+		if (rtrn) {
+			if (*g_settings.find_setting("autoindex") == "on")
+				return serveAutoIndexing(ressource);
+			else {
+				oss msg; msg << "Requested folder (" << ressource << ") exist, but Autoindexing is off";
+				printLog(WARNING, msg.str(), 1);
+				return 403;
+			}
+		}
+		else
+			return serveFile(ressource, ressource_info2);
+	}
+	else
+		return 403; // other filesystem objects: symlinks, sockets, devices, FIFOs…
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+int Ft_Get::serveFile(const std::string& path, struct stat& ressource_info) {
+
+	if (access(path.c_str(), R_OK) != 0) // even if file exist, might not be readable by server
+		return 403;
+
+	int fd = open(path.c_str(), O_RDONLY);
+	if (fd < 0) {
+		printErr("open()");
+		return 500;
+	}
+	getAnswer().setFd(fd);
+	getAnswer().setBodySize(ressource_info.st_size);
+	getAnswer().addToHeaders("Content-Type", find_MIME_type(path));
+	
+	return 0;
+}
+
+
 #include <dirent.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /** Generate a listing of requested directory, into _answer
@@ -108,11 +130,12 @@ static int	isFileNOK(std::string path, struct stat& ressource_info) {
  * 
  *
  * @return      ---*/
-int Ft_Get::generate_listing(std::string path) {
+int Ft_Get::serveAutoIndexing(const std::string& path) {
+	printLog(ERROR, "serveAutoIndexing()", 1);
 
 	DIR* dir = opendir(path.c_str());
 	if (!dir) {
-		setStatus(403); // cannot open → forbidden
+		printErr(path.c_str());
 		return 403;
 	}
 
@@ -132,8 +155,15 @@ int Ft_Get::generate_listing(std::string path) {
 
 	listing_html += "</ul></body></html>";
 	getAnswer().setStrBody(listing_html);
+	getAnswer().addToHeaders("Content-Type", "text/html");
+// Connection: close   (or keep-alive if you support it)
+// Optional but recommended:
+// Date: <current date>
+// Server: Webserv/0.1 (or whatever your server string is)
+// Last-Modified (not critical for autoindex)
+// Cache-Control: no-cache (optional for dynamic listings)
 	closedir(dir);
-	return 0; // <------------------------------------------------------------------------????
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -154,17 +184,3 @@ static std::string find_MIME_type(const std::string& path) {
 	}
 	return *rtrn;
 }
-
-// {
-// 	std::map<std::string, std::string> mime_types;
-
-// 	mime_types["html"] = "text/html";
-// 	mime_types["css"]  = "text/css";
-// 	mime_types["js"]   = "application/javascript";
-// 	mime_types["png"]  = "image/png";
-// 	mime_types["jpg"]  = "image/jpeg";
-// 	mime_types["jpeg"] = "image/jpeg";
-// 	mime_types["gif"]  = "image/gif";
-// 	mime_types["txt"]  = "text/plain";
-
-// }
