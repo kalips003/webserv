@@ -150,7 +150,11 @@ int Ft_Get::serveAutoIndexing(const std::string& path) {
 		if (name == ".") continue;
 		if (name == "..") continue;
 
-		listing_html += "<li><a href=\"" + name + "\">" + name + "</a></li>";
+		std::string base = getRequest().getPath();
+		if (base.empty() || base[base.size() - 1] != '/')
+			base += '/';
+		
+		listing_html += "<li><a href=\"" + base + name + "\">" + name + "</a></li>"; // <------------------------------------ ???
 	}
 
 	listing_html += "</ul></body></html>";
