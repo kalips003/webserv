@@ -11,24 +11,9 @@
 #include "HttpRequest.hpp"
 #include "HttpAnswer.hpp"
 #include "Tools1.hpp"
+#include "defines.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
-///////////////////////////////////////////////////////////////////////////////]
-/**	Fills the stat struct of the path
-*
-* @return 0 if all ok, ErrCode else (403 / 404)		*/
-static int	isFileNOK(std::string path, struct stat& ressource_info) {
-
-	int rtrn = stat(path.c_str(), &ressource_info);
-	if (rtrn) {
-		if (errno == ENOENT) // ENOENT → file not found → 404
-			return 404;
-		if (errno == EACCES) // EACCES → permission denied → 403
-			return 403;
-	}
-
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
@@ -54,23 +39,25 @@ int Ft_Get::ft_do() {
 	}
 
 // add path to root
-	std::string ressource = g_settings.getRoot() + path; // /root/index.html
+	std::string ressource;
+	int rtrn = getFullPath(ressource, path);
+	if (rtrn)
+		return rtrn;
 	oss msg; msg << "Full path of the asked ressource: " << ressource;
 	printLog(DEBUG, msg.str(), 1);
 
 // check existance
 	struct stat ressource_info;
-	int rtrn = isFileNOK(ressource, ressource_info);
+	rtrn = isFileNOK(ressource, ressource_info);
 	if (rtrn) {
 		printErr("ressource not OK");
 		return rtrn;
 	}
 
 // is FILE
-	if (S_ISREG(ressource_info.st_mode)) { // if file
-		printLog(WARNING, "is FILE", 1);
+	if (S_ISREG(ressource_info.st_mode)) {
+		printLog(DEBUG, "is FILE", 1);
 		const std::string* CGI_interpreter_path = isCGI(path);
-		int rtrn;
 		if (CGI_interpreter_path)
 			rtrn = handleCGI(ressource, query, CGI_interpreter_path);
 		else
@@ -79,7 +66,7 @@ int Ft_Get::ft_do() {
 	}
 // is DIRECTORY
 	else if (S_ISDIR(ressource_info.st_mode)) {
-		printLog(WARNING, "is DIRECTORY", 1);
+		printLog(DEBUG, "is DIRECTORY", 1);
 		if (access(ressource.c_str(), X_OK) != 0) { // even if folder exist, we neeed the rights to traverse it
 			printErr(ressource.c_str());
 			return 403;
@@ -87,7 +74,7 @@ int Ft_Get::ft_do() {
 												// Trailing slash edge case : '/dir' != '/dir/' = 301/302? --------------------------------< ???
 		std::string ressource_indexed = ressource + *g_settings.find_setting("index");
 		struct stat ressource_info2;
-		int rtrn = isFileNOK(ressource_indexed, ressource_info2);
+		rtrn = isFileNOK(ressource_indexed, ressource_info2);
 		if (rtrn) {
 			if (*g_settings.find_setting("autoindex") == "on")
 				return serveAutoIndexing(ressource);
@@ -97,8 +84,11 @@ int Ft_Get::ft_do() {
 				return 403;
 			}
 		}
-		else
-			return serveFile(ressource, ressource_info2);
+		else {
+			oss msg; msg << "Default file found: (" << ressource_indexed << ")";
+			printLog(DEBUG, msg.str(), 1);
+			return serveFile(ressource_indexed, ressource_info2);
+		}
 	}
 	else
 		return 403; // other filesystem objects: symlinks, sockets, devices, FIFOs…
@@ -131,7 +121,6 @@ int Ft_Get::serveFile(const std::string& path, struct stat& ressource_info) {
  *
  * @return      ---*/
 int Ft_Get::serveAutoIndexing(const std::string& path) {
-	printLog(ERROR, "serveAutoIndexing()", 1);
 
 	DIR* dir = opendir(path.c_str());
 	if (!dir) {
@@ -181,6 +170,7 @@ static std::string find_MIME_type(const std::string& path) {
 	size_t pos = path.find_last_of('.');
 	if (pos == std::string::npos)
 		return "application/octet-stream";
+
 	const std::string* rtrn = g_settings.find_setting_in_blocks("mime_types", "", path.substr(pos + 1));
 	if (!rtrn) {
 		std::cerr << RED "unknown MIME type: " RESET << path.substr(pos + 1) << std::endl;

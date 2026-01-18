@@ -1,6 +1,10 @@
 #include "ServerSettings.hpp"
 
 #include <iostream>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "Tools1.hpp"
 
 ServerSettings g_settings;
 
@@ -14,7 +18,8 @@ const std::string* ServerSettings::find_setting(const std::string& setting) cons
 	map_strstr::const_iterator it = _global_settings.begin();
 	it = _global_settings.find(setting);
 	if (it == _global_settings.end()) {
-		std::cerr << RED "setting not found: " RESET << setting << std::endl;
+		oss msg; msg << C_511 "setting not found: " RESET << setting;
+		printLog(WARNING, msg.str(), 1);
 		return NULL;
 	}
 	else 
@@ -73,7 +78,8 @@ const std::string*	ServerSettings::find_setting_in_block(const block* b, const s
 		return NULL;
 	map_strstr::const_iterator it = b->settings.find(setting);
 	if (it == b->settings.end()) {
-		std::cerr << RED "setting not found: " RESET << setting << std::endl;
+		oss msg; msg << C_522 "setting not found: " RESET << setting;
+		printLog(DEBUG, msg.str(), 1);
 		return NULL;
 	}
 	else 
@@ -96,9 +102,9 @@ const std::string* ServerSettings::find_setting_in_blocks(const std::string& blo
 	return find_setting_in_block(b, setting);
 }
 
-#include <unistd.h>
-#include "Tools1.hpp"
-#include <sys/stat.h>
+// #include <unistd.h>
+// #include "Tools1.hpp"
+// #include <sys/stat.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /** Set the root for the server
  *

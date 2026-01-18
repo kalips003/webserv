@@ -91,6 +91,7 @@ public:
 	void	setBodySize(size_t size) { _body_size = size; }
 	void	setStatus(int errCode) { _status = errCode; }
 	void	setMsgStatus(std::string& s) { _msg_status = s; }
+	void	setFirstLine(int code);
 //-----------------------------------------------------------------------------]
     void    addToHeaders(std::string parameter, std::string value) { _headers[parameter] = value; }
 ///////////////////////////////////////////////////////////////////////////////]

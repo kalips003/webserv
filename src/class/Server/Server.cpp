@@ -56,7 +56,7 @@ void	Server::accept_client() {
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			std::cerr << ERR7 "???\n"; // fcntl()'s fault, no data to read yet
 		else 
-			printErr(ERR8 "accept() failed");
+			printErr(ERR8 "accept()");
 		return ;
 	}
 
@@ -72,8 +72,8 @@ void	Server::accept_client() {
         // _clients[client_fd] = request;
 	// _clients[client_fd] = Connection(client_fd, client_addr, addr_len, _settings);
 
-	if (DEBUG_MODE == true) std::cout << INFO "New client Accepted: [#" C_431 << client_fd <<  RESET "] " << _clients[client_fd];
-
+	oss msg; msg << "New client Accepted: [#" C_431 << client_fd <<  RESET "] " << _clients[client_fd];
+	printLog(INFO, msg.str(), 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

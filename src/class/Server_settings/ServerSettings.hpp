@@ -58,6 +58,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
 	int					getPortNum( void ) const { return _port_num; }
+	/**	@return /full/path/to/root (no trailing /) */
 	std::string			getRoot( void ) const { return _root; }
 //
 	const ServerSettings& getConstSettings() const { return *this; }

@@ -110,7 +110,9 @@ enum ConnectionStatus    httpAnswer::sending(char *buff, size_t size_buff, int f
 			return SENDING; 
 		return CLOSED;
 	}
-	oss msg; msg << "Packet sent: loaded [" << bytesLoaded << "] sent [" << bytesSent << "]\n" << "Packet: {" << std::string(buff, bytesSent) << "}";
+	oss msg; msg << "Packet sent: loaded [" << bytesLoaded << "] sent [" << bytesSent << "]";
+	if (_sending_status != SENDING_BODY_FD)
+		msg << C_420 "\nPacket: {" RESET << std::string(buff, bytesSent) << C_420 "}" RESET;
 	printLog(DEBUG, msg.str(), 1);
 
 	updateAfterSend(buff, bytesLoaded, bytesSent);
@@ -203,6 +205,16 @@ void	httpAnswer::updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesS
 	printLog(DEBUG, msg.str(), 1);
 }
 
+///////////////////////////////////////////////////////////////////////////////]
+void	httpAnswer::setFirstLine(int code) {
+	_version = "HTTP/1.1";
+	_status = code;
+	_msg_status = return_http_from_code(code);
+	if (_msg_status.empty()) {
+		_status = 500;
+		_msg_status = return_http_from_code(500);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]

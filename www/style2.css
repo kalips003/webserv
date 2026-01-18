@@ -1,0 +1,137 @@
+:root {
+    /* custom CSS variables */
+    --clr-dark: #0f172a;
+    --clr-light: #f1f5f9;
+    --clr-accent: #e11d48;
+    }
+
+body {
+    background-color: black;
+    color: #696969;
+    font-family: 'Times New Roman', serif;
+    font-size: 20px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+a {
+    text-decoration: none;
+    color: #5c5c5c;
+}
+a:hover {
+    color: rgb(218, 145, 12);
+}
+
+/**************************************************/
+/* CLASS */
+.footer_div {
+    display: flex;
+    justify-content: space-around;
+    /* padding: 20px; */
+    /* margin-top: 80px;
+    margin-bottom: 100px; */
+}
+
+.ico_footer {
+    text-align: center;
+    width: 25px;
+    vertical-align: top;
+    /* padding-right: 5px; */
+}
+
+/* INDEX */
+.header_index {
+    display: flex;
+    justify-content: space-between;
+    text-align: justify;
+    align-items: center;
+    border: 2px solid rgb(218, 145, 12);
+    border-radius: 25px;
+}
+
+.header1 {
+    color: rgb(218, 145, 12);
+    border: 3px solid rgb(218, 145, 12);
+    padding: 20px;
+    border-radius: 25px;
+}
+
+.input {
+    box-sizing: border-box;
+    width: 100%;
+    border: 3px solid rgb(218, 145, 12);
+}
+input:focus {
+    outline: none;
+    border-color: rgb(218, 145, 12);
+    box-shadow: 0 0 5px rgb(218, 145, 12);
+}
+
+.popup-chaberu {
+position: fixed;
+left: 75%;
+transform: translateX(-50%);
+padding: 20px;
+z-index: 1000;
+
+display: flex;
+height: 400px;
+width: 250px;
+color: var(--color1);
+font-weight: bold;
+
+font-size: 25px;
+justify-content: center;
+align-items: center;
+text-align: center;
+}
+/**************************************************/
+/* BUTTONS */
+.nextButton {
+    width: 0;
+    height: 0;
+    border-style: none;
+
+    display: inline-block;
+    padding: 10px;
+    cursor: pointer;
+    background-color: white;
+    border-radius: 0px;
+    clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+    outline: none;
+    text-align: left;
+}
+
+.previousButton {
+    width: 0;
+    height: 0;
+    border-style: none;
+
+    display: inline-block;
+    padding: 10px;
+    cursor: pointer;
+    background-color: rgb(218, 145, 12);
+    border-radius: 0px;
+    clip-path: polygon(0% 50%, 100% 0%, 100% 100%);
+    outline: none;
+    text-align: left;
+}
+
+.button1 {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #000000;
+    color: #8e8e8e;
+    text-align: center;
+    text-decoration: none;
+
+    font-size: 16px;
+    cursor: pointer;
+    border: 3px solid #363636;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+}/*home 🐱?*/
+.button1:hover {
+    background-color: rgb(202, 135, 10);
+    color: black;
+}

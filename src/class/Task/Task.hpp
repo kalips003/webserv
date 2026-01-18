@@ -30,7 +30,13 @@ public:
 	virtual int ft_do() { return 0; }
 
 //-----------------------------------------------------------------------------]
+	static int	isFileNOK(std::string path, struct stat& ressource_info);
+
 	const std::string* isCGI(const std::string& path) const;
+	int getFullPath(std::string& path_to_fill, const std::string& given_path) const;
+	int sanitizePath(std::string& path_to_fill, const std::string& given_path) const;
+
+
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
     const std::string& getBuffer() const { return _buffer; }

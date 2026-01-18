@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>404</title>
+		<link rel="icon" type="image/x-icon" href="icon151s.ico">
+		<link rel="stylesheet" type="text/css" href="style2.css">
+	</head>
+
+	<body>
+		<img id="errorImage" style="margin: auto; display: block;" src="#" alt="何もない">
+		<script>
+			// Retrieve the random number from the URL query parameter
+			var urlParams = new URLSearchParams(window.location.search);
+			var randomErrorNum = urlParams.get('img');
+
+			document.getElementById('errorImage').src = `img/error/${randomErrorNum}.jpg`;
+			// Display the retrieved numbers
+			// document.write('<p>Random Number from URL: ' + randomErrorNum + '</p>');
+		</script>
+	</body>
+</html>

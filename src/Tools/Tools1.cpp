@@ -69,23 +69,23 @@ std::string trim_any(const std::string& s, const char *to_trim) {
 
 ///////////////////////////////////////////////////////////////////////////////]
 std::vector<std::string> splitOnDelimitor(const std::string& s, std::string delimit) {
-           
-    std::vector<std::string> rtrn;
-    std::string line;
-    size_t pos1 = 0;
-    size_t pos2;
 
-    while ((pos2 = s.find(delimit, pos1)) != std::string::npos) {
-        line = s.substr(pos1, pos2 - pos1);
+	std::vector<std::string> rtrn;
+	std::string line;
+	size_t pos1 = 0;
+	size_t pos2;
+
+	while ((pos2 = s.find(delimit, pos1)) != std::string::npos) {
+		line = s.substr(pos1, pos2 - pos1);
 		if (!line.empty())
-        	rtrn.push_back(line);
-        pos1 = pos2 + delimit.size();
-    }
-    line = s.substr(pos1);
+			rtrn.push_back(line);
+		pos1 = pos2 + delimit.size();
+	}
+	line = s.substr(pos1);
 	if (!line.empty())
-    	rtrn.push_back(line); 
+		rtrn.push_back(line); 
 
-    return rtrn;
+	return rtrn;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
