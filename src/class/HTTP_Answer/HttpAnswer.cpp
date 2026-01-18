@@ -45,6 +45,7 @@ enum ConnectionStatus    httpAnswer::create_error(int errCode) {
 			_fd_body = -1;
 		}
 		http_answer_ini();
+		
 		return SENDING;
 	}
 }

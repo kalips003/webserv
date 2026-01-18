@@ -20,7 +20,7 @@
  *
  * @param confi_file   Path of config file.
  * @return         _server_status true if parsing succeeded, false otherwise.		---*/
-Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_status(false) {
+Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_status(false), _epoll_fd(-1) {
 
 	_server_status = g_settings.parse_config_file(confi_file);
 	if (!_server_status)
@@ -31,6 +31,10 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
 		return ;
 
 	_server_status = create_listening_socket();
+	if (!_server_status)
+		return ;
+
+	_server_status = create_epoll();
 	if (!_server_status)
 		return ;
 
@@ -87,6 +91,28 @@ bool	Server::create_listening_socket() {
 	return true;
 }
 
+#include <sys/epoll.h>
+///////////////////////////////////////////////////////////////////////////////]
+bool	Server::create_epoll() {
+
+	_epoll_fd = epoll_create1(0); // manager return an fd of the epoll instance
+
+	// EPOLL_CLOEXEC = Set the close-on-exec (FD_CLOEXEC) flag on the new fd. Prevents FD from leaking to child processes after exec()
+	if (_epoll_fd == -1) {
+		printErr("epoll_create1()");
+		return false;
+	}
+
+	struct epoll_event ev;
+	ev.events = EPOLLIN;
+	ev.data.fd = _socket_fd;
+	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, _socket_fd, &ev)) {
+		printErr("epoll_ctl()");
+		return false;
+	}
+
+	return true;
+}
 ///////////////////////////////////////////////////////////////////////////////]
 /* 		SOCKET()
 

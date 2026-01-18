@@ -4,10 +4,18 @@
 #include <netinet/in.h>
 #include <map>
 #include <iostream>
+#include <sys/epoll.h> 
 
 #include "defines.hpp"
 #include "Connection.hpp"
 #include "ServerSettings.hpp"
+
+enum AcceptResult {
+    ACCEPT_OK = 1,        // one client accepted
+    ACCEPT_EMPTY = 0,     // no more clients (EAGAIN)
+    ACCEPT_RETRY = -1,    // EINTR / ECONNABORTED
+    ACCEPT_FATAL = -2     // EMFILE / ENFILE / etc.
+};
 
 ///////////////////////////////////////////////////////////////////////////////]
 typedef std::map<int, Connection> map_clients;
@@ -29,6 +37,10 @@ private:
     bool                    _server_status;
 
     map_clients				_clients;
+//-----------------------------------------------------------------------------]
+
+    int                     _epoll_fd;
+    struct epoll_event      _events[MAX_EVENTS];
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
@@ -37,12 +49,13 @@ public:
 
 //-----------------------------------------------------------------------------]
 private:
-	bool	create_listening_socket( void );
-	void	accept_client( void );
-
+	bool	        create_listening_socket( void );
+	bool	        create_epoll( void );
+	void	        accept_clients( void );
+    AcceptResult	accept_one_client();
 //-----------------------------------------------------------------------------]
 public:
-    void    run( void ) {};
+    void    run( void );
     void    run_simple( void );
     void    run_better( void );
 

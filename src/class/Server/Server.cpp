@@ -27,6 +27,7 @@ c_it	Server::pop_connec(c_it it) {
 	}
 	else {
 		std::cout << "Connection deleted." << std::endl;
+		epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, client.getClientFd(), NULL); // <<<<<???
 		it->second.closeFd();
 		_clients.erase(it);
 	}
@@ -34,6 +35,7 @@ c_it	Server::pop_connec(c_it it) {
 	return next;
 }
 
+#include <unistd.h>
 ///////////////////////////////////////////////////////////////////////////////]
 // #include <fcntl.h>
 // #include <iostream>
@@ -44,36 +46,59 @@ c_it	Server::pop_connec(c_it it) {
 /** Try to accept a new client
  *
  * if successful, add it to _clients		---*/
-void	Server::accept_client() {
+void	Server::accept_clients() {
 
+	while (1) {
+		AcceptResult rtrn = accept_one_client();
+
+		if (rtrn == ACCEPT_EMPTY)
+			break;
+		else if (rtrn == ACCEPT_FATAL) {
+			printErr("Pausing Server by security");
+			sleep(10);
+		}
+	}
+}
+
+#include "Tools2.hpp"
+///////////////////////////////////////////////////////////////////////////////]
+    // ACCEPT_OK = 1,        // one client accepted
+    // ACCEPT_EMPTY = 0,     // no more clients (EAGAIN)
+    // ACCEPT_RETRY = -1,    // EINTR / ECONNABORTED
+    // ACCEPT_FATAL = -2   
+///////////////////////////////////////////////////////////////////////////////]
+AcceptResult	Server::accept_one_client() {
+
+	printLog(ERROR, "HELLO - 1", 1);
 	struct sockaddr_in	client_addr;
 	socklen_t			addr_len = sizeof(client_addr); 
 
-// std::cerr << C_115 "waiting accept" RESET << std::endl;
 	int client_fd = accept(_socket_fd, (struct sockaddr*)&client_addr, &addr_len);
 	if (client_fd < 0) {
-		return ;
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
-			std::cerr << ERR7 "???\n"; // fcntl()'s fault, no data to read yet
-		else 
-			printErr(ERR8 "accept()");
-		return ;
+			return ACCEPT_EMPTY;
+		printErr("accept()");
+		if (errno == EINTR || errno == ECONNABORTED)
+			return ACCEPT_RETRY;
+		else
+			return ACCEPT_FATAL;
 	}
+	printLog(ERROR, "HELLO - 2", 1);
 
 	bool set = set_flags(client_fd, O_NONBLOCK);
 	if (!set)
-		return ;
+		return ACCEPT_RETRY;
 
-	// _clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, client_addr, addr_len)));
-	
+    _clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, _epoll_fd, client_addr, addr_len)));
+	printLog(ERROR, "HELLO - 3", 1);
 
-        // Connection    request(client_fd, client_addr, addr_len);
-    _clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, client_addr, addr_len)));
-        // _clients[client_fd] = request;
-	// _clients[client_fd] = Connection(client_fd, client_addr, addr_len, _settings);
+	if (!epollChangeFlags(_epoll_fd, client_fd, EPOLLIN, EPOLL_CTL_ADD))
+		return ACCEPT_RETRY;
+	printLog(ERROR, "HELLO - 4", 1);
 
 	oss msg; msg << "New client Accepted: [#" C_431 << client_fd <<  RESET "] " << _clients[client_fd];
 	printLog(INFO, msg.str(), 1);
+	return ACCEPT_OK;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

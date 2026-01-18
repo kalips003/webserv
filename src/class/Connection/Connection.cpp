@@ -7,6 +7,7 @@
 #include "HttpStatusCode.hpp"
 #include "Task.hpp"
 #include "Tools1.hpp"
+#include "Tools2.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 Connection::~Connection() {
@@ -21,6 +22,7 @@ void	Connection::closeFd() {
 	_client_fd = -1;
 }
 
+#include <sys/epoll.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Use internal _status do decide what to do with the given buffer */
 bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
@@ -29,15 +31,19 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 		oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - READING - " RESET;
 		printLog(DEBUG, msg.str(), 1);
 		_status = ft_read(buff, sizeofbuff);
+		if (_status == SENDING)
+			epollChangeFlags(_epoll_fd, _client_fd, EPOLLOUT, EPOLL_CTL_MOD);
 	}
 
 	if (_status == DOING) {
 		oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - DOING - " RESET;
 		printLog(DEBUG, msg.str(), 1);
 		_status = ft_doing();
+		if (_status == SENDING)
+			epollChangeFlags(_epoll_fd, _client_fd, EPOLLOUT, EPOLL_CTL_MOD);
 	}
-	
-	if (_status == SENDING) {
+
+	else if (_status == SENDING) {
 		oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - SENDING - " RESET;
 		printLog(DEBUG, msg.str(), 1);
 		_status = ft_send(buff, sizeofbuff);
@@ -49,15 +55,13 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 		return false;
 	}
 
-	if (DEBUG_MODE == true) {
-	
-		// std::cout << DEBUG "[#" << _client_fd << "]" RED " - END LOOP -" RESET << std::endl;
-		sleep(1);
-	}
+	// if (DEBUG_MODE == true) {
+	// 	// std::cout << DEBUG "[#" << _client_fd << "]" RED " - END LOOP -" RESET << std::endl;
+	// 	sleep(1);
+	// }
 
 	return true;
 }
-
 
 //?????????????????????????????????????????????????????????????????????????????]
 enum ConnectionStatus	Connection::ft_doing( void ) {

@@ -14,7 +14,7 @@ int main(int ac, char** av)
     if (!server.getStatus())
         return 0;
 
-    server.run_better();
+    server.run();
 
 	return 0;
 }

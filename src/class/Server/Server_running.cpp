@@ -8,7 +8,7 @@ void    Server::run_better( void ) {
 
 	while (true) {
 
-		accept_client();
+		accept_clients();
 		
 		for (c_it it = _clients.begin(); it != _clients.end(); ) {
 
@@ -20,42 +20,47 @@ void    Server::run_better( void ) {
 	}
 }
 
-#include <string.h>
-#include <unistd.h>
-#include <iostream>
 #include "Tools1.hpp"
+#include <cerrno>
 ///////////////////////////////////////////////////////////////////////////////]
-void    Server::run_simple( void ) {
+void    Server::run( void ) {
 
-//     while (true) {
-// std::cout << C_431 "waiting on accept()" RESET << std::endl;
+	char buffer[BUFFER_SIZE];
 
-//         struct sockaddr_in  client_addr;
-//         socklen_t           addr_len;
-//         int client_fd = accept(_socket_fd, (struct sockaddr*)&client_addr, &addr_len);
+	while (true) {
 
-//         if (client_fd < 0) {
-//             printErr(RED "accept() failed" RESET);
-//             continue;
-//         }
-// std::cout << C_431 "\taccepted..." RESET << std::endl;
+		int nfds = epoll_wait(_epoll_fd, _events, MAX_EVENTS, -1); // timeout??
+		if (nfds == -1) {
+			if (errno == EINTR)
+				continue;
+			else {
+				printErr("epoll_wait() FATAL ERROR");
+				break;
+			}
+		}
 
+		for (int i = 0; i < nfds; ++i) {
 
-//         // Connection    request(client_fd, client_addr, addr_len);
-//         // _clients[client_fd] = request;
-// std::cout << C_241 "\trequest created..." RESET << std::endl;
+			if (_events[i].data.fd == _socket_fd)
+				accept_clients(); // new connection
 
-// std::cout << C_241 "\treading..." RESET << std::endl;
-//         // int r = request.recv_all_buffer();
-// // std::cout << C_241 "\tfinished, status: " RESET << r << std::endl;
+			if (_events[i].events & EPOLLERR || _events[i].events & EPOLLRDHUP) {
+				oss msg; msg << "[#" C_431 << _events[i].data.fd << RESET "] " RED "connection closed (FIN received)" RESET;
+				printLog(DEBUG, msg.str(), 1);
+				pop_connec(_clients.find(_events[i].data.fd));
+			}
 
-// std::cout << C_253 "\tsending answer..." RESET << std::endl;
+			if (_events[i].events & EPOLLIN) {
+				if (!_clients[_events[i].data.fd].ft_update(buffer, sizeof(buffer)))
+					pop_connec(_clients.find(_events[i].data.fd));
 
-//         const char *response = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello";
-//         send(request.getClientFd(), response, strlen(response), 0);
+			}
 
+			if (_events[i].events & EPOLLOUT) {
+				if (!_clients[_events[i].data.fd].ft_update(buffer, sizeof(buffer)))
+					pop_connec(_clients.find(_events[i].data.fd));
 
-//         close(request.getClientFd());
-// std::cout << C_253 "\tfinished..." RESET << std::endl;
-//     }
+			}
+		}
+	}
 }

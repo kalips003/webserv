@@ -20,6 +20,7 @@ class Connection {
 private:
 ///////////////////////////////////////////////////////////////////////////////]
     int                 _client_fd; // fd associated with this client connection
+    int                 _epoll_fd; // fd associated with epoll
     struct sockaddr_in  _client_addr; // struct with informations about the client
     socklen_t           _addr_len; // ?
 
@@ -32,11 +33,11 @@ private:
 
 public:
 	Connection() :
-		_client_fd(-1), _addr_len(sizeof(_client_addr)), 
+		_client_fd(-1), _epoll_fd(-1), _addr_len(sizeof(_client_addr)), 
 		_body_task(NULL), _status(FIRST) {}
 
-	Connection(int fd, struct sockaddr_in c, socklen_t al) :
-		_client_fd(fd), _client_addr(c), _addr_len(al), 
+	Connection(int fd, int epoll, struct sockaddr_in c, socklen_t al) :
+		_client_fd(fd), _epoll_fd(epoll), _client_addr(c), _addr_len(al), 
 		_body_task(NULL), _status(FIRST) {}
 	
 	~Connection();

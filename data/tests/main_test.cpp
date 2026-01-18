@@ -19,6 +19,8 @@ int main(int ac, char** av)
 	std::cout << WARNING << std::endl;
 	std::cout << ERROR << std::endl;
 	std::cout << INFO << std::endl;
+	printErr("epoll_ctl()");
+
 	return 0;
 }
 

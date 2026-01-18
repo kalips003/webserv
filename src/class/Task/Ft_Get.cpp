@@ -137,7 +137,7 @@ int Ft_Get::serveAutoIndexing(const std::string& path) {
 
 		// skip "." and maybe ".." if you want
 		if (name == ".") continue;
-		if (name == "..") continue;
+		// if (name == "..") continue;
 
 		std::string base = getRequest().getPath();
 		if (base.empty() || base[base.size() - 1] != '/')
