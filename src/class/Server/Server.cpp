@@ -69,7 +69,6 @@ void	Server::accept_clients() {
 ///////////////////////////////////////////////////////////////////////////////]
 AcceptResult	Server::accept_one_client() {
 
-	printLog(ERROR, "HELLO - 1", 1);
 	struct sockaddr_in	client_addr;
 	socklen_t			addr_len = sizeof(client_addr); 
 
@@ -83,18 +82,15 @@ AcceptResult	Server::accept_one_client() {
 		else
 			return ACCEPT_FATAL;
 	}
-	printLog(ERROR, "HELLO - 2", 1);
 
 	bool set = set_flags(client_fd, O_NONBLOCK);
 	if (!set)
 		return ACCEPT_RETRY;
 
     _clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, _epoll_fd, client_addr, addr_len)));
-	printLog(ERROR, "HELLO - 3", 1);
 
 	if (!epollChangeFlags(_epoll_fd, client_fd, EPOLLIN, EPOLL_CTL_ADD))
 		return ACCEPT_RETRY;
-	printLog(ERROR, "HELLO - 4", 1);
 
 	oss msg; msg << "New client Accepted: [#" C_431 << client_fd <<  RESET "] " << _clients[client_fd];
 	printLog(INFO, msg.str(), 1);

@@ -29,7 +29,8 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 
 	if (_status <= READING_BODY) {
 		oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - READING - " RESET;
-		printLog(DEBUG, msg.str(), 1);
+		if (_status != FIRST)
+			printLog(DEBUG, msg.str(), 1);
 		_status = ft_read(buff, sizeofbuff);
 		if (_status == SENDING)
 			epollChangeFlags(_epoll_fd, _client_fd, EPOLLOUT, EPOLL_CTL_MOD);
