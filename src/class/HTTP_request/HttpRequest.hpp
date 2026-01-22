@@ -36,11 +36,13 @@ private:
     enum BodyMode       _body_type; // content-length mode; chunked-transfer mode; no body expected (GET, HEAD); multipart (POST form/file)
 
 	bool				_bodyistemp; // if no need to keep the temp body file, delete from temp
+	std::string 		_temp_file_name;
+
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
     HttpRequest() : _body_size(0), _body_bytes_received(0), _fd_body(-1),
-        _body_type(BODY_NONE) {}
+        _body_type(BODY_NONE), _bodyistemp(false) {}
     ~HttpRequest();
 
 //-----------------------------------------------------------------------------]

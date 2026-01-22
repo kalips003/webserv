@@ -37,7 +37,7 @@ private:
 
 
 public:
-	Ft_Post(Connection& connec) : Task(connec) {}
+	Ft_Post(Connection& connec, int epoll) : Task(connec, epoll) {}
 
 	int ft_do();
 

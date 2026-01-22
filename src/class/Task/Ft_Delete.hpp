@@ -37,7 +37,7 @@ private:
 
 
 public:
-	Ft_Delete(Connection& connec) : Task(connec) {}
+	Ft_Delete(Connection& connec, int epoll) : Task(connec, epoll) {}
 
 	int ft_do();
 

@@ -44,7 +44,13 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
 
 // #include <unistd.h>
 ///////////////////////////////////////////////////////////////////////////////]
-Server::~Server( void ) { if (_socket_fd >= 0) close(_socket_fd); }
+Server::~Server( void ) {
+
+	if (_socket_fd >= 0) close(_socket_fd);
+	if (_epoll_fd >= 0) close(_epoll_fd);
+	for (map_clients::iterator it = _clients.begin(); it != _clients.end(); )
+		it = pop_connec(it);
+}
 
 #include <fcntl.h>
 ///////////////////////////////////////////////////////////////////////////////]

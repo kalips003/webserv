@@ -2,10 +2,15 @@
 #include "_colors.h"
 
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "Tools1.hpp"
+#include "Tools2.hpp"
+#include "ServerSettings.hpp"
 
+#include <signal.h>
 #include <sys/epoll.h>
+#include <fcntl.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /** Initialize CGI execution.
  *
@@ -60,15 +65,23 @@ int Ft_Get::iniCGI(const std::string& ressource, const std::string& query, const
 	}
 // ---- parent ----
 	close(pipefd[1]); // close write end — parent only reads
+	fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
 
-	if (epollChangeFlags(_epoll_fd, pipefd[0], _this_connec, EPOLLIN, ??))
+	cgi_data&	cgi_data = getCGIData();
+	cgi_data._child_pipe_fd = pipefd[0];
+	cgi_data._child_pid = pid;
+
+	if (epollChangeFlags(getData()._epoll_fd, pipefd[0], getData()._this_ptr, EPOLLIN | EPOLLRDHUP, EPOLL_CTL_ADD))
 		return 500;
-	if (epollChangeFlags(_epoll_fd, _client_fd, EPOLLDELETE, NULL))
+	if (epollChangeFlags(getData()._epoll_fd, getData()._client_fd, 0, EPOLL_CTL_DEL))
 		return 500;
 
-
-int	fd_to_store = createTempFile(std::string& to_store_path_name, const std::string* root_path);
-	// store child pid;
+	cgi_data._tmp_file_fd = createTempFile(cgi_data._tmp_file_name, g_settings.find_setting("tmp_root"));
+	if (cgi_data._tmp_file_fd < 0) {
+		kill(cgi_data._child_pid, SIGKILL);
+		close(cgi_data._child_pipe_fd);
+		return 500;
+	}
 
 	setCGIStatus(CGI_DOING);
 	return -1;

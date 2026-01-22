@@ -12,7 +12,7 @@ ServerSettings g_settings;
 /** Getter for a _global_settings
  *
  * @param set   Name of the setting to find
- * @return      String of the setting value, empty string "" otherwise		---*/
+ * @return      Ptr to the string of the setting value, NULL otherwise		---*/
 const std::string* ServerSettings::find_setting(const std::string& setting) const {
 
 	map_strstr::const_iterator it = _global_settings.begin();

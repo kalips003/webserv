@@ -14,6 +14,22 @@ enum CgiStatus {
 	CGI_DOING,
 };
 
+struct transfer_data {
+    int         _client_fd; // fd associated with this client connection
+	int			_epoll_fd;
+	Connection*	_this_ptr; // ptr to this client connection
+
+	transfer_data() : _client_fd(-1), _epoll_fd(-1), _this_ptr(NULL) {}
+};
+
+struct cgi_data {
+	std::string		_tmp_file_name;
+	int				_tmp_file_fd;
+	int				_child_pipe_fd;
+	pid_t			_child_pid;
+
+	cgi_data() : _tmp_file_fd(-1), _child_pipe_fd(-1), _child_pid(-1) {}
+};
 ///////////////////////////////////////////////////////////////////////////////]
 class Task {
 
@@ -22,15 +38,18 @@ private:
 	const HttpRequest&		_request;
 	httpAnswer&				_answer;
 
-	int						_status; // 404
+	// int						_status; // 404
 	CgiStatus				_cgi_status;
+	
+	transfer_data			_data;
+	cgi_data				_cgi_data;
 
 public:
-	static Task* createTask(const std::string& method, Connection& connec);
+	static Task* createTask(const std::string& method, Connection& connec, int epoll_fd);
 	virtual ~Task() {}
 
 public:
-	Task(Connection& connec);
+	Task(Connection& connec, int epoll);
 
 	virtual int ft_do() { return 0; }
 
@@ -47,12 +66,14 @@ public:
     const std::string& getBuffer() const { return _buffer; }
     const HttpRequest& getRequest() const { return _request; }
     httpAnswer& getAnswer() { return _answer; }
+    transfer_data& getData() { return _data; }
 // 
-    int 	getStatus() const { return _status; }
+    // int 	getStatus() const { return _status; }
+    cgi_data&	getCGIData() { return _cgi_data; }
     CgiStatus 	getCGIStatus() const { return _cgi_status; }
 
 /***  SETTERS  ***/
-    void 	setStatus(int status)  { _status = status; }
+    // void 	setStatus(int status)  { _status = status; }
     void  	addBuffer(std::string& s) { _buffer += s; };
     void 	setCGIStatus(CgiStatus status)  { _cgi_status = status; }
 ///////////////////////////////////////////////////////////////////////////////]

@@ -11,17 +11,21 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 ///////////////////////////////////////////////////////////////////////////////]
-Task::Task(Connection& connec)
- : _request(connec.getRequest()), _answer(connec.getAnswer()), _status(0), _cgi_status(CGI_NONE) {}
+Task::Task(Connection& connec, int epoll)
+ : _request(connec.getRequest()), _answer(connec.getAnswer()), _cgi_status(CGI_NONE), _cgi_data() {
+	_data._client_fd = connec.getClientFd();
+	_data._epoll_fd = epoll;
+	_data._this_ptr = &connec;
+}
 
 ///////////////////////////////////////////////////////////////////////////////]
-Task* Task::createTask(const std::string& method, Connection& connec) {
+Task* Task::createTask(const std::string& method, Connection& connec, int epoll_fd) {
 	if (method == "GET")
-		return new Ft_Get(connec);
+		return new Ft_Get(connec, epoll_fd);
 	else if (method == "POST")
-		return new Ft_Post(connec);
+		return new Ft_Post(connec, epoll_fd);
 	else if (method == "PUT")
-		return new Ft_Delete(connec);
+		return new Ft_Delete(connec, epoll_fd);
 	// ... other methods
 	else
 		return NULL;  // unknown method → 405 or reject

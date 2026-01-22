@@ -1,6 +1,8 @@
 #ifndef TOOLS2_HPP
 #define TOOLS2_HPP
 
+#include <stdint.h>
+#include <sys/types.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /**
  * Set flags for the given fd
