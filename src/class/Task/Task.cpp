@@ -12,7 +12,7 @@
 #include <stdlib.h>
 ///////////////////////////////////////////////////////////////////////////////]
 Task::Task(Connection& connec)
- : _request(connec.getRequest()), _answer(connec.getAnswer()), _status(0) {}
+ : _request(connec.getRequest()), _answer(connec.getAnswer()), _status(0), _cgi_status(CGI_NONE) {}
 
 ///////////////////////////////////////////////////////////////////////////////]
 Task* Task::createTask(const std::string& method, Connection& connec) {

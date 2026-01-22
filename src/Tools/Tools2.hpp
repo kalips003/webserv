@@ -14,6 +14,7 @@ bool	set_flags(int fd_to_set, int flag_to_add);
 ///////////////////////////////////////////////////////////////////////////////]
 /** vafanculo */
 bool	epollChangeFlags(int epoll_fd, int client_fd, uint32_t new_flag, int mode);
+bool	epollChangeFlags(int epoll_fd, int client_fd, void* ptr, uint32_t new_flag, int mode);
 
 
 #endif

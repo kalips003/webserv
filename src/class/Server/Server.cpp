@@ -27,8 +27,8 @@ c_it	Server::pop_connec(c_it it) {
 	}
 	else {
 		std::cout << "Connection deleted." << std::endl;
-		epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, client.getClientFd(), NULL); // <<<<<???
-		it->second.closeFd();
+		epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, client.getClientFd(), NULL); // <<<<< ??? may fail, and then?
+		client.closeFd();
 		_clients.erase(it);
 	}
 	if (DEBUG_MODE == true) std::cout << INFO "Remaining: " C_431 << _clients.size() << RESET " clients." << std::endl;
@@ -87,9 +87,9 @@ AcceptResult	Server::accept_one_client() {
 	if (!set)
 		return ACCEPT_RETRY;
 
-    _clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, _epoll_fd, client_addr, addr_len)));
+	_clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, _epoll_fd, client_addr, addr_len)));
 
-	if (!epollChangeFlags(_epoll_fd, client_fd, EPOLLIN, EPOLL_CTL_ADD))
+	if (!epollChangeFlags(_epoll_fd, client_fd, &_clients[client_fd], EPOLLIN, EPOLL_CTL_ADD))
 		return ACCEPT_RETRY;
 
 	oss msg; msg << "New client Accepted: [#" C_431 << client_fd <<  RESET "] " << _clients[client_fd];

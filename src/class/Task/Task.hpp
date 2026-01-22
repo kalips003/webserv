@@ -9,6 +9,11 @@ class ServerSettings;
 
 #include <string>
 ///////////////////////////////////////////////////////////////////////////////]
+enum CgiStatus {
+	CGI_NONE = 0,
+	CGI_DOING,
+};
+
 ///////////////////////////////////////////////////////////////////////////////]
 class Task {
 
@@ -18,7 +23,7 @@ private:
 	httpAnswer&				_answer;
 
 	int						_status; // 404
-
+	CgiStatus				_cgi_status;
 
 public:
 	static Task* createTask(const std::string& method, Connection& connec);
@@ -44,10 +49,12 @@ public:
     httpAnswer& getAnswer() { return _answer; }
 // 
     int 	getStatus() const { return _status; }
+    CgiStatus 	getCGIStatus() const { return _cgi_status; }
 
 /***  SETTERS  ***/
     void 	setStatus(int status)  { _status = status; }
     void  	addBuffer(std::string& s) { _buffer += s; };
+    void 	setCGIStatus(CgiStatus status)  { _cgi_status = status; }
 ///////////////////////////////////////////////////////////////////////////////]
 };
 

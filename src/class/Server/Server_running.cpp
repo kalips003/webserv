@@ -41,24 +41,26 @@ void    Server::run( void ) {
 
 		for (int i = 0; i < nfds; ++i) {
 
-			if (_events[i].data.fd == _socket_fd)
+			if (_events[i].data.ptr == this) {
 				accept_clients(); // new connection
+				continue;
+			}
 
 			if (_events[i].events & EPOLLERR || _events[i].events & EPOLLRDHUP) {
-				oss msg; msg << "[#" C_431 << _events[i].data.fd << RESET "] " RED "connection closed (FIN received)" RESET;
+				oss msg; msg << "[#" C_431 << static_cast<Connection*>(_events[i].data.ptr)->getClientFd() << RESET "] " RED "connection closed (FIN received)" RESET;
 				printLog(DEBUG, msg.str(), 1);
-				pop_connec(_clients.find(_events[i].data.fd));
+				pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
 			}
 
 			if (_events[i].events & EPOLLIN) {
-				if (!_clients[_events[i].data.fd].ft_update(buffer, sizeof(buffer)))
-					pop_connec(_clients.find(_events[i].data.fd));
+				if (!static_cast<Connection*>(_events[i].data.ptr)->ft_update(buffer, sizeof(buffer)))
+					pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
 
 			}
 
 			if (_events[i].events & EPOLLOUT) {
-				if (!_clients[_events[i].data.fd].ft_update(buffer, sizeof(buffer)))
-					pop_connec(_clients.find(_events[i].data.fd));
+				if (!static_cast<Connection*>(_events[i].data.ptr)->ft_update(buffer, sizeof(buffer)))
+					pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
 
 			}
 		}

@@ -54,3 +54,16 @@ bool	epollChangeFlags(int epoll_fd, int client_fd, uint32_t new_flag, int mode) 
 	}
 	return true;
 }
+
+bool	epollChangeFlags(int epoll_fd, int client_fd, void* ptr, uint32_t new_flag, int mode) {
+
+	struct epoll_event ev;             // for adding/modifying FDs
+	ev.events = new_flag;      // Readable, edge-triggered
+	ev.data.ptr = ptr;
+
+	if (epoll_ctl(epoll_fd, mode, client_fd, &ev)) {
+		printErr("epoll_ctl() <!> WARNING _clients");
+		return false;
+	}
+	return true;
+}

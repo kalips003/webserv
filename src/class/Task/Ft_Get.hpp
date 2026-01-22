@@ -45,7 +45,10 @@ private:
     int serveAutoIndexing(const std::string& path);
 	int serveFile(const std::string& path, struct stat& ressource_info);
     // ....
-	int handleCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path);
+	int iniCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path);
+
+	int normal_doing();
+
 };
 
 

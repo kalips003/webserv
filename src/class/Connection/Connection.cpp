@@ -41,7 +41,7 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 		printLog(DEBUG, msg.str(), 1);
 		_status = ft_doing();
 		if (_status == SENDING)
-			epollChangeFlags(_epoll_fd, _client_fd, EPOLLOUT, EPOLL_CTL_MOD);
+			epollChangeFlags(_epoll_fd, _client_fd, this, EPOLLOUT, EPOLL_CTL_MOD);
 	}
 
 	else if (_status == SENDING) {
@@ -67,15 +67,18 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 //?????????????????????????????????????????????????????????????????????????????]
 enum ConnectionStatus	Connection::ft_doing( void ) {
 
-	_body_task = Task::createTask(_request.getMethod(), *this);
+	if (!_body_task)
+		_body_task = Task::createTask(_request.getMethod(), *this);
 	if (!_body_task) {
 		printLog(ERROR, RED "_body task NULL" RESET, 1);
-		return SENDING; // error
+		return _answer.create_error(500);
 	}
 
 	int r = _body_task->ft_do();
 
-	if (r)
+	if (r < 0)
+		return DOING;
+	else if (r)
 		return _answer.create_error(r);
 	else
 		_answer.http_answer_ini();

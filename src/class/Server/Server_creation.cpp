@@ -105,7 +105,7 @@ bool	Server::create_epoll() {
 
 	struct epoll_event ev;
 	ev.events = EPOLLIN;
-	ev.data.fd = _socket_fd;
+	ev.data.ptr = this;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, _socket_fd, &ev)) {
 		printErr("epoll_ctl()");
 		return false;
