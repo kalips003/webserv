@@ -67,3 +67,72 @@ bool	epollChangeFlags(int epoll_fd, int client_fd, void* ptr, uint32_t new_flag,
 	}
 	return true;
 }
+
+#include "defines.hpp"
+#include <sys/stat.h>
+#include <unistd.h>
+///////////////////////////////////////////////////////////////////////////////]
+bool dirExists(const char* path) {
+	struct stat st;
+	return (stat(path, &st) == 0 && (st.st_mode & S_IFDIR));
+}
+///////////////////////////////////////////////////////////////////////////////]
+bool createDir(const char* path, mode_t mode = 0777) {
+	if (mkdir(path, mode) != 0) {
+		printErr("mkdir()");
+		return false;
+	}
+	return true;
+}
+///////////////////////////////////////////////////////////////////////////////]
+/** Create a unique temporary file.
+ *
+ * @param to_store_path_name  Reference to a string that will be filled with the full path
+ *                            of the created temporary file.
+ * @param root_path           Optional pointer to a string specifying the directory where
+ *                            the temp file should be created. If null, defaults to "/tmp".
+ *
+ * @return File descriptor of the created temp file on success, or -1 on error.
+ *
+ * Notes:
+ * - If the specified root directory does not exist, the function will attempt to create it.
+ * - The temp file is created with O_WRONLY | O_CREAT | O_EXCL and permissions 0666.
+ * - Attempts up to 1000 unique filenames before failing.		---*/
+int	createTempFile(std::string& to_store_path_name, const std::string* root_path) {
+
+	std::string root = "/tmp";
+	if (root_path)
+		root = *root_path;
+
+	if (!dirExists(root.c_str())) {
+		if (!createDir(root.c_str())) {
+			oss msg; msg << "Cannot create temp directory: " << root << ". Check permissions!";
+			printLog(ERROR, msg.str(), 1);
+			return -1;
+		}
+	}
+
+	std::string file_begin = root + '/' + "webserv_tmp_";
+	std::string temp_name;
+	int fd = -1;
+
+	oss num;
+	for (int i = 0; i < 1000; i++) {
+
+		num.str(""); num.clear();
+		num << i;
+		temp_name = file_begin + num.str();
+
+		if (access(temp_name.c_str(), F_OK) != 0) {
+			fd = open(temp_name.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0666);
+			if (fd < 0) {
+				printErr("open()");
+				return fd;
+			}
+			to_store_path_name = temp_name;
+			return fd;
+		}
+	}
+	printLog(WARNING, "Too many attempts at creating temp file failed", 1);
+	return fd;
+}
