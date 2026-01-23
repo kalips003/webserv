@@ -58,3 +58,12 @@ git stash pop           # apply them on new branch
 
 ============================================================
 git checkout kali -- . # copy all files from kali into current branch (main)
+
+
+============================================================
+# merge main
+git checkout main
+git pull origin main
+git merge secondary_branch_name
+git commit
+git push origin main
