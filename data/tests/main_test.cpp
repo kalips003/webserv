@@ -3,8 +3,10 @@
 #include <string>
 #include <iostream>
 
+#include "Ft_Post.hpp"
 #include "Server.hpp"
 #include "Tools1.hpp"
+#include "Ft_Post.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 
@@ -12,15 +14,8 @@
 ///////////////////////////////////////////////////////////////////////////////]
 int main(int ac, char** av)
 {
-	Server s(av[1]);
-
-	std::cout << g_settings;
-	std::cout << DEBUG << std::endl;
-	std::cout << WARNING << std::endl;
-	std::cout << ERROR << std::endl;
-	std::cout << INFO << std::endl;
-	printErr("epoll_ctl()");
-
+	Ft_Post	p;
+	
 	return 0;
 }
 

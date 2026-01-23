@@ -7,12 +7,12 @@
 
 
 // #define BUFFER_SIZE 4096
-#define BUFFER_SIZE 8192
+#define BUFFER_SIZE 8192000
 
 #define HOW_MANY_REQUEST_PER_LISTEN 2000
 
-#define MAX_BODY_SIZE   8192
-#define MAX_LIMIT_FOR_HEAD 1000
+#define MAX_BODY_SIZE   819200
+#define MAX_LIMIT_FOR_HEAD 100000
 #define MAX_EVENTS 50
 
 #ifndef PATH_MAX
@@ -26,6 +26,8 @@
 #define ERROR "[" C_510 " ERROR " RESET "] "
 #define WARNING "[" C_441 "WARNING" RESET "] "
 #define DEBUG "[" C_124 " DEBUG " RESET "] "
+#define METHOD "[" C_255 " METHOD " RESET "] "
+#define TEST "[" PURPLE " TEST " RESET "] "
 
 
 enum    ConnectionStatus {

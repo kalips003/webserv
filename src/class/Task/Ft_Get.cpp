@@ -24,7 +24,7 @@ static std::string find_MIME_type(const std::string& path);
  *
  * @return 0 on success, ErrCode on error. Fills answer in case of error	---*/
 int Ft_Get::ft_do() {
-	printLog(DEBUG, "GET method called", 1);
+	printLog(METHOD, "GET method called", 1);
 
 // is there query in the path? > /script.py?x=abc&y=42
 	const HttpRequest& req = getRequest();
@@ -33,6 +33,7 @@ int Ft_Get::ft_do() {
 	std::string query;
 	if (pos == std::string::npos)
 		path = req.getPath();
+
 	else {
 		path = req.getPath().substr(0, pos);
 		query = req.getPath().substr(pos + 1);
