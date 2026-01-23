@@ -9,8 +9,11 @@
 #include "HttpMethods.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
-// #include <unistd.h>
-HttpRequest::~HttpRequest() { if (_fd_body > 0) close(_fd_body); }
+/**	Destroy the associated _fd_body, annd unlink the _tmp_file */
+HttpRequest::~HttpRequest() {
+	if (!_tmp_body_path.empty()) unlink(_tmp_body_path.c_str());
+	if (_fd_body >= 0) close(_fd_body);
+}
 ///////////////////////////////////////////////////////////////////////////////]
 
 

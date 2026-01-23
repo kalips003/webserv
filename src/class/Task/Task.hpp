@@ -46,7 +46,7 @@ private:
 
 public:
 	static Task* createTask(const std::string& method, Connection& connec, int epoll_fd);
-	virtual ~Task() {}
+	virtual ~Task();
 
 public:
 	Task(Connection& connec, int epoll);

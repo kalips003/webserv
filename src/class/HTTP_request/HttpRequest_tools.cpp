@@ -154,7 +154,7 @@ int    HttpRequest::parse_headers_for_validity() {
 	}
 
 	_fd_body = fd;
-	_temp_file_name = temp_file_name;
+	_tmp_body_path = temp_file_name;
 
 	if (_body_bytes_received >= static_cast<size_t>(_body_size))
 		return DOING;

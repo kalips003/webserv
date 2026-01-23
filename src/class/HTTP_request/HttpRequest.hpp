@@ -36,7 +36,6 @@ private:
     enum BodyMode       _body_type; // content-length mode; chunked-transfer mode; no body expected (GET, HEAD); multipart (POST form/file)
 
 	bool				_bodyistemp; // if no need to keep the temp body file, delete from temp
-	std::string 		_temp_file_name;
 
 ///////////////////////////////////////////////////////////////////////////////]
 

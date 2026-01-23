@@ -37,11 +37,12 @@ bool	set_flags(int fd_to_set, int flag_to_add) {
 
 #include <sys/epoll.h>
 ///////////////////////////////////////////////////////////////////////////////]
-    // ACCEPT_OK = 1,        // one client accepted
-    // ACCEPT_EMPTY = 0,     // no more clients (EAGAIN)
-    // ACCEPT_RETRY = -1,    // EINTR / ECONNABORTED
-    // ACCEPT_FATAL = -2   
-///////////////////////////////////////////////////////////////////////////////]
+/** Change epoll monitoring for a FD, storing the FD itself.
+ * @param epoll_fd  epoll instance FD
+ * @param client_fd FD to operate on
+ * @param new_flag  event flags (EPOLLIN, EPOLLOUT, EPOLLET...)
+ * @param mode      epoll_ctl operation (EPOLL_CTL_ADD, EPOLL_CTL_MOD, EPOLL_CTL_DEL)
+ * @return true on success, false on error		---*/
 bool	epollChangeFlags(int epoll_fd, int client_fd, uint32_t new_flag, int mode) {
 
 	struct epoll_event ev;             // for adding/modifying FDs
@@ -55,6 +56,13 @@ bool	epollChangeFlags(int epoll_fd, int client_fd, uint32_t new_flag, int mode) 
 	return true;
 }
 
+/** Change epoll monitoring for a FD, storing a pointer.
+ * @param epoll_fd  epoll instance FD
+ * @param client_fd FD to operate on
+ * @param ptr       user pointer (e.g., Connection*, Task*)
+ * @param new_flag  event flags (EPOLLIN, EPOLLOUT, EPOLLET...) (0 for delete)
+ * @param mode      epoll_ctl operation (EPOLL_CTL_ADD, EPOLL_CTL_MOD, EPOLL_CTL_DEL)
+ * @return true on success, false on error		---*/
 bool	epollChangeFlags(int epoll_fd, int client_fd, void* ptr, uint32_t new_flag, int mode) {
 
 	struct epoll_event ev;             // for adding/modifying FDs
