@@ -1,0 +1,106 @@
+#include "Ft_Delete.hpp"
+
+#include "Tools1.hpp"
+#include "Tools2.hpp"
+#include "HttpAnswer.hpp"
+
+///////////////////////////////////////////////////////////////////////////////]
+void Ft_Delete::printHello() {
+	printLog(DEBUG, "DELETE method called", 1);
+}
+
+#include <sys/wait.h>
+///////////////////////////////////////////////////////////////////////////////]
+/**	Funciton called on second loop, once _cgi_status == CGI_DOING, 
+* child is set-up and so on 
+* @return -1 if cgi still going 
+* @return 0 if cgi finished (and handled)
+* @return ErrCode in the case of any error
+*/
+int		Ft_Delete::exec_cgi() {
+	printLog(ERROR, "--> you have to do this part DELETE (execcgi)", 1);
+
+//
+	// Implementation
+	// return -1;
+//
+
+
+
+// if implementation finished:
+	// setCGIStatus() = CGI_NONE;
+
+	// int code_rtrn_child;
+	// waitpid(_cgi_data._child_pid, &code_rtrn_child, 0);
+	// _cgi_data._child_pid = -1;
+
+	// close(_cgi_data._child_pipe_fd);
+	// _cgi_data._child_pipe_fd = -1;
+
+	// epollChangeFlags(_data._epoll_fd, _data._client_fd, _data._this_ptr, EPOLL_CTL_ADD);
+	// return errCode;
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+/**	rtrn_open == 404 / 403
+* In Post, reject file existance?  */
+int		Ft_Delete::howToHandleFileNotExist(const std::string& ressource, int rtrn_open) {
+	(void)ressource;
+	return rtrn_open;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+// DELETE /file
+/** */
+int		Ft_Delete::handleFile(std::string& path, struct stat& ressource_info) {
+	(void)ressource_info;
+//	/path/to/to_delete/file > /path/to/to_delete
+	std::string folder_path = path.substr(0, path.find_last_of("/"));
+
+	if (folder_path.empty()) // only happen if location_root == '/'
+		folder_path = "/"; // delete a file in "/"
+
+	if (access(folder_path.c_str(), W_OK | X_OK) != 0) // need write / exec permissions
+		return 403;
+
+	if (unlink(path.c_str()) < 0) {
+		printErr("unlink()");
+		return 500;
+	}
+	
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+/** */
+int		Ft_Delete::handleDir(std::string& ressource) {
+	(void)ressource;
+	return 403; // or 405 with header {Allow: GET, HEAD}
+}
+
+#include "HttpRequest.hpp"
+#include <cstdlib> 
+///////////////////////////////////////////////////////////////////////////////]
+/** */
+void	Ft_Delete::prepareChild(const std::string& ressource, const std::string& query) {
+
+	setenv("REQUEST_METHOD", "DELETE", 1);
+	setenv("QUERY_STRING", query.c_str(), 1);
+	setenv("SCRIPT_FILENAME", ressource.c_str(), 1);
+	setenv("REDIRECT_STATUS", "200", 1);
+	std::string content_length = itostr(getRequest().getBodySize());
+	setenv("CONTENT_LENGTH", content_length.c_str(), 1);
+	std::string content_type = getRequest().find_setting("Content-Type");
+	if (content_type.empty())
+		printLog(WARNING, "CGI POST, Content-Type missing", 1);
+	setenv("CONTENT_TYPE", content_type.c_str(), 1);
+	setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
+	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
+	
+	int fd_body_tmp = getRequest().getFdBody();
+	if (fd_body_tmp >= 0) {
+		dup2(fd_body_tmp, STDIN_FILENO);
+		close(fd_body_tmp);
+	}
+}

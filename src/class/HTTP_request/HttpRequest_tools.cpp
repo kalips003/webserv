@@ -145,7 +145,7 @@ int    HttpRequest::parse_headers_for_validity() {
 		return DOING;
 
 	std::string temp_file_name;
-	int	fd = createTempFile(temp_file_name, g_settings.find_setting("tmp_root"));
+	int	fd = createTempFile(temp_file_name, g_settings.find_setting("tmp_root"), O_WRONLY | O_CREAT | O_EXCL);
 	if (fd < 0)
 		return 500;
 

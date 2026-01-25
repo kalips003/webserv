@@ -63,7 +63,6 @@ public:
     enum ConnectionStatus	ft_send(char *buff, size_t sizeofbuff);
 
 
-
 //-----------------------------------------------------------------------------]
 public:
 ///////////////////////////////////////////////////////////////////////////////]
@@ -80,7 +79,7 @@ public:
 //
 	const std::string			findRequestHeader(std::string header) { return _request.find_setting(header); }
 	// const std::string&			findAnswerHeader(std::string header) { return _answer.find_setting(header); }
-
+    void                        resetConnection();
 /***  SETTERS  ***/
 	void	setStatus(ConnectionStatus s) { _status = s; }
 //

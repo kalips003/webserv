@@ -18,7 +18,6 @@
 ///////////////////////////////////////////////////////////////////////////////]
 int Task::ft_do() {
 
-
 	this->printHello();
 
 	if (_cgi_status == CGI_DOING)
@@ -62,14 +61,14 @@ int Task::normal_doing() {
 		return 405;
 		
 // add root to path (- location_path)
-	std::string ressource; // ressource asked with full path: 'root/ressource - query'
+	std::string ressource; // ressource asked with absolute path: 'root/ressource - query'
 	int rtrn = getFullPath(ressource, sanitized);
 	if (rtrn)
 		return rtrn;
 	oss msg; msg << "Full path of the asked ressource: " << ressource;
 	printLog(DEBUG, msg.str(), 1);
 
-// check existance
+// DOESNT EXIST
 	struct stat ressource_info;
 	rtrn = isFileNOK(ressource, ressource_info);
 	if (rtrn)
@@ -167,12 +166,12 @@ int Task::iniCGI(const std::string& ressource, const std::string& query, const s
 	cgi_data._child_pipe_fd = pipefd[0];
 	cgi_data._child_pid = pid;
 
-	if (epollChangeFlags(getData()._epoll_fd, pipefd[0], getData()._this_ptr, EPOLLIN | EPOLLRDHUP, EPOLL_CTL_ADD))
-		return 500;
 	if (epollChangeFlags(getData()._epoll_fd, getData()._client_fd, 0, EPOLL_CTL_DEL))
 		return 500;
+	if (epollChangeFlags(getData()._epoll_fd, pipefd[0], getData()._this_ptr, EPOLLIN | EPOLLRDHUP, EPOLL_CTL_ADD))
+		return 500;
 
-	cgi_data._tmp_file_fd = createTempFile(cgi_data._tmp_file_name, g_settings.find_setting("tmp_root"));
+	cgi_data._tmp_file_fd = createTempFile(cgi_data._tmp_file_name, g_settings.find_setting("tmp_root"), O_RDWR | O_CREAT | O_EXCL);
 	if (cgi_data._tmp_file_fd < 0) {
 		kill(cgi_data._child_pid, SIGKILL);
 		close(cgi_data._child_pipe_fd);

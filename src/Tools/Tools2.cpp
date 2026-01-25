@@ -99,14 +99,14 @@ bool createDir(const char* path, mode_t mode = 0777) {
  *                            of the created temporary file.
  * @param root_path           Optional pointer to a string specifying the directory where
  *                            the temp file should be created. If null, defaults to "/tmp".
- *
+ * @param open_flags			Flags to open with (O_WRONLY | O_CREAT | O_EXCL | O_APPEND)
  * @return File descriptor of the created temp file on success (absolute path), or -1 on error.
  *
  * Notes:
  * - If the specified root directory does not exist, the function will attempt to create it.
  * - The temp file is created with O_WRONLY | O_CREAT | O_EXCL and permissions 0666.
  * - Attempts up to 1000 unique filenames before failing.		---*/
-int	createTempFile(std::string& to_store_path_name, const std::string* root_path) {
+int	createTempFile(std::string& to_store_path_name, const std::string* root_path, int open_flags) {
 
 	std::string root = "/tmp";
 	if (root_path)
@@ -132,7 +132,7 @@ int	createTempFile(std::string& to_store_path_name, const std::string* root_path
 		temp_name = file_begin + num.str();
 
 		if (access(temp_name.c_str(), F_OK) != 0) {
-			fd = open(temp_name.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0666);
+			fd = open(temp_name.c_str(), open_flags, 0666);
 			if (fd < 0) {
 				printErr("open()");
 				return fd;

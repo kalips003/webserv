@@ -4,6 +4,8 @@
 #include "Tools1.hpp"
 
 #include <sys/stat.h>
+#include <cerrno>
+#include <stdlib.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /** Check whether a requested resource should be handled as a CGI script
  *

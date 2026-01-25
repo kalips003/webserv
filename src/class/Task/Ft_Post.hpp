@@ -43,7 +43,7 @@ public:
 	void	printHello();
 	int		exec_cgi();
 	int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
-	int		handleFile(std::string& ressource, struct stat ressource_info);
+	int		handleFile(std::string& ressource, struct stat& ressource_info);
 	int		handleDir(std::string& ressource);
 	void	prepareChild(const std::string& ressource, const std::string& query);
 

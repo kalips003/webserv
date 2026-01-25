@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
-
+#include <unistd.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /**
  * Better Atoi

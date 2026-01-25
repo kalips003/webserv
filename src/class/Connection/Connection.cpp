@@ -86,12 +86,21 @@ enum ConnectionStatus	Connection::ft_doing( void ) {
 	return SENDING;
 }
 
+#include "Task.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Try a send to client through given buffer */
 enum ConnectionStatus Connection::ft_send(char *buff, size_t sizeofbuff) {
 
 	return _answer.sending(buff, sizeofbuff, _client_fd);
 }
+
+void	 Connection::resetConnection() {
+	resetAnswer();
+	resetRequest();
+	delete _body_task;
+	_body_task = NULL;
+}
+
 
 #include <arpa/inet.h>
 ///////////////////////////////////////////////////////////////////////////////]

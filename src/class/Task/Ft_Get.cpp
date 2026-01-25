@@ -1,36 +1,8 @@
 #include "Ft_Get.hpp"
-#include "_colors.h"
 
-#include <iostream>
-#include <sys/stat.h>
-#include <cerrno>
-#include <unistd.h>
-#include <fcntl.h>
-
-#include "SettingsServer.hpp"
 #include "HttpRequest.hpp"
 #include "HttpAnswer.hpp"
 #include "Tools1.hpp"
-#include "Tools2.hpp"
-#include "defines.hpp"
-
-///////////////////////////////////////////////////////////////////////////////]
-int Ft_Get::serveFile(const std::string& path, struct stat& ressource_info) {
-
-	if (access(path.c_str(), R_OK) != 0) // even if file exist, might not be readable by server
-		return 403;
-
-	int fd = open(path.c_str(), O_RDONLY);
-	if (fd < 0) {
-		printErr("open()");
-		return 500;
-	}
-	getAnswer().setFd(fd);
-	getAnswer().setBodySize(ressource_info.st_size);
-	getAnswer().addToHeaders("Content-Type", find_MIME_type(path));
-	
-	return 0;
-}
 
 #include <dirent.h>
 ///////////////////////////////////////////////////////////////////////////////]

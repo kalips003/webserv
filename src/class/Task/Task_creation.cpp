@@ -49,7 +49,7 @@ You don’t need to call waitpid() manually
 Task::~Task() {
 
 	if (!_cgi_data._tmp_file_name.empty()) {
-		unlink(_cgi_data._tmp_file_name.c_str());
+		unlink(_cgi_data._tmp_file_name.c_str()); // be sure that we have WX permission on the default temp folder
 		_cgi_data._tmp_file_name.clear();
 	}
 	if (_cgi_data._tmp_file_fd >= 0) {

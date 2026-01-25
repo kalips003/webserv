@@ -141,7 +141,7 @@ static bool	parse_blocks(std::ifstream& file, std::string& line, size_t pos, blo
 			printLog(ERROR, msg.str(), 1);
 			return false;
 		}
-		size_t pos = s2.find_first_of(' \t');
+		size_t pos = s2.find_first_of(" \t");
 		if (pos == std::string::npos) {
 			oss msg; msg << ERR0 RED "invalid block: [" RESET << s << RED "]" RESET;
 			printLog(ERROR, msg.str(), 1);
@@ -203,29 +203,27 @@ bool	SettingsServer::check_settings() {
 * Also fills _root_location_data	---*/
 void	SettingsServer::default_settings_setup() {
 
-	map_strstr default_global_settings = {
-		{"listen", "9999"},
-		{"server_name", "localhost"},
-		{"error_page", ""},
-		{"client_max_body_size", "-1"}
-	};
+	map_strstr default_global_settings;
+
+	default_global_settings["listen"] = "9999";
+	default_global_settings["server_name"] = "localhost";
+	default_global_settings["error_page"] = "";
+	default_global_settings["client_max_body_size"] = "-1";
+
 	// insert skip keys if they already exist
 	_global_settings.insert(default_global_settings.begin(), default_global_settings.end());
 
-	block b = {
-		location_data(),
-		"location",
-		"/",
-		{
-			{ "root", "/www" },
-			{ "index", "index.html" },
-			{ "autoindex", "off" },
-			{ "allowed_methods", "GET" },
-			{ "cgi_interpreter", "/usr/bin/python3" },
-			{ "client_max_body_size", _global_settings.find("client_max_body_size")->second }
-		},
-		true
-	};
+	block b;
+	b.data = location_data();
+	b.name = "location";
+	b.path = "/";
+	b.settings["root"] = "/www";
+	b.settings["index"] = "index.html";
+	b.settings["autoindex"] = "off";
+	b.settings["allowed_methods"] = "GET";
+	b.settings["cgi_interpreter"] = "/usr/bin/python3";
+	b.settings["client_max_body_size"] = _global_settings.find("client_max_body_size")->second;
+	b.hasPath = true;
 
 	// use the operator== (the find block is the first "location / {}")
 	std::vector<block>::iterator def = std::find(_block_settings.begin(), _block_settings.end(), b);

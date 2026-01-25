@@ -11,6 +11,9 @@ class SettingsServer;
 #include <sys/stat.h>
 
 #include "SettingsServer.hpp"
+
+///////////////////////////////////////////////////////////////////////////////]
+//								STRUCTS
 ///////////////////////////////////////////////////////////////////////////////]
 enum CgiStatus {
 	CGI_NONE = 0,
@@ -36,6 +39,8 @@ struct cgi_data {
 
 
 ///////////////////////////////////////////////////////////////////////////////]
+// 							VIRTUAL CLASS: TASK
+///////////////////////////////////////////////////////////////////////////////]
 class Task {
 
 private:
@@ -58,26 +63,66 @@ public:
 	Task(Connection& connec, int epoll);
 
 	int			ft_do();
-	virtual void	printHello() = 0;
-	virtual int		exec_cgi() = 0;
-	virtual int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open) = 0;
-	virtual int		handleFile(std::string& ressource, struct stat ressource_info) = 0;
-	virtual int		handleDir(std::string& ressource) = 0;
-	virtual void	prepareChild(const std::string& ressource, const std::string& query) = 0;
+
+
 	int 		normal_doing();
 	int			iniCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path);
 
 //-----------------------------------------------------------------------------]
-	static int	isFileNOK(std::string path, struct stat& ressource_info);
+	static int			isFileNOK(std::string path, struct stat& ressource_info);
+	const std::string*	isCGI(const std::string& path) const;
+	int 				getFullPath(std::string& path_to_fill, const std::string& given_path) const;
+	int 				sanitizePath(std::string& path_to_fill, const std::string& given_path) const;
+	const block*		isLocationKnown(const std::string& given_path) const;
 
-	const std::string* isCGI(const std::string& path) const;
-	int getFullPath(std::string& path_to_fill, const std::string& given_path) const;
-	int sanitizePath(std::string& path_to_fill, const std::string& given_path) const;
-	const block* isLocationKnown(const std::string& given_path) const;
+
+
+
+///////////////////////////////////////////////////////////////////////////////]
+// 							VIRTUAL FUNCTIONS
+///////////////////////////////////////////////////////////////////////////////]
+/**	Print Debug the name of the Derived method class */
+	virtual void	printHello() = 0;
+//-----------------------------------------------------------------------------]
+/**	Function called on second loop of DOING, once _cgi_status == CGI_DOING, 
+* child is already set-up by first loop 
+* @return -1 if cgi still going 
+* @return 0 if cgi finished (and handled)
+* @return ErrCode in the case of any error		---*/
+	virtual int		exec_cgi() = 0;
+//-----------------------------------------------------------------------------]
+/** If the requested path doesnt exist, how should the Method handle it?
+* @param ressource: the cleaned absolute path of the request
+* @param rtrn_open: the errCode to handle (404 / 403)
+* @return	Must return directly the ft_do return 
+*	(0 on success, or errCode)	---*/
+	virtual int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open) = 0;
+//-----------------------------------------------------------------------------]
+/** If the file exist and inst a cgi script, how should the Method handle it?
+* @param ressource: the cleaned absolute path of the request
+* @param ressource_info: initialized stat struct of ressource
+* @return	Must return directly the correct ft_do return 
+*	(0 on success, or errCode)	---*/
+	virtual int		handleFile(std::string& ressource, struct stat& ressource_info) = 0;
+//-----------------------------------------------------------------------------]
+/** If the ressource exist and is a Directory, how should the Method handle it?
+* @param ressource: the cleaned absolute path of the request
+* @return	Must return directly the correct ft_do return 
+*	(0 on success, or errCode)	---*/
+	virtual int		handleDir(std::string& ressource) = 0;
+//-----------------------------------------------------------------------------]
+/** Method specific preparation of the CGI_Child before execve()
+* @param ressource: the cleaned absolute path of the requested script to run
+* @param query: the query part, extracted from request._path (= ?x=abc&y=42)
+* @return	Must return directly the correct ft_do return 
+*	(0 on success, or errCode)	---*/
+	virtual void	prepareChild(const std::string& ressource, const std::string& query) = 0;
+///////////////////////////////////////////////////////////////////////////////]
 
 
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
+///////////////////////////////////////////////////////////////////////////////]
     const std::string& getBuffer() const { return _buffer; }
     const HttpRequest& getRequest() const { return _request; }
     httpAnswer& getAnswer() { return _answer; }
@@ -88,11 +133,13 @@ public:
     CgiStatus 	getCGIStatus() const { return _cgi_status; }
 	const block* getLocationBlock() const { return _location_block; }
 
+///////////////////////////////////////////////////////////////////////////////]
 /***  SETTERS  ***/
+///////////////////////////////////////////////////////////////////////////////]
     // void 	setStatus(int status)  { _status = status; }
     void  	addBuffer(std::string& s) { _buffer += s; };
     void 	setCGIStatus(CgiStatus status)  { _cgi_status = status; }
-///////////////////////////////////////////////////////////////////////////////]
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////]

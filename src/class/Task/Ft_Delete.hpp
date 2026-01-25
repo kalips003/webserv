@@ -39,7 +39,14 @@ private:
 public:
 	Ft_Delete(Connection& connec, int epoll) : Task(connec, epoll) {}
 
-	int ft_do();
+// parent virtual funcitons:
+
+	void	printHello();
+	int		exec_cgi();
+	int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
+	int		handleFile(std::string& ressource, struct stat& ressource_info);
+	int		handleDir(std::string& ressource);
+	void	prepareChild(const std::string& ressource, const std::string& query);
 
 private:
 	

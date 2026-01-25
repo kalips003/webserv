@@ -21,9 +21,7 @@ c_it	Server::pop_connec(c_it it) {
 
 	if (client.findRequestHeader("connection") == "keep-alive") {
 		std::cout << "Connection kept-alive." << std::endl;
-		client.resetAnswer();
-		client.resetRequest();
-		client.setStatus(FIRST);
+		client.resetConnection();
 	}
 	else {
 		std::cout << "Connection deleted." << std::endl;

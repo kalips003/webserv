@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <unistd.h>
 
 #include "defines.hpp"
 #include "_colors.h"
