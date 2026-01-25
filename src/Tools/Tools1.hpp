@@ -14,6 +14,8 @@
  * @return      TRUE if the number is valid, FALSE otherwise (overflow, letters, ...)
  */
 bool    atoi_v2(const std::string& input, int& rtrn);
+bool	atoi_v2(const std::string& input, ssize_t& rtrn);
+
 ///////////////////////////////////////////////////////////////////////////////]
 /**
  * Print perror and the given msg
@@ -46,7 +48,7 @@ std::string trim_any(const std::string& s, const char *to_trim);
  * @param s   Const String to split
  * @param delimit   String used as delimitor
  * @return    Vector of string, delimitor removed
- */
+ * @note	empty bits are not added to the vector		---*/
 std::vector<std::string> splitOnDelimitor(const std::string& s, std::string delimit);
 ///////////////////////////////////////////////////////////////////////////////]
 /**

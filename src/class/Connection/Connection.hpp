@@ -12,7 +12,7 @@
 #include "Task.hpp"
 
 class Task;
-class ServerSettings;
+class SettingsServer;
 class Connection;
 
 

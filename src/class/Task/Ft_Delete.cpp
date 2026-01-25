@@ -3,7 +3,7 @@
 
 #include "Tools1.hpp"
 #include "defines.hpp"
-#include "ServerSettings.hpp"
+#include "SettingsServer.hpp"
 #include "HttpRequest.hpp"
 #include "HttpAnswer.hpp"
 

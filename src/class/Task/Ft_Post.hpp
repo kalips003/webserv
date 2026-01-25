@@ -39,13 +39,16 @@ private:
 public:
 	Ft_Post(Connection& connec, int epoll) : Task(connec, epoll) {}
 
-	int ft_do();
+// parent virtual funcitons:
+	void	printHello();
+	int		exec_cgi();
+	int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
+	int		handleFile(std::string& ressource, struct stat ressource_info);
+	int		handleDir(std::string& ressource);
+	void	prepareChild(const std::string& ressource, const std::string& query);
 
 private:
-	int serveAutoIndexing(const std::string& path);
-	int serveFile(const std::string& path, struct stat& ressource_info);
-	// ....
-	int handleCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path);
+
 };
 
 

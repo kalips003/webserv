@@ -1,5 +1,5 @@
-#ifndef SERVERSETTINGS_HPP
-#define SERVERSETTINGS_HPP
+#ifndef SETTINGSSERVER_HPP
+#define SETTINGSSERVER_HPP
 
 #include <map>
 #include <vector>
@@ -8,50 +8,57 @@
 #include "defines.hpp"
 #include "_colors.h"
 
-class ServerSettings;
-extern ServerSettings g_settings;
+class SettingsServer;
+extern SettingsServer g_settings;
 
 class Server;
 ///////////////////////////////////////////////////////////////////////////////]
+// DEFAULT DATA EACH PATHED BLOCK SHOULD HAVE
+struct location_data {
+	std::string					root;
+	std::vector<std::string>	index;
+	bool						autoindex;
+	std::string					post_policy;
+	std::string					cgi_interpreter;
+	std::vector<std::string>	allowed_methods;
+	ssize_t						client_max_body_size;
+};
+
 // name arg { set1 a; set2 b }
 struct block {
+	location_data						data;
     std::string                         name;
-    std::string                         arg;
+    std::string                         path;
     std::map<std::string, std::string>  settings;
 	bool								hasPath;
+
+	bool operator==(const block& b);
 };
-///////////////////////////////////////////////////////////////////////////////]
 
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
-///////////////////////////////////////////////////////////////////////////////]
-/**
- * Settings of the Server
- *
- * _global_settings: map of 
- "name value"
- *
- * _block_settings: map of 
- "name path { set1 a; set2 b }"
- */
-class ServerSettings {
+class SettingsServer {
 
 private:
 ///////////////////////////////////////////////////////////////////////////////]
 	std::map<std::string, std::string>  _global_settings;
 	std::vector<block>                  _block_settings;
 	int                                 _port_num;
+	ssize_t                             _client_max_body_size;
+	location_data*						_root_location_data;
 	std::string							_root;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	ServerSettings() : _port_num(-1) {}
+	SettingsServer() : _port_num(-1), _client_max_body_size(-1), _root_location_data(NULL) {}
 
 public:
 //-----------------------------------------------------------------------------]
 	bool	parse_config_file(const char* confi_file);
 	bool    check_settings( void );
+	void	default_settings_setup( void );
+	bool 	checkAnyRoot(std::string& some_root);
 
 //-----------------------------------------------------------------------------]
 public:
@@ -61,9 +68,10 @@ public:
 	/**	@return /full/path/to/root (no trailing /) */
 	std::string			getRoot( void ) const { return _root; }
 //
-	const ServerSettings& getConstSettings() const { return *this; }
+	const SettingsServer& getConstSettings() const { return *this; }
+	const location_data* getRootLocation() const { return _root_location_data; }
 private:
-	ServerSettings& getSettings() { return *this; }
+	SettingsServer& getSettings() { return *this; }
 //	FIND IN THE BLOCKS
 public:
 	const std::string*				find_setting(const std::string& setting) const;
@@ -78,10 +86,11 @@ public:
 	void	addBlock(block& b) { _block_settings.push_back(b); }
 private:
 	bool 	setRoot();
+	bool	setLocationData(block& b);
 ///////////////////////////////////////////////////////////////////////////////]
 
 	friend class Server;
-	friend std::ostream& operator<<(std::ostream& os, const ServerSettings& setting);
+	friend std::ostream& operator<<(std::ostream& os, const SettingsServer& setting);
 
 };
 

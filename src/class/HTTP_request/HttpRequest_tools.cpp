@@ -9,7 +9,7 @@
 
 #include "Tools1.hpp"
 #include "Tools2.hpp"
-#include "ServerSettings.hpp"
+#include "SettingsServer.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 /** Wrapper for all the parsing and checking
@@ -57,7 +57,9 @@ ssize_t      HttpRequest::isThereBody() const {
 
 
 //-----------------------------------------------------------------------------]
-/** Check the syntax validity of the path, doesnt check if file exist	---*/
+/** Check the syntax validity of the path, doesnt check if file exist	
+* a valid path has to start with '/'
+---*/
 bool	HttpRequest::isPathValid(std::string& path) {
 
 	if (path.empty())

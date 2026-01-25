@@ -8,7 +8,7 @@
 
 #include "defines.hpp"
 #include "Connection.hpp"
-#include "ServerSettings.hpp"
+#include "SettingsServer.hpp"
 
 enum AcceptResult {
     ACCEPT_OK = 1,        // one client accepted
@@ -31,7 +31,7 @@ class Server {
 private:
 ///////////////////////////////////////////////////////////////////////////////]
     struct sockaddr_in      _addr;
-    // struct ServerSettings   _settings;
+    // struct SettingsServer   _settings;
 
     int                     _socket_fd;
     bool                    _server_status;

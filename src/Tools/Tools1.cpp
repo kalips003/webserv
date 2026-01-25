@@ -13,16 +13,29 @@
 
 #include <defines.hpp>
 ///////////////////////////////////////////////////////////////////////////////]
-bool    atoi_v2(const std::string& input, int& rtrn) {
+bool	atoi_v2(const std::string& input, int& rtrn) {
 
-    char* end = NULL;
-    long num = strtol(input.c_str(), &end, 10);
-    if (*end != '\0' || num > INT_MAX || num < INT_MIN) {
-        std::cerr << RED "Input number invalid: " RESET << input << std::endl;
-        return false;
-    }
-    rtrn = static_cast<int>(num);
-    return true;
+	char* end = NULL;
+	long num = strtol(input.c_str(), &end, 10);
+	if (*end != '\0' || num > INT_MAX || num < INT_MIN) {
+		std::cerr << RED "Input number invalid: " RESET << input << std::endl;
+		return false;
+	}
+	rtrn = static_cast<int>(num);
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+bool	atoi_v2(const std::string& input, ssize_t& rtrn) {
+
+	char* end = NULL;
+	long num = strtol(input.c_str(), &end, 10);
+	if (*end != '\0' || errno == ERANGE || num < -1 || num > SSIZE_MAX) {
+		std::cerr << RED "Input number invalid: " RESET << input << std::endl;
+		return false;
+	}
+	rtrn = static_cast<ssize_t>(num);
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

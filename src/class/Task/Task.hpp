@@ -5,9 +5,12 @@ class Connection;
 class Server;
 class HttpRequest;
 class httpAnswer;
-class ServerSettings;
+class SettingsServer;
 
 #include <string>
+#include <sys/stat.h>
+
+#include "SettingsServer.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 enum CgiStatus {
 	CGI_NONE = 0,
@@ -30,12 +33,14 @@ struct cgi_data {
 
 	cgi_data() : _tmp_file_fd(-1), _child_pipe_fd(-1), _child_pid(-1) {}
 };
+
+
 ///////////////////////////////////////////////////////////////////////////////]
 class Task {
 
 private:
 	std::string				_buffer; 
-	const HttpRequest&		_request;
+	HttpRequest&			_request;
 	httpAnswer&				_answer;
 
 	// int						_status; // 404
@@ -43,6 +48,7 @@ private:
 	
 	transfer_data			_data;
 	cgi_data				_cgi_data;
+	const block*			_location_block;
 
 public:
 	static Task* createTask(const std::string& method, Connection& connec, int epoll_fd);
@@ -51,7 +57,15 @@ public:
 public:
 	Task(Connection& connec, int epoll);
 
-	virtual int ft_do() { return 0; }
+	int			ft_do();
+	virtual void	printHello() = 0;
+	virtual int		exec_cgi() = 0;
+	virtual int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open) = 0;
+	virtual int		handleFile(std::string& ressource, struct stat ressource_info) = 0;
+	virtual int		handleDir(std::string& ressource) = 0;
+	virtual void	prepareChild(const std::string& ressource, const std::string& query) = 0;
+	int 		normal_doing();
+	int			iniCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path);
 
 //-----------------------------------------------------------------------------]
 	static int	isFileNOK(std::string path, struct stat& ressource_info);
@@ -59,6 +73,7 @@ public:
 	const std::string* isCGI(const std::string& path) const;
 	int getFullPath(std::string& path_to_fill, const std::string& given_path) const;
 	int sanitizePath(std::string& path_to_fill, const std::string& given_path) const;
+	const block* isLocationKnown(const std::string& given_path) const;
 
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -71,6 +86,7 @@ public:
     // int 	getStatus() const { return _status; }
     cgi_data&	getCGIData() { return _cgi_data; }
     CgiStatus 	getCGIStatus() const { return _cgi_status; }
+	const block* getLocationBlock() const { return _location_block; }
 
 /***  SETTERS  ***/
     // void 	setStatus(int status)  { _status = status; }

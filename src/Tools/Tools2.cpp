@@ -100,7 +100,7 @@ bool createDir(const char* path, mode_t mode = 0777) {
  * @param root_path           Optional pointer to a string specifying the directory where
  *                            the temp file should be created. If null, defaults to "/tmp".
  *
- * @return File descriptor of the created temp file on success, or -1 on error.
+ * @return File descriptor of the created temp file on success (absolute path), or -1 on error.
  *
  * Notes:
  * - If the specified root directory does not exist, the function will attempt to create it.
@@ -143,4 +143,26 @@ int	createTempFile(std::string& to_store_path_name, const std::string* root_path
 	}
 	printLog(WARNING, "Too many attempts at creating temp file failed", 1);
 	return fd;
+}
+
+#include "SettingsServer.hpp"
+///////////////////////////////////////////////////////////////////////////////]
+/**	return MIME type of the file "Content-Type" == text/html 
+*
+* The headers of the _answer "Content-Type" is filled with this return
+*
+* @return value of "Content-Type", or "application/octet-stream" in case of error	---*/
+std::string find_MIME_type(const std::string& path) {
+
+	size_t pos = path.find_last_of('.');
+	if (pos == std::string::npos)
+		return "application/octet-stream";
+
+	const std::string* rtrn = g_settings.find_setting_in_blocks("mime_types", "", path.substr(pos + 1));
+	if (!rtrn) {
+		oss msg; msg << RED "unknown MIME type: " RESET << path.substr(pos + 1);
+		printLog(DEBUG, msg.str(), 1);
+		return "application/octet-stream";
+	}
+	return *rtrn;
 }

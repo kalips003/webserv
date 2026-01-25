@@ -23,4 +23,6 @@ bool	dirExists(const char* path);
 bool	createDir(const char* path, mode_t mode = 0777);
 int		createTempFile(std::string& to_store_path_name, const std::string* root_path);
 
+std::string find_MIME_type(const std::string& path);
+
 #endif

@@ -82,12 +82,14 @@ public:
     int 	getFdBody() const { return _fd_body; }
     size_t 	getBodyBytesReceived() const { return _body_bytes_received; }
     size_t 	getBodySize() const { return _body_size; }
+    const std::string	getBodyPath() const { return _tmp_body_path; }
 //-----------------------------------------------------------------------------]
     ssize_t      	isThereBody() const ;
     std::string 	find_setting(const std::string& set) const ;
 
 /***  SETTERS  ***/
     void   addBuffer(std::string& s) { _buffer += s; };
+	void	clearTempBody() { _fd_body = -1; _tmp_body_path = ""; }
 ///////////////////////////////////////////////////////////////////////////////]
 
 };

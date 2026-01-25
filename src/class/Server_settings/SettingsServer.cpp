@@ -1,4 +1,4 @@
-#include "ServerSettings.hpp"
+#include "SettingsServer.hpp"
 
 #include <iostream>
 #include <sys/stat.h>
@@ -6,14 +6,14 @@
 
 #include "Tools1.hpp"
 
-ServerSettings g_settings;
+SettingsServer g_settings;
 
 ///////////////////////////////////////////////////////////////////////////////]
-/** Getter for a _global_settings
+/** Getter for a _global_settings (name value)
  *
  * @param set   Name of the setting to find
  * @return      Ptr to the string of the setting value, NULL otherwise		---*/
-const std::string* ServerSettings::find_setting(const std::string& setting) const {
+const std::string* SettingsServer::find_setting(const std::string& setting) const {
 
 	map_strstr::const_iterator it = _global_settings.begin();
 	it = _global_settings.find(setting);
@@ -27,11 +27,11 @@ const std::string* ServerSettings::find_setting(const std::string& setting) cons
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-/** Getter for a global block (no arg / path)
+/** Getter for a global block (block_name "" {<block>})
  *
  * @param block_name   Name of the global block to find
  * @return      Pointer to const block, NULL if not found		---*/
-const block* ServerSettings::find_global_block(const std::string& block_name) const {
+const block* SettingsServer::find_global_block(const std::string& block_name) const {
 
 	std::vector<block>::const_iterator it = _block_settings.begin();
 	for ( ; it != _block_settings.end(); ++it) {
@@ -46,11 +46,11 @@ const block* ServerSettings::find_global_block(const std::string& block_name) co
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-/** Getter for an arged block
+/** Getter for an arged block (block /path {<block>})
  *
  * @param block_name   Name of the blocks to find
  * @return      Vector of pointer to const block with said name		---*/
-const std::vector<const block*> ServerSettings::find_arg_blocks(const std::string& block_name) const {
+const std::vector<const block*> SettingsServer::find_arg_blocks(const std::string& block_name) const {
 
 	std::vector<const block*> rtrn;
 	for (std::vector<block>::const_iterator it = _block_settings.begin(); it != _block_settings.end(); ++it) {
@@ -61,10 +61,10 @@ const std::vector<const block*> ServerSettings::find_arg_blocks(const std::strin
 }
 
 //-----------------------------------------------------------------------------]
-const block*	ServerSettings::find_arg_block_from_vector(const std::vector<const block*>& v, const std::string& arg_name) const {
+const block*	SettingsServer::find_arg_block_from_vector(const std::vector<const block*>& v, const std::string& arg_name) const {
 
 	for (std::vector<const block*>::const_iterator it = v.begin(); it != v.end(); ++it) {
-		if ((*it)->arg == arg_name)
+		if ((*it)->path == arg_name)
 			return *it;
 	}
 	return NULL;
@@ -72,7 +72,7 @@ const block*	ServerSettings::find_arg_block_from_vector(const std::vector<const 
 
 
 //-----------------------------------------------------------------------------]
-const std::string*	ServerSettings::find_setting_in_block(const block* b, const std::string& setting) const {
+const std::string*	SettingsServer::find_setting_in_block(const block* b, const std::string& setting) const {
 
 	if (!b)
 		return NULL;
@@ -90,7 +90,7 @@ const std::string*	ServerSettings::find_setting_in_block(const block* b, const s
 /** Getter for a block setting
  *
  * @return const pointer to the value of setting if found, NULL otherwise			---*/
-const std::string* ServerSettings::find_setting_in_blocks(const std::string& block_name, const std::string& arg, const std::string& setting) const {
+const std::string* SettingsServer::find_setting_in_blocks(const std::string& block_name, const std::string& arg, const std::string& setting) const {
 
 	const block* b;
 	if (arg == "")
@@ -106,16 +106,17 @@ const std::string* ServerSettings::find_setting_in_blocks(const std::string& blo
 // #include "Tools1.hpp"
 // #include <sys/stat.h>
 ///////////////////////////////////////////////////////////////////////////////]
-/** Set the root for the server
+/** Set the absolute path _root of the server
  *
  * Needs parse_config_file first (and at minimum default root set)
- *
+ * remove trailing '/' if present: '/path/' > '/path'
  * @return      True if root exist and is setup, False otherwise		---*/
-bool 	ServerSettings::setRoot() {
+bool 	SettingsServer::setRoot() {
 
-	std::string root(*find_setting("root"));
+	std::string root = find_arg_block_from_vector(find_arg_blocks("location"), "/")->settings.find("root")->second;
+
 	if (root.size() > 1 && root[root.size() - 1] == '/')
-    	root.erase(root.size() - 1);
+		root.erase(root.size() - 1);
 
 	if (root[0] == '/') // absolute path
 		_root = root;
@@ -138,7 +139,41 @@ bool 	ServerSettings::setRoot() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-std::ostream& operator<<(std::ostream& os, const ServerSettings& setting) {
+/**	Need Server root to be setup first
+* update given some_root based on relative or absolute path
+* remove trailing '/'
+* */
+bool 	SettingsServer::checkAnyRoot(std::string& some_root) {
+
+	std::string root = some_root;
+	// std::string root = (*_default_location_block).settings.find("root")->second;
+
+	if (root.size() > 1 && root[root.size() - 1] == '/')
+		root.erase(root.size() - 1);
+
+	if (root[0] != '/') // relative path, append server_root
+		root = _root + '/' + root;
+
+// check if root is directory, can be accessed, ...?
+	struct stat st;
+	if (stat(root.c_str(), &st) != 0) {
+		oss msg; msg << "Issue with some config root: " << root;
+		printLog(ERROR, msg.str(), 1);
+		return printErr(ERR8 "stat()");
+	}
+
+	if (!S_ISDIR(st.st_mode)) {
+		oss msg; msg << "Issue with some config root (not a directory): " << root;
+		printLog(ERROR, msg.str(), 1);
+		return printErr(ERR9 "stat()");
+	}
+
+	some_root = root;
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+std::ostream& operator<<(std::ostream& os, const SettingsServer& setting) {
 
 	os << C_214 "_root: " RESET << setting._root << std::endl;
 	os << C_214 "_port_num: " RESET << setting._port_num << std::endl;
@@ -149,7 +184,7 @@ std::ostream& operator<<(std::ostream& os, const ServerSettings& setting) {
 
 	os << C_521 UNDER "\n_block_settings" R_UNDER RESET ":\n";
 	for (std::vector<block>::const_iterator it = setting._block_settings.begin(); it != setting._block_settings.end(); ++it) {
-		os << it->name << ": \"" << it->arg << "\" {" << std::endl;
+		os << it->name << ": \"" << it->path << "\" {" << std::endl;
 		for (map_strstr::const_iterator it2 = it->settings.begin(); it2 != it->settings.end(); ++it2) {
 			os << it2->first << ": " << it2->second << std::endl;
 		}
@@ -157,4 +192,10 @@ std::ostream& operator<<(std::ostream& os, const ServerSettings& setting) {
 	}
 
 	return os;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+bool block::operator==(const block& b) {
+
+	return name == b.name && path == b.path;
 }
