@@ -153,50 +153,6 @@ static bool	parse_blocks(std::ifstream& file, std::string& line, size_t pos, blo
 	return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////]
-///////////////////////////////////////////////////////////////////////////////]
-///////////////////////////////////////////////////////////////////////////////]
-/** Check that the config file has the minimum settings
- , set them to default if missing
- *
- * Also set the _port_num from which the server will listen (default 8080)
- *
- * DOES NOT YET check for the validity of the others settings 
- *
- * <TODO> check if the settings directory can be opened
- * @return	  FALSE on any error, TRUE otherwise				---*/
-bool	SettingsServer::check_settings() {
-
-	default_settings_setup();
-
-	// if (); // sort the vector<block> with aglo and operator<>?
-	
-	if (!atoi_v2(_global_settings["listen"], _port_num) || 
-		_port_num <= 0 || _port_num > 65535) {
-			std::cerr << ERR3 "Invalid port number: " << _port_num << std::endl;
-			return false;
-	}	
-	if (!atoi_v2(_global_settings["client_max_body_size"], _client_max_body_size) || _client_max_body_size < -1) {
-			std::cerr << ERR3 "Invalid client_max_body_size: " << _client_max_body_size << std::endl;
-			return false;
-	}
-	if (!setRoot())
-		return false;
-
-	for (std::vector<block>::iterator it = _block_settings.begin(); it != _block_settings.end(); ++it) {
-		if (it->hasPath == false)
-			continue;
-		map_strstr::iterator it2 = it->settings.find("root");
-		if (it2 != it->settings.end()) {
-			if (!checkAnyRoot(it2->second))
-				return false;
-		}
-		setLocationData(*it);
-	}
-	return true;
-}
-
-
 #include <algorithm>
 ///////////////////////////////////////////////////////////////////////////////]
 /** Ensure a default "location / {}" block exists and fill missing settings with defaults 
@@ -238,12 +194,63 @@ void	SettingsServer::default_settings_setup() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+///////////////////////////////////////////////////////////////////////////////]
+/** Check that the config file has the minimum settings
+ , set them to default if missing
+ *
+ * Also set the _port_num from which the server will listen (default 8080)
+ *
+ * DOES NOT YET check for the validity of the others settings 
+ *
+ * <TODO> check if the settings directory can be opened
+ * @return	  FALSE on any error, TRUE otherwise				---*/
+bool	SettingsServer::check_settings() {
+
+	default_settings_setup();
+
+	// if (); // sort the vector<block> with aglo and operator<>?
+	
+	if (!atoi_v2(_global_settings["listen"], _port_num) || 
+		_port_num <= 0 || _port_num > 65535) {
+			std::cerr << ERR3 "Invalid port number: " << _port_num << std::endl;
+			return false;
+	}	
+	if (!atoi_v2(_global_settings["client_max_body_size"], _client_max_body_size) || _client_max_body_size < -1) {
+			std::cerr << ERR3 "Invalid client_max_body_size: " << _client_max_body_size << std::endl;
+			return false;
+	}
+	if (!setRoot())
+		return false;
+
+	for (std::vector<block>::iterator it = _block_settings.begin(); it != _block_settings.end(); ++it) {
+		if (it->hasPath == false)
+			continue;
+		if (it->name == "location" && it->path == "/") {
+			setLocationData(*it);
+			std::cout << C_431 "BLOCK ROOT: \n" RESET << *it;
+			continue;
+		}
+		map_strstr::iterator it2 = it->settings.find("root");
+		if (it2 != it->settings.end()) {
+			if (!checkAnyRoot(it2->second))
+				return false;
+		}
+		setLocationData(*it);
+
+		std::cout << C_431 "BLOCK: \n" RESET << *it;
+	}
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
 /**	Add necessary settings to given block */
 bool	SettingsServer::setLocationData(block& b) {
 
 // std::string				root;
 	map_strstr::const_iterator it = b.settings.find("root");
-	b.data.root = it == b.settings.end() ? _root_location_data->root : it->second;
+	// b.data.root = (it == b.settings.end()) ? "hello!!!" : it->second;
+	b.data.root = (it == b.settings.end()) ? _root : it->second;
 // std::string				post_policy;
 	it = b.settings.find("post_policy");
 	b.data.post_policy = it == b.settings.end() ? _root_location_data->post_policy : it->second;
@@ -268,7 +275,7 @@ bool	SettingsServer::setLocationData(block& b) {
 // std::vector<std::string>	allowed_methods;
 	it = b.settings.find("allowed_methods");
 	if (it == b.settings.end())
-		b.data.index = _root_location_data->allowed_methods;
+		b.data.allowed_methods = _root_location_data->allowed_methods;
 	else {
 		std::string s;
 		std::istringstream iss(it->second);

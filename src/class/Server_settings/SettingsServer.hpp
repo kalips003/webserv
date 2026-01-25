@@ -95,4 +95,7 @@ private:
 
 };
 
+std::ostream& operator<<(std::ostream& os, const location_data& b);
+std::ostream& operator<<(std::ostream& os, const block& b);
+
 #endif
