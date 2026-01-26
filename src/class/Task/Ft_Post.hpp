@@ -48,6 +48,7 @@ public:
 	void	prepareChild(const std::string& ressource, const std::string& query);
 
 private:
+	void	function1();
 
 };
 

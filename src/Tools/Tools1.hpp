@@ -79,9 +79,8 @@ std::string itostr(Num n) {
  * @param s   string to output.
  * @param newline   true to output a newline after msg
  *
- * oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - msg - ";
- *
- * printLog(DEBUG, msg.str(), 1);		*/
+ * oss msg; msg << C_431 "" RESET; printLog(DEBUG, msg.str(), 1);
+ */
 void printLog(const std::string& lvl, const std::string& s, bool newline);
 
 

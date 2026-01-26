@@ -26,6 +26,7 @@ void	Connection::closeFd() {
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Use internal _status do decide what to do with the given buffer */
 bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
+// oss log; log << "ft_update()"; printLog(LOG, log.str(), 1);
 
 	if (_status <= READING_BODY) {
 		oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - READING - " RESET;
@@ -56,14 +57,10 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 		return false;
 	}
 
-	// if (DEBUG_MODE == true) {
-	// 	// std::cout << DEBUG "[#" << _client_fd << "]" RED " - END LOOP -" RESET << std::endl;
-	// 	sleep(1);
-	// }
-
 	return true;
 }
 
+#include "Tools2.hpp"
 //?????????????????????????????????????????????????????????????????????????????]
 enum ConnectionStatus	Connection::ft_doing( void ) {
 
@@ -78,10 +75,9 @@ enum ConnectionStatus	Connection::ft_doing( void ) {
 
 	if (r < 0)
 		return DOING;
-	else if (r)
+	if (r)
 		return _answer.create_error(r);
-	else
-		_answer.http_answer_ini();
+	_answer.http_answer_ini();
 
 	return SENDING;
 }

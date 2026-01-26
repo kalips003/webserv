@@ -29,24 +29,21 @@ HttpRequest::~HttpRequest() {
 * if delim ("\r\n") not found, return FIRST			---*/
 int    HttpRequest::readingFirstLine(std::string& str_buff) {
 
-	_buffer += str_buff;
+	std::string temp = _buffer + str_buff;
 
-	if (_buffer.size() > MAX_LIMIT_FOR_HEAD) {
-		oss msg; msg << "Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF";
-		printLog(WARNING, msg.str(), 1);
-		msg.str(""); msg << C_241 "_buffer: (" RESET << _buffer << C_241 ")" RESET;
-		printLog(DEBUG, _buffer, 1);
-		return 400;
+	size_t  pos = temp.find("\r\n");
+	if (pos == std::string::npos) {
+		_buffer += str_buff;
+
+		if (_buffer.size() > MAX_LIMIT_FOR_HEAD) {
+			oss msg; msg << "Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF";
+			printLog(WARNING, msg.str(), 1);
+			return 400;
+		}
+		return FIRST;
 	}
 
-	size_t  pos = _buffer.find("\r\n");
-	if (pos == std::string::npos)
-		return FIRST;
-
-	std::string head = _buffer.substr(0, pos); // "GET /index.html HTTP/1.1"
-	// _buffer = _buffer.substr(pos + 2); // "Host: ex..."
-
-	std::stringstream ss(head);
+	std::stringstream ss(temp.substr(0, pos)); // "GET /index.html HTTP/1.1"
 	std::string word;
 
 	if (!(ss >> word) || isMethodValid(word) < 0) {
@@ -92,12 +89,12 @@ check _buffer + buff for CRLF
 * errCode if parsing went bad			---*/
 int    HttpRequest::readingHeaders(std::string& buff) {
 
-    std::string delim = "\r\n\r\n";
+	std::string delim = "\r\n\r\n";
 
 	size_t n = _buffer.size() - (_buffer.size() < 3 ? _buffer.size() : 3);
 	std::string new_buff = _buffer.substr(n) + buff;
 
-    size_t  pos = new_buff.find(delim);
+	size_t  pos = new_buff.find(delim);
 
 	_buffer += buff;
 	if (pos == std::string::npos)
