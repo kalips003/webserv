@@ -50,6 +50,7 @@ private:
 	ssize_t								_client_max_body_size;
 	location_data*						_root_location_data; // ptr to the location_data struct of root
 	std::string							_root; // root path of the server binary
+	std::string							_temp_root; // root path for temp files
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
@@ -64,6 +65,7 @@ private:
 //
 	void	default_settings_setup( void );
 	bool 	setRoot();
+	bool 	setTemp();
 	void 	setAllBlockLocations();
 	bool 	checkAnyRoot(std::string& some_root);
 //
@@ -88,6 +90,7 @@ public:
 	std::string				getRoot( void ) const { return _root; }
 	const SettingsServer&	getConstSettings() const { return *this; }
 	const location_data*	getRootLocation() const { return _root_location_data; }
+	std::string				getTempLocation() const { return _temp_root; }
 private:
 	SettingsServer& 		getSettings() { return *this; }
 

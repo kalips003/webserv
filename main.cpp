@@ -5,16 +5,16 @@
 ///////////////////////////////////////////////////////////////////////////////]
 int main(int ac, char** av)
 {
-    if (ac != 2) {
-	    std::cerr << C_430 "require one .conf file as argument" RESET << std::endl;
-        return 0;
-    }
-    
-    Server  server(av[1]);
-    if (!server.getStatus())
-        return 0;
+	if (ac != 2) {
+		std::cerr << C_430 "require one .conf file as argument" RESET << std::endl;
+		return 0;
+	}
 
-    // server.run();
+	Server  server(av[1]);
+	if (!server.getStatus())
+		return 0;
+
+	server.run();
 
 	return 0;
 }

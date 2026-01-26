@@ -33,6 +33,9 @@ bool	SettingsServer::check_settings() {
 		return false;
 oss msg; msg << C_431 "ROOT BLOCK: \n" RESET << *_root_location_data; printLog(LOG, msg.str(), 0);
 
+	if (!setTemp())
+		return false;
+
 	setAllBlockLocations();
 
 	return true;
@@ -120,5 +123,46 @@ bool 	SettingsServer::setRoot() {
 
 	std::vector<const block *> empty;
 	setLocationData(*root_block, empty);
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+/** Set the absolute path _temp_root of the temp folder
+ *
+ * Needs parse_config_file first and server _root set up
+ * @return      True if temp exist and is setup, False otherwise		---*/
+bool 	SettingsServer::setTemp() {
+// oss log; log << "setTemp()"; printLog(LOG, log.str(), 1);
+
+	const std::string* temp = find_setting("tmp_root");
+	std::string temp_folder = temp ? *temp : "/tmp";
+
+	if (temp_folder.size() > 1 && temp_folder[temp_folder.size() - 1] == '/')
+		temp_folder.erase(temp_folder.size() - 1);
+
+	if (temp_folder[0] != '/')
+		_temp_root = _root + "/" + temp_folder;
+	else
+		_temp_root = temp_folder;
+
+	struct stat st;
+//	Check accessibility for the server process
+	if (stat(_temp_root.c_str(), &st) != 0) {
+		oss msg; msg << ERR8 "stat(): Cant access: " << _temp_root << std::endl;
+		return printErr(msg.str().c_str());
+	}
+
+//	Check if its a DIR
+	if (!S_ISDIR(st.st_mode)) {
+		oss msg; msg << ERR9 << _temp_root << " Inst a Directory" << std::endl;
+		return printErr(msg.str().c_str());
+	}
+
+//	Check permission for the server process
+	if (access(_temp_root.c_str(), R_OK | W_OK | X_OK) != 0) {
+		oss msg; msg << ERR7 "Temp folder not accessible (r/w/x): " << _temp_root << std::endl;
+		return printErr(msg.str().c_str());
+	}
+
 	return true;
 }
