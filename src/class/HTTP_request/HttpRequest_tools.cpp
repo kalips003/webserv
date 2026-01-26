@@ -46,7 +46,7 @@ int	HttpRequest::parsingHeaders(std::string& delim) {
 * if "body-size" is incorrect, return -1			---*/
 ssize_t      HttpRequest::isThereBody() const {
 
-	map_istr::const_iterator it = _headers.find("body-size");
+	map_istr::const_iterator it = _headers.find("content-length");
 	if (it == _headers.end())
 		return 0;
 	int r;
@@ -137,7 +137,7 @@ int    HttpRequest::parse_headers_for_validity() {
 
 	_body_size = isThereBody();
 	if (_body_size < 0) {
-		oss msg; msg << "SYNTAX ERROR - Bad body-size: " << _headers.find("body-size")->second;
+		oss msg; msg << "SYNTAX ERROR - Bad body-size: " << _headers.find("content-length")->second;
 		printLog(ERROR, msg.str(), 1);
 		return 400;
 	}

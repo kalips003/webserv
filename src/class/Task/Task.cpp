@@ -142,9 +142,7 @@ int Task::iniCGI(const std::string& ressource, const std::string& query, const s
 		// ---- child ----
 		dup2(pipefd[1], STDOUT_FILENO); // redirect stdout to pipe
 
-//	close all unused fd by the child
-		// close(pipefd[0]);          // close read end, child writes only
-		// close(pipefd[1]);          // fd duplicated, safe to close
+		//	close all unused fd by the child (& pipefd[0] + pipefd[1])
 		int max_fd = sysconf(_SC_OPEN_MAX);
 		int fd_body_tmp = getRequest().getFdBody();
 		for (int i = 0; i < max_fd; ++i) {

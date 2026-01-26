@@ -19,7 +19,7 @@ c_it	Server::pop_connec(c_it it) {
 
 	std::cout << INFO "[#" C_431 << client.getClientFd() <<  RESET "] closing: ";
 
-	if (client.findRequestHeader("connection") == "keep-alive") {
+	if (client.findRequestHeader("connection") == "keep-alive" && client.findAnswertHeader("Connection") != "close") {
 		std::cout << "Connection kept-alive." << std::endl;
 		client.resetConnection();
 	}

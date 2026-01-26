@@ -77,7 +77,8 @@ public:
     Task*                       getBodyTask() const { return _body_task; }
     ConnectionStatus            getStatus() const { return _status; }
 //
-	const std::string			findRequestHeader(std::string header) { return _request.find_setting(header); }
+	const std::string			findRequestHeader(const std::string& header) { return _request.find_setting(header); }
+	const std::string			findAnswertHeader(const std::string& header) { return _answer.find_setting(header); }
 	// const std::string&			findAnswerHeader(std::string header) { return _answer.find_setting(header); }
     void                        resetConnection();
 /***  SETTERS  ***/

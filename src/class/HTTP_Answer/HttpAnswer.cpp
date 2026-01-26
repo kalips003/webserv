@@ -61,9 +61,13 @@ void	httpAnswer::defaultHeaders() {
 	if (it != _headers.end())
 		std::replace(it->second.begin(), it->second.end(), '|', ';');
 
-	_headers["Connection"] = "close";
+	it = _headers.find("Connection");
+	if (it == _headers.end())
+		_headers["Connection"] = "close";
+	it = _headers.find("Cache-Control");
+	if (it == _headers.end())
+		_headers["Cache-Control"] = "no-cache"; // no-cache or max-age=3600
 	_headers["Server"] = "Webserv/0.1";
-	_headers["Cache-Control"] = "no-cache"; // no-cache or max-age=3600
 
 // DATE
 	// get current time in UTC
@@ -71,11 +75,9 @@ void	httpAnswer::defaultHeaders() {
 	std::tm tm_utc;
 	gmtime_r(&t, &tm_utc); // thread-safe, fills tm_utc with UTC time
 
-	// buffer for formatted date
 	char buf[30]; // enough for "Day, DD Mon YYYY HH:MM:SS GMT"
 	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &tm_utc);
 	_headers["Date"] = std::string(buf);
-
 
 	// if (_fd_body >= 0)
 		// "Last-Modified" Last modified timestamp of the file

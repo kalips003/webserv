@@ -79,7 +79,7 @@ Task* Task::createTask(const std::string& method, Connection& connec, int epoll_
 		return new Ft_Get(connec, epoll_fd);
 	else if (method == "POST")
 		return new Ft_Post(connec, epoll_fd);
-	else if (method == "PUT")
+	else if (method == "DELETE")
 		return new Ft_Delete(connec, epoll_fd);
 	// ... other methods
 	else
