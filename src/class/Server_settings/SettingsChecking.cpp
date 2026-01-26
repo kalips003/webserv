@@ -31,7 +31,7 @@ bool	SettingsServer::check_settings() {
 	}
 	if (!setRoot())
 		return false;
-oss msg; msg << C_431 "ROOT BLOCK: \n" RESET << *_root_location_data; printLog(LOG, msg.str(), 0);
+// oss msg; msg << C_431 "ROOT BLOCK: \n" RESET << *_root_location_data; printLog(LOG, msg.str(), 0);
 
 	if (!setTemp())
 		return false;

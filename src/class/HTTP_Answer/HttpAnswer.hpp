@@ -31,7 +31,7 @@ private:
     std::string     _body;
     std::string     _leftover; // leftover of a partial send of data from fd_file
     int             _fd_body;
-
+					
     size_t          _body_size;
     size_t          _bytes_sent;
 	AnswerStatus	_sending_status; // SENDING_HEAD = 0, SENDING_BODY, SENDING_BODY_FD, ENDED
@@ -64,6 +64,7 @@ private:
 //-----------------------------------------------------------------------------]
 	
 public:
+	void					defaultHeaders();
 //-----------------------------------------------------------------------------] 
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
@@ -93,7 +94,7 @@ public:
 	void	setMsgStatus(std::string& s) { _msg_status = s; }
 	void	setFirstLine(int code);
 //-----------------------------------------------------------------------------]
-    void    addToHeaders(std::string parameter, std::string value) { _headers[parameter] = value; }
+    void    addToHeaders(const std::string& parameter, const std::string& value) { _headers[parameter] = value; }
 ///////////////////////////////////////////////////////////////////////////////]
 };
 

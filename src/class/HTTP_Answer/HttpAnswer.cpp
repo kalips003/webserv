@@ -50,6 +50,37 @@ enum ConnectionStatus    httpAnswer::create_error(int errCode) {
 	}
 }
 
+#include <ctime>
+#include <string>
+#include <algorithm>
+///////////////////////////////////////////////////////////////////////////////]
+/** Set default headers for an Answer		---*/
+void	httpAnswer::defaultHeaders() {
+
+	map_strstr::iterator it = _headers.find("Content-Type");
+	if (it != _headers.end())
+		std::replace(it->second.begin(), it->second.end(), '|', ';');
+
+	_headers["Connection"] = "close";
+	_headers["Server"] = "Webserv/0.1";
+	_headers["Cache-Control"] = "no-cache"; // no-cache or max-age=3600
+
+// DATE
+	// get current time in UTC
+	std::time_t t = std::time(NULL);
+	std::tm tm_utc;
+	gmtime_r(&t, &tm_utc); // thread-safe, fills tm_utc with UTC time
+
+	// buffer for formatted date
+	char buf[30]; // enough for "Day, DD Mon YYYY HH:MM:SS GMT"
+	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &tm_utc);
+	_headers["Date"] = std::string(buf);
+
+
+	// if (_fd_body >= 0)
+		// "Last-Modified" Last modified timestamp of the file
+}
+
 ///////////////////////////////////////////////////////////////////////////////]
 /**	 Concactenate answer + headers into _head	---*/
 void httpAnswer::http_answer_ini() {
@@ -60,6 +91,7 @@ void httpAnswer::http_answer_ini() {
 		_body_size = _body.size();
 		_headers["Content-Length"] = itostr(_body.size());
 	}
+	defaultHeaders();
 	_head = rtrnFistLine() + concatenateHeaders() + "\r\n";
 }
 
@@ -76,7 +108,7 @@ std::string httpAnswer::rtrnFistLine() {
 
 //-----------------------------------------------------------------------------]
 /**  return a string of all headers separated by '\r\n'		---*/
-std::string    httpAnswer::concatenateHeaders() {
+std::string	httpAnswer::concatenateHeaders() {
 
 	std::string s;
 	for (map_strstr::iterator it = _headers.begin(); it != _headers.end(); it++)
@@ -96,7 +128,7 @@ std::string    httpAnswer::concatenateHeaders() {
  * @param buff   Buffer to use for send()
  * @param size_buff   Size of buffer
  * @param fd_client   Fd client to send to
- * @return         SENDING or CLOSED state of the connection after the last send		---*/
+ * @return			SENDING or CLOSED state of the connection after the last send		---*/
 enum ConnectionStatus    httpAnswer::sending(char *buff, size_t size_buff, int fd_client) {
 
 	ssize_t bytesLoaded = fillBuffer(buff, size_buff);

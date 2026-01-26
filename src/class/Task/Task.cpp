@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include "SettingsServer.hpp"
+#include "HttpAnswer.hpp"
 #include "Tools2.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -36,7 +37,6 @@ int Task::ft_do() {
  *
  * @return 0 on success, or HTTP error code on failure	---*/
 int Task::normal_doing() {
-
 // is there query in the path? > /script.py?x=abc&y=42
 	const HttpRequest& req = getRequest();
 	size_t pos = req.getPath().find_first_of('?');
@@ -48,11 +48,12 @@ int Task::normal_doing() {
 		path = req.getPath().substr(0, pos);
 		query = req.getPath().substr(pos + 1);
 	}
-
+oss log; log << "Full path of the asked ressource prior: " << path; printLog(LOG, log.str(), 1);
 // sanitize given_path for %XX;
 	std::string sanitized;
 	if (sanitizePath(sanitized, path))
 		return 400;
+log.str(""); log << "path after sanitizePath: " << sanitized; printLog(LOG, log.str(), 1);
 // set Task::_location_data* from all the location /blocks
 	if (!(_location_block = isLocationKnown(sanitized)))
 		return 500;
@@ -60,13 +61,14 @@ int Task::normal_doing() {
 	if (std::find(_location_block->data.allowed_methods.begin(), _location_block->data.allowed_methods.end(), getRequest().getMethod()) == _location_block->data.allowed_methods.end())
 		return 405;
 		
+log.str(""); log << "path before getFullPath: " << sanitized; printLog(LOG, log.str(), 1);
 // add root to path (- location_path)
 	std::string ressource; // ressource asked with absolute path: 'root/ressource - query'
 	int rtrn = getFullPath(ressource, sanitized);
 	if (rtrn)
 		return rtrn;
 	oss msg; msg << "Full path of the asked ressource: " << ressource;
-	printLog(DEBUG, msg.str(), 1);
+	printLog(LOG, msg.str(), 1);
 
 // DOESNT EXIST
 	struct stat ressource_info;
@@ -86,6 +88,11 @@ int Task::normal_doing() {
 // is DIRECTORY
 	else if (S_ISDIR(ressource_info.st_mode)) {
 		printLog(DEBUG, "is DIRECTORY", 1);
+		if (sanitized[sanitized.size() - 1] != '/') { // if no trailing / in directory path, redirect
+			_answer.setFirstLine(301);
+			_answer.addToHeaders("Location", sanitized + "/");
+			return 0;
+		}
 		return this->handleDir(ressource);
 	}
 	else

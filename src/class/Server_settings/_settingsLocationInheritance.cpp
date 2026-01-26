@@ -42,7 +42,7 @@ void SettingsServer::setAllBlockLocations() {
 			continue;
 		}
 
-oss msg; msg << C_431 "BLOCK: \n" RESET << *it; printLog(LOG, msg.str(), 0);
+// oss msg; msg << C_431 "BLOCK: \n" RESET << *it; printLog(LOG, msg.str(), 0);
 	}
 }
 
