@@ -26,6 +26,7 @@
 #define ERROR "[" C_510 " ERROR " RESET "] "
 #define WARNING "[" C_441 "WARNING" RESET "] "
 #define DEBUG "[" C_124 " DEBUG " RESET "] "
+#define LOG "[" C_035 "  L0G  " RESET "] "
 
 
 enum    ConnectionStatus {

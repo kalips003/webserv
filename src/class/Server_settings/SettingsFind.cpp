@@ -99,3 +99,16 @@ const std::string* SettingsServer::find_setting_in_blocks(const std::string& blo
 	}
 	return find_setting_in_block(b, setting);
 }
+
+///////////////////////////////////////////////////////////////////////////////]
+/** Getter for root (location / {<block>})			---*/
+block* SettingsServer::find_root_block() {
+
+	std::vector<block>::iterator it = _block_settings.begin();
+	for ( ; it != _block_settings.end(); ++it) {
+		if (it->name == "location" && it->path == "/")
+			return &(*it);
+	}
+	printLog(ERROR, RED "FATAL, Root location block / not found" RESET, 1);
+	return NULL;
+}

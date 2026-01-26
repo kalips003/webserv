@@ -28,14 +28,15 @@ struct location_data {
 // name arg { set1 a; set2 b }
 struct block {
 	location_data						data;
-    std::string                         name;
-    std::string                         path;
-    std::map<std::string, std::string>  settings;
+	std::string							name;
+	std::string							path;
+	std::map<std::string, std::string>  settings;
 	bool								hasPath;
 
-	bool operator==(const block& b);
+	bool operator==(const block& b) {
+		return name == b.name && path == b.path;
+	}
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
@@ -43,37 +44,33 @@ class SettingsServer {
 
 private:
 ///////////////////////////////////////////////////////////////////////////////]
-	std::map<std::string, std::string>  _global_settings;
-	std::vector<block>                  _block_settings;
-	int                                 _port_num;
-	ssize_t                             _client_max_body_size;
-	location_data*						_root_location_data;
-	std::string							_root;
+	std::map<std::string, std::string>	_global_settings;
+	std::vector<block>					_block_settings;
+	int									_port_num;
+	ssize_t								_client_max_body_size;
+	location_data*						_root_location_data; // ptr to the location_data struct of root
+	std::string							_root; // root path of the server binary
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
 	SettingsServer() : _port_num(-1), _client_max_body_size(-1), _root_location_data(NULL) {}
 
-public:
-//-----------------------------------------------------------------------------]
-	bool	parse_config_file(const char* confi_file);
-	bool    check_settings( void );
-	void	default_settings_setup( void );
-	bool 	checkAnyRoot(std::string& some_root);
 
 //-----------------------------------------------------------------------------]
-public:
-///////////////////////////////////////////////////////////////////////////////]
-/***  GETTERS  ***/
-	int					getPortNum( void ) const { return _port_num; }
-	/**	@return /full/path/to/root (no trailing /) */
-	std::string			getRoot( void ) const { return _root; }
-//
-	const SettingsServer& getConstSettings() const { return *this; }
-	const location_data* getRootLocation() const { return _root_location_data; }
+
 private:
-	SettingsServer& getSettings() { return *this; }
-//	FIND IN THE BLOCKS
+	bool	parse_config_file(const char* confi_file);
+	bool	check_settings( void );
+//
+	void	default_settings_setup( void );
+	bool 	setRoot();
+	void 	setAllBlockLocations();
+	bool 	checkAnyRoot(std::string& some_root);
+//
+	bool	setLocationData(block& b, const std::vector<const block*>& map_of_matches);
+
+///////////////////////////////////////////////////////////////////////////////]
+	/***  FIND IN THE BLOCKS  ***/
 public:
 	const std::string*				find_setting(const std::string& setting) const;
 	const block*					find_global_block(const std::string& block_name) const;
@@ -81,15 +78,29 @@ public:
 	const block*					find_arg_block_from_vector(const std::vector<const block*>& v, const std::string& arg_name) const;
 	const std::string*				find_setting_in_block(const block* b, const std::string& setting) const;
 	const std::string*				find_setting_in_blocks(const std::string& block_name, const std::string& arg, const std::string& setting) const;
-/***  SETTERS  ***/
+private:
+	block* 							find_root_block();
+
+///////////////////////////////////////////////////////////////////////////////]
+	/***  GETTERS  ***/
+public:
+	int						getPortNum( void ) const { return _port_num; }
+	std::string				getRoot( void ) const { return _root; }
+	const SettingsServer&	getConstSettings() const { return *this; }
+	const location_data*	getRootLocation() const { return _root_location_data; }
+private:
+	SettingsServer& 		getSettings() { return *this; }
+
+///////////////////////////////////////////////////////////////////////////////]
+	/***  SETTERS  ***/
 public:
 	void	addSetting(std::string& name, std::string& value) { _global_settings[name] = value; }
 	void	addBlock(block& b) { _block_settings.push_back(b); }
 private:
-	bool 	setRoot();
-	bool	setLocationData(block& b);
+
 ///////////////////////////////////////////////////////////////////////////////]
 
+	/***  FRIENDS  ***/
 	friend class Server;
 	friend std::ostream& operator<<(std::ostream& os, const SettingsServer& setting);
 
