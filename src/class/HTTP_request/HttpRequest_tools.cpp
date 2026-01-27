@@ -18,8 +18,8 @@ int	HttpRequest::parsingHeaders(std::string& delim) {
 
 // Move the start of the body into _body
 	size_t pos = _buffer.find(delim);
-	_body = _buffer.substr(pos + delim.size());
-	_buffer = _buffer.substr(0, pos + 2); // leave one '\r\n' after the last header
+	_body = _buffer.substr(pos + delim.size()); // body now holds <start body>
+	_buffer = _buffer.substr(0, pos + 2); // _buffer holds <first line><headers><\n\r\n\r>
 	_body_bytes_received += _body.size();
 
 	int errRtrn = parse_header_for_syntax();
@@ -33,7 +33,7 @@ int	HttpRequest::parsingHeaders(std::string& delim) {
 		printLog(WARNING, "SYNTAX ERROR - while parsing headers for validity", 1);
 		return errRtrn;
 	}
-
+	_buffer = "";
 	return errRtrn;
 }
 
@@ -155,6 +155,7 @@ int    HttpRequest::parse_headers_for_validity() {
 		return 500;
 	}
 
+	_body = "";
 	_fd_body = fd;
 	_tmp_body_path = temp_file_name;
 

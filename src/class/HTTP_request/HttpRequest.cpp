@@ -7,6 +7,7 @@
 
 #include "Tools1.hpp"
 #include "HttpMethods.hpp"
+#include "defines.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Destroy the associated _fd_body, annd unlink the _tmp_file */
@@ -90,6 +91,7 @@ check _buffer + buff for CRLF
 int    HttpRequest::readingHeaders(std::string& buff) {
 
 	std::string delim = "\r\n\r\n";
+oss msg; msg << C_431 "_buffer in readingHeaders: " RESET << _buffer; printLog(LOG, msg.str(), 1);
 
 	size_t n = _buffer.size() - (_buffer.size() < 3 ? _buffer.size() : 3);
 	std::string new_buff = _buffer.substr(n) + buff;
@@ -111,6 +113,8 @@ int    HttpRequest::readingHeaders(std::string& buff) {
 *
 * @return DOING if body finished to be received, READING_BODY otherwise	---*/
 int	HttpRequest::readingBody(std::string& buff) {
+	if (buff.empty())
+		return READING_BODY;
 
 	if (_fd_body >= 0) {
 	
@@ -121,7 +125,8 @@ int	HttpRequest::readingBody(std::string& buff) {
 	}
 
 	_body_bytes_received += buff.size();
-
+	buff = "";
+oss msg; msg << C_431 "_body_bytes_received: " RESET << _body_bytes_received << " of (" << _body_size << ")"; printLog(LOG, msg.str(), 1);
 	if (_body_bytes_received >= static_cast<size_t>(_body_size))
 		return DOING;
 	return READING_BODY;

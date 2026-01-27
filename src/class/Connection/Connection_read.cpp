@@ -35,7 +35,7 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 	oss msg; msg << "[#" C_431 << _client_fd << RESET "] " << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes)" RESET;
 	printLog(INFO, msg.str(), 1);
 	msg.str(""); msg << C_134 "Packet: [" RESET << str_buff << C_134 "]" RESET;
-	printLog(LOG, msg.str(), 1);
+	printLog(DEBUG, msg.str(), 1);
 
 	int rtrn;
 	if (_status == FIRST) {
@@ -54,6 +54,8 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 		if (rtrn >= 100)
 			return _answer.create_error(rtrn);
 		_status = static_cast<ConnectionStatus>(rtrn);
+		if (_status == READING_BODY)
+			str_buff = "";
 	}
 
 	if (_status == READING_BODY) {
