@@ -1,7 +1,7 @@
 #ifndef FT_DELETE_HPP
 #define FT_DELETE_HPP
 
-#include "Task.hpp"
+#include "Method.hpp"
 
 #include <fstream>
 ///////////////////////////////////////////////////////////////////////////////]
@@ -31,20 +31,19 @@
 // Accept: text/html
 // Accept-Encoding: gzip, deflate
 // Connection: keep-alive
-class   Ft_Delete : public Task {
+class   Ft_Delete : public Method {
 
 private:
 
 
 public:
-	Ft_Delete(Connection& connec, int epoll) : Task(connec, epoll) {}
+	Ft_Delete(const t_connec_data& data) : Method(data) {}
 
 // parent virtual funcitons:
-
 	void	printHello();
 	int		exec_cgi();
 	int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
-	int		handleFile(std::string& ressource, struct stat& ressource_info);
+	int		handleFile(std::string& ressource);
 	int		handleDir(std::string& ressource);
 	void	prepareChild(const std::string& ressource, const std::string& query);
 

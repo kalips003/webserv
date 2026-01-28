@@ -1,4 +1,4 @@
-#include "HttpRequest.hpp"
+#include "HttpR.hpp"
 #include "_colors.h"
 
 #include <fcntl.h>
@@ -14,7 +14,7 @@
 ///////////////////////////////////////////////////////////////////////////////]
 /** Wrapper for all the parsing and checking
 * @return READING_BODY if body, DOING if not, errCode if error 	---*/
-int	HttpRequest::parsingHeaders(std::string& delim) {
+int	httpr::parsingHeaders(std::string& delim) {
 
 // Move the start of the body into _body
 	size_t pos = _buffer.find(delim);
@@ -44,7 +44,7 @@ int	HttpRequest::parsingHeaders(std::string& delim) {
 *
 * if no "body-size" is found, return 0,
 * if "body-size" is incorrect, return -1			---*/
-ssize_t      HttpRequest::isThereBody() const {
+ssize_t      httpr::isThereBody() const {
 
 	map_istr::const_iterator it = _headers.find("content-length");
 	if (it == _headers.end())
@@ -60,7 +60,7 @@ ssize_t      HttpRequest::isThereBody() const {
 /** Check the syntax validity of the path, doesnt check if file exist	
 * a valid path has to start with '/'
 ---*/
-bool	HttpRequest::isPathValid(std::string& path) {
+bool	httpr::isPathValid(std::string& path) {
 
 	if (path.empty())
 		return false;
@@ -88,7 +88,7 @@ bool	HttpRequest::isPathValid(std::string& path) {
 * @return READING_BODY if parsing was succesful, errCode otherwise
 *
 * clear _buffer memory after parsing			---*/
-int HttpRequest::parse_header_for_syntax() {
+int httpr::parse_header_for_syntax() {
 
 	std::vector<std::string> v;
 	v = splitOnDelimitor(_buffer, "\r\n");
@@ -133,7 +133,7 @@ int HttpRequest::parse_header_for_syntax() {
  *   - DOING if there is no body, or if the full body has already been received.
  *   - READING_BODY if the body exists but is not fully received yet.
  *   - An HTTP error code (400, 500) on failure.	---*/
-int    HttpRequest::parse_headers_for_validity() {
+int    httpr::parse_headers_for_validity() {
 
 	_body_size = isThereBody();
 	if (_body_size < 0) {
@@ -173,7 +173,7 @@ int    HttpRequest::parse_headers_for_validity() {
 *	@return the string value of the setting
 *
 * if setting not found, return "" empty string	---*/
-std::string HttpRequest::find_setting(const std::string& set) const {
+std::string httpr::find_setting(const std::string& set) const {
 
 	map_strstr::const_iterator it = _headers.begin();
 	it = _headers.find(set);
@@ -200,7 +200,7 @@ std::string HttpRequest::find_setting(const std::string& set) const {
 * O_TRUNC (safety if name reused),
 * 0600 (server-only access)
 *	---*/
-int	HttpRequest::openFdBody(const char* path) {
+int	httpr::openFdBody(const char* path) {
 
 	_fd_body = open(path, O_CREAT | O_RDWR | O_TRUNC, 0600);
 

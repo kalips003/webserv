@@ -107,10 +107,10 @@ const std::map<int, std::string>&   http_status_map() {
 /** Return the string msg associated with the input code
 * 
 * Return empty string "" if code invalid */
-std::string   return_http_from_code(int code) {
+std::string	return_http_from_code(int code) {
 
-    std::map<int, std::string>::const_iterator it = http_status_map().find(code);
-    if (it != http_status_map().end())
-        return it->second;
-    return "";
+	std::map<int, std::string>::const_iterator it = http_status_map().find(code);
+	if (it != http_status_map().end())
+		return it->second;
+	return "";
 }

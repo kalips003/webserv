@@ -34,19 +34,13 @@ int Ft_Get::serveAutoIndexing(const std::string& path) {
 		if (base.empty() || base[base.size() - 1] != '/')
 			base += '/';
 		
-		listing_html += "<li><a href=\"" + base + name + "\">" + name + "</a></li>"; // <------------------------------------ ???
+		listing_html += "<li><a href=\"" + base + name + "\">" + name + "</a></li>";
 	}
 
 	listing_html += "</ul></body></html>";
-	getAnswer().setStrBody(listing_html);
-	getAnswer().addToHeaders("Content-Type", "text/html");
+	getAnswer().setStringBody(listing_html);
+	getAnswer().setMIMEtype(".html");
 
-// Connection: close   (or keep-alive if you support it) // <------------------------------------ ???
-// Optional but recommended:
-// Date: <current date>
-// Server: Webserv/0.1 (or whatever your server string is)
-// Last-Modified (not critical for autoindex)
-// Cache-Control: no-cache (optional for dynamic listings)
 	closedir(dir);
 	return 0;
 }

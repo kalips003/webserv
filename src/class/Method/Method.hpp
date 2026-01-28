@@ -4,82 +4,99 @@
 class Connection;
 class Server;
 class HttpRequest;
-class httpAnswer;
+class HttpAnswer;
 class SettingsServer;
 
 #include <string>
 #include <sys/stat.h>
 
 #include "SettingsServer.hpp"
+#include "Connection.hpp"
+#include "TempFile.hpp"
 
-///////////////////////////////////////////////////////////////////////////////]
-//								STRUCTS
-///////////////////////////////////////////////////////////////////////////////]
-enum CgiStatus {
-	CGI_NONE = 0,
-	CGI_DOING,
-};
+////////////////////////////////////////////////////////////////////////////////////////////////////////////]
+/*   Method   | Purpose / Client asks                         | Body allowed?                                |
+| ----------- | --------------------------------------------- | -------------------------------------------- |
+| **GET**     | Request a resource                            | No body (technically allowed but ignored)    |
+| **HEAD**    | Request headers of resource                   | No body                                      |
+| **POST**    | Submit data to server (form, JSON, file)      | Usually yes, body contains data              |
+| **PUT**     | Replace resource at URL                       | Usually yes, body contains full new resource |
+| **PATCH**   | Partial update of resource                    | Usually yes, body contains update            |
+| **DELETE**  | Remove resource                               | Rarely has body; most servers ignore it      |
+| **OPTIONS** | Ask server for allowed cmethods / capabilities | Can have body, but uncommon                 |
+| **CONNECT** | Ask server to open a tunnel (HTTPS proxy)     | No body; used to establish tunnel            |
+| **TRACE**   | Echo back the request                         | No body                                      |
+////////////////////////////////////////////////////////////////////////////////////////////////////////////]*/
 
-struct transfer_data {
-    int         _client_fd; // fd associated with this client connection
-	int			_epoll_fd;
-	Connection*	_this_ptr; // ptr to this client connection
-
-	transfer_data() : _client_fd(-1), _epoll_fd(-1), _this_ptr(NULL) {}
-};
-
-struct cgi_data {
-	std::string		_tmp_file_name;
-	int				_tmp_file_fd;
-	int				_child_pipe_fd;
-	pid_t			_child_pid;
-
-	cgi_data() : _tmp_file_fd(-1), _child_pipe_fd(-1), _child_pid(-1) {}
-};
-
+typedef Connection::transfer_data	t_connec_data;
+// static_assert(sizeof(t_connec_dataa) != sizeof(int), "t_connec_data is int");
 
 ///////////////////////////////////////////////////////////////////////////////]
 // 							VIRTUAL CLASS: TASK
 ///////////////////////////////////////////////////////////////////////////////]
-class Task {
+class Method {
 
+public:
+	struct cgi_data {
+		temp_file		_tmp_file;
+		int				_child_pipe_fd;
+		pid_t			_child_pid;
+
+		cgi_data() : _tmp_file(), _child_pipe_fd(-1), _child_pid(-1) {}
+	};
+
+	enum Ft_Type {
+		GET,
+		POST,
+		DELETE,
+		PUT,
+		UNKNOWN		
+	};
+
+///////////////////////////////////////////////////////////////////////////////]
 private:
-	std::string				_buffer; 
 	HttpRequest&			_request;
-	httpAnswer&				_answer;
+	HttpAnswer&				_answer;
 
-	// int						_status; // 404
-	CgiStatus				_cgi_status;
-	
-	transfer_data			_data;
+	const t_connec_data&	_data;
 	cgi_data				_cgi_data;
 	const block*			_location_block;
+///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	static Task* createTask(const std::string& method, Connection& connec, int epoll_fd);
-	virtual ~Task();
+			Method(const t_connec_data& data) : 
+				_request(data._this_ptr->getRequest()), 
+				_answer(data._this_ptr->getAnswer()), 
+				_data(data),
+				_cgi_data(), 
+				_location_block(NULL) {}
 
+	virtual	~Method();
+
+
+//-----------------------------------------------------------------------------]
 public:
-	Task(Connection& connec, int epoll);
-
-	int			ft_do();
-
-
 	int 		normal_doing();
 	int			iniCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path);
 
+
 //-----------------------------------------------------------------------------]
+	/***  STATICS  ***/
+public:
+	static Ft_Type parseMethod(const std::string& method);
+	static Method* createTask(const std::string& method, const t_connec_data& data);
+
+//-----------------------------------------------------------------------------]
+	/***  TOOLS  ***/
+public:
 	static int			isFileNOK(std::string path, struct stat& ressource_info);
 	const std::string*	isCGI(const std::string& path) const;
 	int 				getFullPath(std::string& path_to_fill, const std::string& given_path) const;
 	int 				sanitizePath(std::string& path_to_fill, const std::string& given_path) const;
 	const block*		isLocationKnown(const std::string& given_path) const;
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////]
-// 							VIRTUAL FUNCTIONS
+/***							VIRTUAL FUNCTIONS							***/
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Print Debug the name of the Derived method class */
 	virtual void	printHello() = 0;
@@ -103,7 +120,7 @@ public:
 * @param ressource_info: initialized stat struct of ressource
 * @return	Must return directly the correct ft_do return 
 *	(0 on success, or errCode)	---*/
-	virtual int		handleFile(std::string& ressource, struct stat& ressource_info) = 0;
+	virtual int		handleFile(std::string& ressource) = 0;
 //-----------------------------------------------------------------------------]
 /** If the ressource exist and is a Directory, how should the Method handle it?
 * @param ressource: the cleaned absolute path of the request
@@ -121,41 +138,20 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////]
-/***  GETTERS  ***/
-///////////////////////////////////////////////////////////////////////////////]
-    const std::string& getBuffer() const { return _buffer; }
-    const HttpRequest& getRequest() const { return _request; }
-    httpAnswer& getAnswer() { return _answer; }
-    transfer_data& getData() { return _data; }
-// 
-    // int 	getStatus() const { return _status; }
-    cgi_data&	getCGIData() { return _cgi_data; }
-    CgiStatus 	getCGIStatus() const { return _cgi_status; }
-	const block* getLocationBlock() const { return _location_block; }
+	/***  GETTERS  ***/
+public:
+	HttpRequest&			getRequest() const { return _request; }
+	HttpAnswer&				getAnswer() { return _answer; }
+	const t_connec_data&	getData() { return _data; }
+	cgi_data&				getCGIData() { return _cgi_data; }
+	const block*			getLocationBlock() const { return _location_block; }
 
 ///////////////////////////////////////////////////////////////////////////////]
-/***  SETTERS  ***/
+	/***  SETTERS  ***/
+public:
 ///////////////////////////////////////////////////////////////////////////////]
-    // void 	setStatus(int status)  { _status = status; }
-    void  	addBuffer(std::string& s) { _buffer += s; };
-    void 	setCGIStatus(CgiStatus status)  { _cgi_status = status; }
 
 };
-
-///////////////////////////////////////////////////////////////////////////////]
-/*
-| Method      | Purpose / Client asks                         | Body allowed?                                |
-| ----------- | --------------------------------------------- | -------------------------------------------- |
-| **GET**     | Request a resource                            | No body (technically allowed but ignored)    |
-| **HEAD**    | Request headers of resource                   | No body                                      |
-| **POST**    | Submit data to server (form, JSON, file)      | Usually yes, body contains data              |
-| **PUT**     | Replace resource at URL                       | Usually yes, body contains full new resource |
-| **PATCH**   | Partial update of resource                    | Usually yes, body contains update            |
-| **DELETE**  | Remove resource                               | Rarely has body; most servers ignore it      |
-| **OPTIONS** | Ask server for allowed cmethods / capabilities | Can have body, but uncommon                  |
-| **CONNECT** | Ask server to open a tunnel (HTTPS proxy)     | No body; used to establish tunnel            |
-| **TRACE**   | Echo back the request                         | No body                                      |
-*/
 
 ///////////////////////////////////////////////////////////////////////////////]
 /*

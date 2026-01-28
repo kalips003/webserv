@@ -1,4 +1,4 @@
-#include "HttpRequest.hpp"
+#include "HttpR.hpp"
 #include "_colors.h"
 
 #include <unistd.h>
@@ -10,7 +10,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Destroy the associated _fd_body, annd unlink the _tmp_file */
-HttpRequest::~HttpRequest() {
+httpr::~httpr() {
 	if (!_tmp_body_path.empty()) unlink(_tmp_body_path.c_str());
 	if (_fd_body >= 0) close(_fd_body);
 }
@@ -27,7 +27,7 @@ HttpRequest::~HttpRequest() {
 * @return if delim found, return READING_HEADER if HEAD valid, errCode if not
 * 
 * if delim ("\r\n") not found, return FIRST			---*/
-int    HttpRequest::readingFirstLine(std::string& str_buff) {
+int    httpr::readingFirstLine(std::string& str_buff) {
 
 	std::string temp = _buffer + str_buff;
 
@@ -87,7 +87,7 @@ check _buffer + buff for CRLF
 * READING_BODY if body and parsing went well
 * 
 * errCode if parsing went bad			---*/
-int    HttpRequest::readingHeaders(std::string& buff) {
+int    httpr::readingHeaders(std::string& buff) {
 
 	std::string delim = "\r\n\r\n";
 
@@ -110,7 +110,7 @@ int    HttpRequest::readingHeaders(std::string& buff) {
 * if big, write to _fd_body
 *
 * @return DOING if body finished to be received, READING_BODY otherwise	---*/
-int	HttpRequest::readingBody(std::string& buff) {
+int	httpr::readingBody(std::string& buff) {
 
 	if (_fd_body >= 0) {
 	
@@ -131,7 +131,7 @@ int	HttpRequest::readingBody(std::string& buff) {
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
-std::ostream& operator<<(std::ostream& os, HttpRequest& r) {
+std::ostream& operator<<(std::ostream& os, httpr& r) {
 
     os << C_542 "---------------------------------------------\n" RESET;
     os << C_542 "\tREQUEST:\n" RESET;

@@ -13,6 +13,7 @@
 
 #define MAX_BODY_SIZE   8192
 #define MAX_LIMIT_FOR_HEAD 1000
+#define MAX_LIMIT_FOR_HEADERS 10000
 #define MAX_EVENTS 50
 
 #ifndef PATH_MAX
@@ -29,15 +30,15 @@
 #define LOG "[" C_035 "  L0G  " RESET "] "
 
 
-enum    ConnectionStatus {
+// enum    ConnectionStatus {
 
-    FIRST = 0,
-    READING_HEADER,
-    READING_BODY,
-    DOING,
-    SENDING,
-    CLOSED
-};
+//     FIRST = 0,
+//     READING_HEADER,
+//     READING_BODY,
+//     DOING,
+//     SENDING,
+//     CLOSED
+// };
 
 enum    AnswerStatus {
 
@@ -48,9 +49,11 @@ enum    AnswerStatus {
 };
 
 enum BodyMode {
-    BODY_NONE,
-    BODY_CONTENT_LENGTH,
-    BODY_CHUNKED
+
+	BODY_NONE, // → GET/HEAD, nothing to read
+	BODY_CONTENT_LENGTH, // → read fixed size
+	BODY_CHUNKED, // → chunked transfer
+	BODY_MULTIPART // → form/file uploads
 };
 
 enum HttpMethod {

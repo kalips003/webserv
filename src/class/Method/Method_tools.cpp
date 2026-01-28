@@ -1,4 +1,4 @@
-#include "Task.hpp"
+#include "Method.hpp"
 
 #include "SettingsServer.hpp"
 #include "Tools1.hpp"
@@ -15,7 +15,7 @@
  * @param path  Requested resource path (without query string)
  * @return      Pointer to the CGI interpreter path if the resource is CGI,
  *              NULL otherwise			---*/
-const std::string* Task::isCGI(const std::string& path) const {
+const std::string* Method::isCGI(const std::string& path) const {
 
 	size_t pos = path.find_last_of('.');
 	if (pos == std::string::npos)
@@ -28,7 +28,7 @@ const std::string* Task::isCGI(const std::string& path) const {
 /**	Fills the stat struct of the path
 *
 * @return 0 if all ok, ErrCode else (403 / 404)		*/
-int	Task::isFileNOK(std::string path, struct stat& ressource_info) {
+int	Method::isFileNOK(std::string path, struct stat& ressource_info) {
 
 	int rtrn = stat(path.c_str(), &ressource_info);
 	if (rtrn) {
@@ -50,7 +50,7 @@ int	Task::isFileNOK(std::string path, struct stat& ressource_info) {
  *
  * @param path_to_fill  Reference to a string where the full path will be stored.
  * @return int          0 on success, or 403 if the path attempts to escape the root.	---*/
-int Task::getFullPath(std::string& path_to_fill, const std::string& sanitized) const {
+int Method::getFullPath(std::string& path_to_fill, const std::string& sanitized) const {
 
 	std::vector<std::string> stack;
 	std::vector<std::string> v = splitOnDelimitor(sanitized, "/");
@@ -96,7 +96,7 @@ int Task::getFullPath(std::string& path_to_fill, const std::string& sanitized) c
  *  Expands %XX sequences, rejects malformed encodings and control characters.
  *  Example: "/img%2Ftest.png" → "/img/test.png"
  *  @return 0 on success, 400 on invalid path		---*/
-int Task::sanitizePath(std::string& path_to_fill, const std::string& given_path) const {
+int Method::sanitizePath(std::string& path_to_fill, const std::string& given_path) const {
 
 	for (size_t i = 0; i < given_path.size(); ++i) {
 
@@ -143,7 +143,7 @@ int Task::sanitizePath(std::string& path_to_fill, const std::string& given_path)
  *  Uses longest-prefix match with boundary checks.
  *  Example: "/folder/sub/file" → matches "location /folder/sub"
  *  @return pointer to matched location_data, or NULL if none		---*/
-const block* Task::isLocationKnown(const std::string& given_path) const {
+const block* Method::isLocationKnown(const std::string& given_path) const {
 
 	const std::vector<const block *> locations = g_settings.find_arg_blocks("location");
 

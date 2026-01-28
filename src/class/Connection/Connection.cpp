@@ -5,7 +5,8 @@
 #include <iostream>
 
 #include "HttpStatusCode.hpp"
-#include "Task.hpp"
+#include "HttpObj.hpp"
+#include "Method.hpp"
 #include "Tools1.hpp"
 #include "Tools2.hpp"
 
@@ -18,8 +19,8 @@ Connection::~Connection() {
 }
 
 void	Connection::closeFd() {
-	if (_client_fd >= 0) close(_client_fd);
-	_client_fd = -1;
+	if (_data._client_fd >= 0) close(_data._client_fd);
+	_data._client_fd = -1;
 }
 
 #include <sys/epoll.h>
@@ -28,75 +29,149 @@ void	Connection::closeFd() {
 bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 // oss log; log << "ft_update()"; printLog(LOG, log.str(), 1);
 
-	if (_status <= READING_BODY) {
-		oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - READING - " RESET;
-		if (_status != FIRST)
-			printLog(DEBUG, msg.str(), 1);
+	if (_status == READING) {
+		oss msg; msg << "[#" << printFd(_data._client_fd) << "] --- READING --- ";
+		if (_request.getStatus() != HttpObj::READING_FIRST) printLog(DEBUG, msg.str(), 1);
+
 		_status = ft_read(buff, sizeofbuff);
 		if (_status == SENDING)
-			epollChangeFlags(_epoll_fd, _client_fd, EPOLLOUT, EPOLL_CTL_MOD);
+			epollChangeFlags(_data._epoll_fd, _data._client_fd, EPOLLOUT, EPOLL_CTL_MOD);
 	}
 
-	if (_status == DOING) {
-		oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - DOING - " RESET;
-		printLog(DEBUG, msg.str(), 1);
+	if (_status == DOING || _status == DOING_CGI) {
+		oss msg; msg << "[#" << printFd(_data._client_fd) << "] --- DOING --- "; printLog(DEBUG, msg.str(), 1);
+		
 		_status = ft_doing();
 		if (_status == SENDING)
-			epollChangeFlags(_epoll_fd, _client_fd, this, EPOLLOUT, EPOLL_CTL_MOD);
+			epollChangeFlags(_data._epoll_fd, _data._client_fd, this, EPOLLOUT, EPOLL_CTL_MOD);
 	}
 
-	else if (_status == SENDING) {
-		oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - SENDING - " RESET;
-		printLog(DEBUG, msg.str(), 1);
+	if (_status == SENDING) {
+		oss msg; msg << "[#" << printFd(_data._client_fd) << "] --- SENDING --- "; printLog(DEBUG, msg.str(), 1);
+		
 		_status = ft_send(buff, sizeofbuff);
 	}
 
 	if (_status == CLOSED) {
-		oss msg; msg << "[#" C_431 << _client_fd <<  RESET "] - CLOSING - " RESET;
-		printLog(DEBUG, msg.str(), 1);
+		oss msg; msg << "[#" << printFd(_data._client_fd) << "] --- CLOSING --- "; printLog(DEBUG, msg.str(), 1);
 		return false;
 	}
 
 	return true;
 }
 
-#include "Tools2.hpp"
-//?????????????????????????????????????????????????????????????????????????????]
-enum ConnectionStatus	Connection::ft_doing( void ) {
+///////////////////////////////////////////////////////////////////////////////]
+/** @brief Read from provided buffer once
+//
+// _request update internally, return the status after recv()
+//
+// if error from _request, fills _answer for the error
+* @return CONNECTION_STATUS		---*/
+Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 
-	if (!_body_task)
-		_body_task = Task::createTask(_request.getMethod(), *this, _data._epoll_fd);
-	if (!_body_task) {
-		printLog(ERROR, RED "_body task NULL" RESET, 1);
-		return _answer.create_error(500);
+	int rtrn = _request.receive(buff, sizeofbuff, _data._client_fd);
+
+	if (rtrn == static_cast<HttpObj::HttpBodyStatus>(CLOSED))
+		return CLOSED;
+
+	else if (rtrn >= 100) {
+		_answer.createError(rtrn);
+		return SENDING;
 	}
 
-	int r = _body_task->ft_do();
-
-	if (r < 0)
+	if (rtrn < static_cast<HttpObj::HttpBodyStatus>(DOING))
+		return READING;
+	else if (rtrn == static_cast<HttpObj::HttpBodyStatus>(DOING))
 		return DOING;
-	if (r)
-		return _answer.create_error(r);
-	_answer.http_answer_ini();
 
 	return SENDING;
 }
 
-#include "Task.hpp"
-///////////////////////////////////////////////////////////////////////////////]
-/**	Try a send to client through given buffer */
-enum ConnectionStatus Connection::ft_send(char *buff, size_t sizeofbuff) {
 
-	return _answer.sending(buff, sizeofbuff, _client_fd);
+#include "Tools2.hpp"
+///////////////////////////////////////////////////////////////////////////////]
+/**	execute the Method class, depending on status DOING or DOING_CGI
+// @return ConnectionStatus */
+Connection::ConnectionStatus	Connection::ft_doing( void ) {
+
+// if first time, create Method
+	if (!_body_task)
+		_body_task = Method::createTask(_request.getMethod(), _data);
+	if (!_body_task) {
+		printLog(ERROR, RED "_body task NULL" RESET, 1);
+		_answer.createError(500);
+		return SENDING;
+	}
+
+// exec Method
+	_body_task->printHello();
+	int rtrn;
+	if (_status == DOING_CGI) {
+		rtrn = _body_task->exec_cgi();
+		if (rtrn != DOING_CGI)
+			epollChangeFlags(_data._epoll_fd, _data._client_fd, EPOLLIN, EPOLL_CTL_ADD);
+	}
+	else
+		rtrn = _body_task->normal_doing();
+
+// check return
+	if (rtrn >= 100) {
+		_answer.createError(rtrn);
+		return SENDING;
+	}
+	if (rtrn == CLOSED)
+		return CLOSED;
+	if (rtrn == SENDING)
+		_answer.initializationBeforeSend();
+
+	return static_cast<Connection::ConnectionStatus>(rtrn);
 }
 
+#include "Method.hpp"
+///////////////////////////////////////////////////////////////////////////////]
+/**	Try a send to client through given buffer */
+Connection::ConnectionStatus 	Connection::ft_send(char *buff, size_t sizeofbuff) {
+
+	HttpObj::HttpBodyStatus r = _answer.send(buff, sizeofbuff, _data._client_fd);
+	if (r == HttpObj::CLOSED)
+		return CLOSED;
+	return SENDING;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+/***  								GETTERS									***/
+///////////////////////////////////////////////////////////////////////////////]
+
+//-----------------------------------------------------------------------------]
+/** find the given setting in the _headers
+*	@return the string value of the setting
+*
+* if setting not found, return empty ""	---*/
+std::string		Connection::findRequestHeader(const std::string& header) {
+	const std::string* rtrn = _request.find_setting(header);
+	return rtrn ? *rtrn : "";
+}
+//-----------------------------------------------------------------------------]
+/** find the given setting in the _headers
+*	@return the string value of the setting
+*
+* if setting not found, return empty ""	---*/
+std::string		Connection::findAnswertHeader(const std::string& header) {
+	const std::string* rtrn = _answer.find_setting(header);
+	return rtrn ? *rtrn : "";
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+/***  								SETTERS									***/
+///////////////////////////////////////////////////////////////////////////////]
+
+//-----------------------------------------------------------------------------]
 void	 Connection::resetConnection() {
 	resetAnswer();
 	resetRequest();
 	delete _body_task;
 	_body_task = NULL;
 }
-
 
 #include <arpa/inet.h>
 ///////////////////////////////////////////////////////////////////////////////]

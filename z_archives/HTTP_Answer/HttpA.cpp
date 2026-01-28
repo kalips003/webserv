@@ -1,4 +1,4 @@
-#include "HttpAnswer.hpp"
+#include "HttpA.hpp"
 
 #include <unistd.h>
 #include <iostream>
@@ -7,12 +7,12 @@
 #include <sys/socket.h>
 #include <string.h>
 
-#include "Tools1.hpp"
 #include "HttpStatusCode.hpp"
+#include "Tools1.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
-httpAnswer::~httpAnswer() {
+httpa::~httpa() {
 
 	if (_fd_body >= 0) close(_fd_body);
 }
@@ -24,7 +24,7 @@ httpAnswer::~httpAnswer() {
 
  * @param errCode   Http Status Code
  * @return         SENDING or CLOSED on error (errCode invalid)		---*/
-enum ConnectionStatus    httpAnswer::create_error(int errCode) {
+enum ConnectionStatus    httpa::create_error(int errCode) {
 
 	std::string s = return_http_from_code(errCode);
 	if (s.empty())
@@ -55,7 +55,7 @@ enum ConnectionStatus    httpAnswer::create_error(int errCode) {
 #include <algorithm>
 ///////////////////////////////////////////////////////////////////////////////]
 /** Set default headers for an Answer		---*/
-void	httpAnswer::defaultHeaders() {
+void	httpa::defaultHeaders() {
 
 	map_strstr::iterator it = _headers.find("Content-Type");
 	if (it != _headers.end())
@@ -85,7 +85,7 @@ void	httpAnswer::defaultHeaders() {
 
 ///////////////////////////////////////////////////////////////////////////////]
 /**	 Concactenate answer + headers into _head	---*/
-void httpAnswer::http_answer_ini() {
+void httpa::http_answer_ini() {
 
 	_head.reserve(4096);
 
@@ -100,7 +100,7 @@ void httpAnswer::http_answer_ini() {
 // #include <sstream>
 //-----------------------------------------------------------------------------]
 /**  concatenate and return first line: <HTTP/1.1 200 OK\r\n>		---*/
-std::string httpAnswer::rtrnFistLine() {
+std::string httpa::rtrnFistLine() {
 
 	std::stringstream ss;
 	ss << _status;
@@ -110,7 +110,7 @@ std::string httpAnswer::rtrnFistLine() {
 
 //-----------------------------------------------------------------------------]
 /**  return a string of all headers separated by '\r\n'		---*/
-std::string	httpAnswer::concatenateHeaders() {
+std::string	httpa::concatenateHeaders() {
 
 	std::string s;
 	for (map_strstr::iterator it = _headers.begin(); it != _headers.end(); it++)
@@ -131,7 +131,7 @@ std::string	httpAnswer::concatenateHeaders() {
  * @param size_buff   Size of buffer
  * @param fd_client   Fd client to send to
  * @return			SENDING or CLOSED state of the connection after the last send		---*/
-enum ConnectionStatus    httpAnswer::sending(char *buff, size_t size_buff, int fd_client) {
+enum ConnectionStatus    httpa::sending(char *buff, size_t size_buff, int fd_client) {
 
 	ssize_t bytesLoaded = fillBuffer(buff, size_buff);
 	if (bytesLoaded < 0)
@@ -142,7 +142,7 @@ enum ConnectionStatus    httpAnswer::sending(char *buff, size_t size_buff, int f
 	ssize_t bytesSent = send(fd_client, buff, bytesLoaded, 0);
 	if (bytesSent <= 0) {
 		if (bytesSent == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
-			return SENDING; 
+			return SENDING;
 		return CLOSED;
 	}
 	oss msg; msg << "Packet sent: loaded [" << bytesLoaded << "] sent [" << bytesSent << "]";
@@ -162,7 +162,7 @@ enum ConnectionStatus    httpAnswer::sending(char *buff, size_t size_buff, int f
 //-----------------------------------------------------------------------------]
 /**	Choose from what source to fill the buffer with
 * @return bytesLoaded into buffer			---*/
-ssize_t	httpAnswer::fillBuffer(char *buff, size_t size_buff) {
+ssize_t	httpa::fillBuffer(char *buff, size_t size_buff) {
 
 	ssize_t bytesLoaded = 0;
 
@@ -202,7 +202,7 @@ ssize_t	httpAnswer::fillBuffer(char *buff, size_t size_buff) {
 *	Update the internal state _sending_status
 *
 *	Close the _fd_body if any and finished			---*/
-void	httpAnswer::updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesSent) {
+void	httpa::updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesSent) {
 
 	_bytes_sent += bytesSent;
 
@@ -241,7 +241,7 @@ void	httpAnswer::updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesS
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-void	httpAnswer::setFirstLine(int code) {
+void	httpa::setFirstLine(int code) {
 	_version = "HTTP/1.1";
 	_status = code;
 	_msg_status = return_http_from_code(code);
@@ -251,7 +251,7 @@ void	httpAnswer::setFirstLine(int code) {
 	}
 }
 
-void	httpAnswer::setBodySize(size_t size) {
+void	httpa::setBodySize(size_t size) {
 
 	_body_size = size; 
 	addToHeaders("Content-Length", itostr(size));
@@ -265,7 +265,7 @@ void	httpAnswer::setBodySize(size_t size) {
 *	@return the string value of the setting
 *
 * if setting not found, return "" empty string	---*/
-std::string httpAnswer::find_setting(const std::string& set) const {
+std::string httpa::find_setting(const std::string& set) const {
 
 	map_strstr::const_iterator it = _headers.begin();
 	it = _headers.find(set);
@@ -279,7 +279,7 @@ std::string httpAnswer::find_setting(const std::string& set) const {
 
 ///////////////////////////////////////////////////////////////////////////////]
 /**	return AnswerStatus dependinng on what type of body to send */
-AnswerStatus	httpAnswer::isThereBody() const { 
+AnswerStatus	httpa::isThereBody() const { 
 	if (!_head.empty())
 		return SENDING_HEAD;
 	else if (_bytes_sent == _body_size)
@@ -295,7 +295,7 @@ AnswerStatus	httpAnswer::isThereBody() const {
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
-std::ostream& operator<<(std::ostream& os, httpAnswer& a) {
+std::ostream& operator<<(std::ostream& os, httpa& a) {
 
 	os << C_542 "---------------------------------------------\n" RESET;
 	os << C_542 "\t- ANSWER -\n\n" RESET;

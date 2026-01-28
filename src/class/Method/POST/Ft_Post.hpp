@@ -1,7 +1,7 @@
-#ifndef FT_GET_HPP
-#define FT_GET_HPP
+#ifndef FT_POST_HPP
+#define FT_POST_HPP
 
-#include "Task.hpp"
+#include "Method.hpp"
 
 #include <fstream>
 ///////////////////////////////////////////////////////////////////////////////]
@@ -31,25 +31,25 @@
 // Accept: text/html
 // Accept-Encoding: gzip, deflate
 // Connection: keep-alive
-class   Ft_Get : public Task {
+class   Ft_Post : public Method {
 
 private:
 
 
 public:
-	Ft_Get(Connection& connec, int epoll) : Task(connec, epoll) {}
+	Ft_Post(const t_connec_data& data) : Method(data) {}
 
 // parent virtual funcitons:
 	void	printHello();
 	int		exec_cgi();
 	int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
-	int		handleFile(std::string& ressource, struct stat& ressource_info);
+	int		handleFile(std::string& ressource);
 	int		handleDir(std::string& ressource);
 	void	prepareChild(const std::string& ressource, const std::string& query);
+	int		appendFile(const std::string& path);
 
 private:
-    int serveAutoIndexing(const std::string& path);
-	int serveFile(const std::string& path, struct stat& ressource_info);
+	void	function1();
 
 };
 

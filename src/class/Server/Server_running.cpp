@@ -8,7 +8,7 @@ void    Server::run_better( void ) {
 
 	while (true) {
 
-		accept_clients();
+		accept_clients(buffer, sizeof(buffer));
 		
 		for (c_it it = _clients.begin(); it != _clients.end(); ) {
 
@@ -42,7 +42,7 @@ void    Server::run( void ) {
 		for (int i = 0; i < nfds; ++i) {
 
 			if (_events[i].data.ptr == this) {
-				accept_clients(); // new connection
+				accept_clients(buffer, sizeof(buffer)); // new connection
 				continue;
 			}
 

@@ -87,10 +87,11 @@ private:
 	/***  GETTERS  ***/
 public:
 	int						getPortNum( void ) const { return _port_num; }
-	std::string				getRoot( void ) const { return _root; }
+	const std::string&		getRoot( void ) const { return _root; }
+	const std::string&		getTempRoot() const { return _temp_root; }
+	const location_data*	getRootLocationBlock() const { return _root_location_data; }
 	const SettingsServer&	getConstSettings() const { return *this; }
-	const location_data*	getRootLocation() const { return _root_location_data; }
-	std::string				getTempLocation() const { return _temp_root; }
+	ssize_t					getMaxBodySize() const { return _client_max_body_size; }
 private:
 	SettingsServer& 		getSettings() { return *this; }
 

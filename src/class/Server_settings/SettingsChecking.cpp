@@ -111,12 +111,12 @@ bool 	SettingsServer::setRoot() {
 // check if root is directory, can be accessed, ...?
 	struct stat st;
 	if (stat(_root.c_str(), &st) != 0) {
-		oss msg; msg << ERR8 "stat(): Cant access: " << _root << std::endl;
+		oss msg; msg << ERR8 "stat(): Cant access: " << _root;
 		return printErr(msg.str().c_str());
 	}
 
 	if (!S_ISDIR(st.st_mode)) {
-		oss msg; msg << ERR9 "stat(): Cant access: " << _root << std::endl;
+		oss msg; msg << ERR9 "stat(): Cant access: " << _root;
 		return printErr(msg.str().c_str());
 	}
 	root_block->settings["root"] = _root;
@@ -148,19 +148,19 @@ bool 	SettingsServer::setTemp() {
 	struct stat st;
 //	Check accessibility for the server process
 	if (stat(_temp_root.c_str(), &st) != 0) {
-		oss msg; msg << ERR8 "stat(): Cant access: " << _temp_root << std::endl;
+		oss msg; msg << ERR8 "stat(): Cant access: " << _temp_root;
 		return printErr(msg.str().c_str());
 	}
 
 //	Check if its a DIR
 	if (!S_ISDIR(st.st_mode)) {
-		oss msg; msg << ERR9 << _temp_root << " Inst a Directory" << std::endl;
+		oss msg; msg << ERR9 << _temp_root << " Inst a Directory";
 		return printErr(msg.str().c_str());
 	}
 
 //	Check permission for the server process
 	if (access(_temp_root.c_str(), R_OK | W_OK | X_OK) != 0) {
-		oss msg; msg << ERR7 "Temp folder not accessible (r/w/x): " << _temp_root << std::endl;
+		oss msg; msg << ERR7 "Temp folder not accessible (r/w/x): " << _temp_root;
 		return printErr(msg.str().c_str());
 	}
 

@@ -1,33 +1,20 @@
-#include "Task.hpp"
+#include "Method.hpp"
 
-#include "HttpRequest.hpp"
-
-#include <iostream>
-
+#include "Tools2.hpp"
 #include "Tools1.hpp"
 
 #include <sys/stat.h>
-
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
-#include "SettingsServer.hpp"
-#include "HttpAnswer.hpp"
-#include "Tools2.hpp"
-
-///////////////////////////////////////////////////////////////////////////////]
-int Task::ft_do() {
-
-	this->printHello();
-
-	if (_cgi_status == CGI_DOING)
-		return this->exec_cgi();
-	else
-		return normal_doing();
-}
-
+#include <iostream>
 #include <algorithm>
+
+#include "SettingsServer.hpp"
+#include "HttpRequest.hpp"
+#include "HttpAnswer.hpp"
+
 ///////////////////////////////////////////////////////////////////////////////]
 /** Common handling of a request for normal (non-CGI) processing.
  * - Extracts query string from the path (/script.py - ?x=abc&y=42)
@@ -36,9 +23,9 @@ int Task::ft_do() {
  * - Dispatches to Derived Class the handling of CGI, file, or directory as appropriate
  *
  * @return 0 on success, or HTTP error code on failure	---*/
-int Task::normal_doing() {
+int Method::normal_doing() {
 // is there query in the path? > /script.py?x=abc&y=42
-	const HttpRequest& req = getRequest();
+	const HttpRequest& req = _request;
 	size_t pos = req.getPath().find_first_of('?');
 	std::string path;
 	std::string query;
@@ -58,7 +45,7 @@ log.str(""); log << "path after sanitizePath: " << sanitized; printLog(LOG, log.
 	if (!(_location_block = isLocationKnown(sanitized)))
 		return 500;
 // Once Location block is known, check if method is allowed
-	if (std::find(_location_block->data.allowed_methods.begin(), _location_block->data.allowed_methods.end(), getRequest().getMethod()) == _location_block->data.allowed_methods.end())
+	if (std::find(_location_block->data.allowed_methods.begin(), _location_block->data.allowed_methods.end(), _request.getMethod()) == _location_block->data.allowed_methods.end())
 		return 405;
 		
 log.str(""); log << "path before getFullPath: " << sanitized; printLog(LOG, log.str(), 1);
@@ -83,9 +70,9 @@ log.str(""); log << "path before getFullPath: " << sanitized; printLog(LOG, log.
 		if (CGI_interpreter_path)
 			return iniCGI(ressource, query, CGI_interpreter_path);
 		else
-			return this->handleFile(ressource, ressource_info);
+			return this->handleFile(ressource);
 	}
-// is DIRECTORY
+// is DIRECTORY 
 	else if (S_ISDIR(ressource_info.st_mode)) {
 		printLog(DEBUG, "is DIRECTORY", 1);
 		if (sanitized[sanitized.size() - 1] != '/') { // if no trailing / in directory path, redirect
@@ -105,7 +92,6 @@ log.str(""); log << "path before getFullPath: " << sanitized; printLog(LOG, log.
 // #include <sys/epoll.h>
 // #include "SettingsServer.hpp"
 // #include "Tools2.hpp"
-#include <unistd.h>
 extern char **environ;
 ///////////////////////////////////////////////////////////////////////////////]
 /** Initialize CGI execution.
@@ -122,9 +108,7 @@ extern char **environ;
  *
  * @return -1 on successful CGI initialization (processing continues asynchronously),
  *         HTTP error code (>0) on failure			---*/
-int Task::iniCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path) {
-// need access to connection ptr, connection fd
-//  need to store: a temp fd; temp_file_name; fd of child to wait
+int Method::iniCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path) {
 
 	int pipefd[2];
 	if (pipe(pipefd) < 0) {
@@ -139,12 +123,13 @@ int Task::iniCGI(const std::string& ressource, const std::string& query, const s
 	}
 
 	if (pid == 0) {
-		// ---- child ----
+//-----------------------------------------------------------------------------]
+// ---- child ----
 		dup2(pipefd[1], STDOUT_FILENO); // redirect stdout to pipe
 
-		//	close all unused fd by the child (& pipefd[0] + pipefd[1])
+		//	close all unused fd by the child (including pipefd[0] + pipefd[1])
 		int max_fd = sysconf(_SC_OPEN_MAX);
-		int fd_body_tmp = getRequest().getFdBody();
+		int fd_body_tmp = _request.getBodyFd();
 		for (int i = 0; i < max_fd; ++i) {
 			if (i == STDIN_FILENO || i == STDOUT_FILENO || i == fd_body_tmp)
 				continue;
@@ -163,6 +148,7 @@ int Task::iniCGI(const std::string& ressource, const std::string& query, const s
 		printErr("execve()");
 		_exit(1);
 	}
+//-----------------------------------------------------------------------------]
 // ---- parent ----
 	close(pipefd[1]); // close write end — parent only reads
 	fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
@@ -176,15 +162,13 @@ int Task::iniCGI(const std::string& ressource, const std::string& query, const s
 	if (epollChangeFlags(getData()._epoll_fd, pipefd[0], getData()._this_ptr, EPOLLIN | EPOLLRDHUP, EPOLL_CTL_ADD))
 		return 500;
 
-	cgi_data._tmp_file_fd = createTempFile(cgi_data._tmp_file_name, g_settings.find_setting("tmp_root"), O_RDWR | O_CREAT | O_EXCL);
-	if (cgi_data._tmp_file_fd < 0) {
+	if (!cgi_data._tmp_file.createTempFile(&g_settings.getTempRoot())) {
 		kill(cgi_data._child_pid, SIGKILL);
 		close(cgi_data._child_pipe_fd);
 		return 500;
 	}
 
-	setCGIStatus(CGI_DOING);
-	return -1;
+	return Connection::DOING_CGI;
 
 	// later: 
 /*

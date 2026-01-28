@@ -83,5 +83,9 @@ std::string itostr(Num n) {
  */
 void printLog(const std::string& lvl, const std::string& s, bool newline);
 
+///////////////////////////////////////////////////////////////////////////////]
+/** return a string ready to print the given fd in color  */
+std::string printFd(int fd);
+
 
 #endif

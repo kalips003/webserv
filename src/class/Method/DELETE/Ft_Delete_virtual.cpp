@@ -53,8 +53,8 @@ int		Ft_Delete::howToHandleFileNotExist(const std::string& ressource, int rtrn_o
 ///////////////////////////////////////////////////////////////////////////////]
 // DELETE /file
 /** */
-int		Ft_Delete::handleFile(std::string& path, struct stat& ressource_info) {
-	(void)ressource_info;
+int		Ft_Delete::handleFile(std::string& path) {
+
 //	/path/to/to_delete/file > /path/to/to_delete
 	std::string folder_path = path.substr(0, path.find_last_of("/"));
 
@@ -89,17 +89,18 @@ void	Ft_Delete::prepareChild(const std::string& ressource, const std::string& qu
 	setenv("QUERY_STRING", query.c_str(), 1);
 	setenv("SCRIPT_FILENAME", ressource.c_str(), 1);
 	setenv("REDIRECT_STATUS", "200", 1);
-	std::string content_length = itostr(getRequest().getBodySize());
+	std::string content_length = itostr(getRequest().getFile().getBodySize());
 	setenv("CONTENT_LENGTH", content_length.c_str(), 1);
-	std::string content_type = getRequest().find_setting("Content-Type");
-	if (content_type.empty())
-		printLog(WARNING, "CGI POST, Content-Type missing", 1);
-	setenv("CONTENT_TYPE", content_type.c_str(), 1);
+	const std::string* content_type = getRequest().find_setting("content-type");
+	if (!content_type)
+		printLog(WARNING, "CGI DELETE, Content-Type missing", 1);
+	setenv("CONTENT_TYPE", (*content_type).c_str(), 1);
 	setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
 	
-	int fd_body_tmp = getRequest().getFdBody();
+	int fd_body_tmp = getRequest().getFile()._fd;
 	if (fd_body_tmp >= 0) {
+		lseek(fd_body_tmp, 0, SEEK_SET);
 		dup2(fd_body_tmp, STDIN_FILENO);
 		close(fd_body_tmp);
 	}

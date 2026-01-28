@@ -36,7 +36,7 @@ int		Ft_Get::exec_cgi() {
 	// close(_cgi_data._child_pipe_fd);
 	// _cgi_data._child_pipe_fd = -1;
 
-	// epollChangeFlags(_data._epoll_fd, _data._client_fd, _data._this_ptr, EPOLL_CTL_ADD);
+// epollChangeFlags(_data._epoll_fd, _data._client_fd, _data._this_ptr, EPOLL_CTL_ADD);
 	// return errCode;
 
 	return 0;
@@ -54,20 +54,15 @@ int		Ft_Get::howToHandleFileNotExist(const std::string& ressource, int rtrn_open
 #include <fcntl.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /** */
-int		Ft_Get::handleFile(std::string& path, struct stat& ressource_info) {
+int		Ft_Get::handleFile(std::string& path) {
 
 	if (access(path.c_str(), R_OK) != 0) // even if file exist, might not be readable by server
 		return 403;
 
-	int fd = open(path.c_str(), O_RDONLY);
-	if (fd < 0) {
-		printErr("open()");
+	if (!getAnswer().getTempFile().openFile(path, O_RDONLY, false))
 		return 500;
-	}
-	
-	getAnswer().setFd(fd);
-	getAnswer().setBodySize(ressource_info.st_size);
-	getAnswer().addToHeaders("Content-Type", find_MIME_type(path));
+
+	getAnswer().setMIMEtype(path);
 	
 	return 0;
 }
@@ -99,7 +94,7 @@ int		Ft_Get::handleDir(std::string& ressource) {
 	if (!rtrn) {
 		oss msg; msg << "Default file found: (" << default_file << ")";
 		printLog(DEBUG, msg.str(), 1);
-		return handleFile(default_file, stat_default);
+		return handleFile(default_file);
 	}
 
 // only 404, try autoindexing

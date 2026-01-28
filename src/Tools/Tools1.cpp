@@ -41,7 +41,7 @@ bool	atoi_v2(const std::string& input, ssize_t& rtrn) {
 ///////////////////////////////////////////////////////////////////////////////]
 bool printErr(const char* errmsg) {
 
-	std::cerr << ERROR;
+	std::cerr << ERROR << RED "System error - " RESET;
 	perror(errmsg);
 	// std::cerr << C_412 "; [errno]: " RESET << errno << std::endl;
 	return false;
@@ -119,4 +119,12 @@ std::string itostr(int n) {
     std::stringstream ss;
     ss << n;
     return ss.str();
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+std::string printFd(int fd) {
+	oss colored_fd("\033[38;5;");
+	int color = 16 + ((fd + 32) % 240);
+	colored_fd << color << "m" << fd << RESET;
+	return colored_fd.str();
 }

@@ -5,6 +5,7 @@
 #include <cerrno>
 #include "Tools1.hpp"
 #include "Tools2.hpp"
+#include <unistd.h>
 
 ///////////////////////////////////////////////////////////////////////////////]
 /** Remove the given Client from the list
@@ -33,7 +34,6 @@ c_it	Server::pop_connec(c_it it) {
 	return next;
 }
 
-#include <unistd.h>
 ///////////////////////////////////////////////////////////////////////////////]
 // #include <fcntl.h>
 // #include <iostream>
@@ -44,19 +44,20 @@ c_it	Server::pop_connec(c_it it) {
 /** Try to accept a new client
  *
  * if successful, add it to _clients		---*/
-void	Server::accept_clients() {
+void	Server::accept_clients(char *buff, size_t sizeofbuff) {
 
 	while (1) {
-		AcceptResult rtrn = accept_one_client();
+		Server::ConnectionAcceptResult rtrn = accept_one_client(buff, sizeofbuff);
 
 		if (rtrn == ACCEPT_EMPTY)
 			break;
 		else if (rtrn == ACCEPT_FATAL) {
-			printErr("Pausing Server by security");
-			sleep(10);
+			printErr(RED "Server Rebooted by security. accept()" RESET);
+			reboot();
 		}
 	}
 }
+
 
 #include "Tools2.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
@@ -65,7 +66,7 @@ void	Server::accept_clients() {
     // ACCEPT_RETRY = -1,    // EINTR / ECONNABORTED
     // ACCEPT_FATAL = -2   
 ///////////////////////////////////////////////////////////////////////////////]
-AcceptResult	Server::accept_one_client() {
+Server::ConnectionAcceptResult	Server::accept_one_client(char *buff, size_t sizeofbuff) {
 
 	struct sockaddr_in	client_addr;
 	socklen_t			addr_len = sizeof(client_addr); 
@@ -85,7 +86,7 @@ AcceptResult	Server::accept_one_client() {
 	if (!set)
 		return ACCEPT_RETRY;
 
-	_clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, _epoll_fd, client_addr, addr_len)));
+	_clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, _epoll_fd, client_addr, addr_len, buff, sizeofbuff)));
 
 	if (!epollChangeFlags(_epoll_fd, client_fd, &_clients[client_fd], EPOLLIN, EPOLL_CTL_ADD))
 		return ACCEPT_RETRY;
@@ -93,6 +94,50 @@ AcceptResult	Server::accept_one_client() {
 	oss msg; msg << "New client Accepted: [#" C_431 << client_fd <<  RESET "] " << _clients[client_fd];
 	printLog(INFO, msg.str(), 1);
 	return ACCEPT_OK;
+}
+
+//-----------------------------------------------------------------------------]
+/**	Reset the server, and timeout 10s */
+bool	Server::reset() {
+
+// destructor:
+	for (map_clients::iterator it = _clients.begin(); it != _clients.end(); )
+		it = pop_connec(it);
+	if (_epoll_fd >= 0) { close(_epoll_fd); _epoll_fd = -1; }
+	if (_socket_fd >= 0) { close(_socket_fd); _socket_fd = -1; }
+
+	_server_status = create_listening_socket();
+	if (!_server_status)
+		return false;
+
+	_server_status = create_epoll();
+	if (!_server_status)
+		return false;
+	
+	return true;
+}
+
+#include <cstdlib>
+//-----------------------------------------------------------------------------]
+/**	Reset the server, and timeout 10s */
+void	Server::reboot() {
+
+// destructor:
+	for (map_clients::iterator it = _clients.begin(); it != _clients.end(); )
+		it = pop_connec(it);
+	if (_epoll_fd >= 0) { close(_epoll_fd); _epoll_fd = -1; }
+	if (_socket_fd >= 0) { close(_socket_fd); _socket_fd = -1; }
+
+	oss msg;
+	for (int i = 10; i > 0; --i) {
+		msg.str(""); msg.clear(); msg << RED "Reboot in ... " RESET << i; printLog(ERROR, msg.str(), 1);
+		sleep(1);
+	}
+	if (!create_listening_socket() || !create_epoll()) {
+		msg.str(""); msg.clear(); msg << RED "FATAL ERROR" RESET; printLog(ERROR, msg.str(), 1);
+		exit(1);
+	}
+	msg.str(""); msg.clear(); msg << GREEN "REBOOT SUCCESSFUL" RESET; printLog(ERROR, msg.str(), 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

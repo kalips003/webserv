@@ -15,7 +15,7 @@
  *
  * Owns all the parsings tools
  */
-class HttpRequest {
+class httpr : {
 
 private:
 ///////////////////////////////////////////////////////////////////////////////]
@@ -40,9 +40,11 @@ private:
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-    HttpRequest() : _body_size(0), _body_bytes_received(0), _fd_body(-1),
+    httpr
+() : _body_size(0), _body_bytes_received(0), _fd_body(-1),
         _body_type(BODY_NONE), _bodyistemp(false) {}
-    ~HttpRequest();
+    ~httpr
+();
 
 //-----------------------------------------------------------------------------]
 public:
@@ -94,6 +96,6 @@ public:
 
 };
 
-std::ostream& operator<<(std::ostream& os, HttpRequest& r);
+std::ostream& operator<<(std::ostream& os, httpr& r);
 
 #endif

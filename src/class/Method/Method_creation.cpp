@@ -1,4 +1,4 @@
-#include "Task.hpp"
+#include "Method.hpp"
 
 #include "Connection.hpp"
 
@@ -10,13 +10,6 @@
 #include "Ft_Get.hpp"
 #include "Ft_Post.hpp"
 #include "Ft_Delete.hpp"
-///////////////////////////////////////////////////////////////////////////////]
-Task::Task(Connection& connec, int epoll)
- : _request(connec.getRequest()), _answer(connec.getAnswer()), _cgi_status(CGI_NONE), _cgi_data(), _location_block(NULL) {
-	_data._client_fd = connec.getClientFd();
-	_data._epoll_fd = epoll;
-	_data._this_ptr = &connec;
-}
 
 ///////////////////////////////////////////////////////////////////////////////]
 /*
@@ -34,28 +27,17 @@ kill(child_pid, SIGKILL);
 
 You don’t need to call waitpid() manually
 */
+
+
 // #include <signal.h>
 // #include "Tools2.hpp"
 // #include <sys/wait.h>
 // #include <sys/epoll.h> 
 ///////////////////////////////////////////////////////////////////////////////]
-/**
-// what Task owns:
-	_cgi_data._child_pid;
-	_cgi_data._child_pipe_fd;
-	_cgi_data._tmp_file_fd;
-	_cgi_data._tmp_file_name;
- */
-Task::~Task() {
+Method::~Method() {
 
-	if (!_cgi_data._tmp_file_name.empty()) {
-		unlink(_cgi_data._tmp_file_name.c_str()); // be sure that we have WX permission on the default temp folder
-		_cgi_data._tmp_file_name.clear();
-	}
-	if (_cgi_data._tmp_file_fd >= 0) {
-		close(_cgi_data._tmp_file_fd);
-		_cgi_data._tmp_file_fd = -1;
-	}
+// _tmp_file handle its destuction
+
 	if (_cgi_data._child_pipe_fd >= 0) {
 		epollChangeFlags(_data._epoll_fd, _cgi_data._child_pipe_fd, 0, EPOLL_CTL_DEL);
 		close(_cgi_data._child_pipe_fd);
@@ -74,14 +56,23 @@ Task::~Task() {
 // #include "Ft_Post.hpp"
 // #include "Ft_Delete.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
-Task* Task::createTask(const std::string& method, Connection& connec, int epoll_fd) {
-	if (method == "GET")
-		return new Ft_Get(connec, epoll_fd);
-	else if (method == "POST")
-		return new Ft_Post(connec, epoll_fd);
-	else if (method == "DELETE")
-		return new Ft_Delete(connec, epoll_fd);
-	// ... other methods
-	else
-		return NULL;  // unknown method → 405 or reject
+Method*		Method::createTask(const std::string& method, const t_connec_data& data) {
+	Method::Ft_Type type = Method::parseMethod(method);
+
+	switch(type) {
+		case GET:		return new Ft_Get(data);
+		case POST:		return new Ft_Post(data);
+		case DELETE:	return new Ft_Delete(data);
+		// case PUT:		return new Ft_Put(data);
+		default:		return NULL;  // unknown method → reject (405)
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+Method::Ft_Type		Method::parseMethod(const std::string& method) {
+    if (method == "GET") return GET;
+    if (method == "POST") return POST;
+    if (method == "DELETE") return DELETE;
+    if (method == "PUT") return PUT;
+    return UNKNOWN;
 }

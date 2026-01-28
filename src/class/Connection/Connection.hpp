@@ -9,84 +9,119 @@
 
 #include "HttpAnswer.hpp"
 #include "HttpRequest.hpp"
-#include "Task.hpp"
 
-class Task;
+// #include "Method.hpp"
+
+class Method;
 class SettingsServer;
 class Connection;
-
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 class Connection {
 
-private:
+public:
+	struct transfer_data {
+		int			_client_fd; // fd associated with this client connection
+		int			_epoll_fd;
+		Connection*	_this_ptr; // ptr to this client connection
+		char*		_buffer; // Shared Server buffer
+		size_t		_sizeofbuff;
+
+		transfer_data() : 
+			_client_fd(-1), 
+			_epoll_fd(-1), 
+			_this_ptr(NULL),
+			_buffer(NULL),
+			_sizeofbuff(0) {}
+
+		transfer_data(int fd, int e, Connection* c, char* buffer, size_t size) : 
+			_client_fd(fd), 
+			_epoll_fd(e), 
+			_this_ptr(c), 
+			_buffer(buffer),
+			_sizeofbuff(size) {}
+	};
+
+	enum ConnectionStatus {
+	
+		READING,
+		DOING,
+		DOING_CGI,
+		SENDING,
+		CLOSED
+	};
+
 ///////////////////////////////////////////////////////////////////////////////]
-    int                 _client_fd; // fd associated with this client connection
-    int                 _epoll_fd; // fd associated with epoll
-    struct sockaddr_in  _client_addr; // struct with informations about the client
-    socklen_t           _addr_len; // ?
+private:
+	struct sockaddr_in  	_client_addr; // struct with informations about the client
+	socklen_t				_addr_len; // ?
 
-    HttpRequest         _request;
-    httpAnswer          _answer;
-    Task                *_body_task;
+	HttpRequest				_request;
+	HttpAnswer				_answer;
 
-    ConnectionStatus    _status; // FIRST = 0, READING_HEADER, READING_BODY, DOING, SENDING, CLOSED
-	struct transfer_data		_data;
+	Method					*_body_task;
+
+	ConnectionStatus		_status;
+	transfer_data			_data;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
 	Connection() :
-		_client_fd(-1), _epoll_fd(-1), _addr_len(sizeof(_client_addr)), 
-		_body_task(NULL), _status(FIRST) {}
+		_client_addr(), 
+		_addr_len(sizeof(_client_addr)), 
+		_body_task(NULL), 
+		_status(READING), 
+		_data() { _data._this_ptr = this; }
 
-	Connection(int fd, int epoll, struct sockaddr_in c, socklen_t al) :
-		_client_fd(fd), _epoll_fd(epoll), _client_addr(c), _addr_len(al), 
-		_body_task(NULL), _status(FIRST) {}
-	
+	Connection(int fd, int epoll, struct sockaddr_in c, socklen_t al, char* buffer, size_t size) :
+		_client_addr(c), 
+		_addr_len(al), 
+		_body_task(NULL), 
+		_status(READING), 
+		_data(fd, epoll, this, buffer, size) {}
+
 	~Connection();
+
 
 //-----------------------------------------------------------------------------]
 public:
 	bool					ft_update(char *buff, size_t sizeofbuff);
 //-----------------------------------------------------------------------------]
-public:
-    enum ConnectionStatus	ft_read(char *buff, size_t sizeofbuff);
 
+	ConnectionStatus		ft_read(char *buff, size_t sizeofbuff);
 //-----------------------------------------------------------------------------]
-public:
-    enum ConnectionStatus	ft_doing( void );
 
+	enum ConnectionStatus	ft_doing( void );
 //-----------------------------------------------------------------------------]
-public:
-    enum ConnectionStatus	ft_send(char *buff, size_t sizeofbuff);
+
+	enum ConnectionStatus	ft_send(char *buff, size_t sizeofbuff);
 
 
-//-----------------------------------------------------------------------------]
-public:
 ///////////////////////////////////////////////////////////////////////////////]
-/***  GETTERS  ***/
-    int                         getClientFd() const { return _client_fd; }
-    const struct sockaddr_in&   getClientAddr() const { return _client_addr; }
-    socklen_t                   getAddrLen() const { return _addr_len; }
-//
-    HttpRequest&                getRequest() { return _request; }
-    httpAnswer&                 getAnswer() { return _answer; }
-//
-    Task*                       getBodyTask() const { return _body_task; }
-    ConnectionStatus            getStatus() const { return _status; }
-//
-	const std::string			findRequestHeader(const std::string& header) { return _request.find_setting(header); }
-	const std::string			findAnswertHeader(const std::string& header) { return _answer.find_setting(header); }
-	// const std::string&			findAnswerHeader(std::string header) { return _answer.find_setting(header); }
-    void                        resetConnection();
-/***  SETTERS  ***/
-	void	setStatus(ConnectionStatus s) { _status = s; }
-//
+	/***  GETTERS  ***/
+public:
+	int						 	getClientFd() const { return _data._client_fd; }
+	const struct sockaddr_in&	getClientAddr() const { return _client_addr; }
+	socklen_t					getAddrLen() const { return _addr_len; }
+	HttpRequest&				getRequest() { return _request; }
+	Method*						getBodyTask() const { return _body_task; }
+	HttpAnswer&					getAnswer() { return _answer; }
+	ConnectionStatus			getStatus() const { return _status; }
+//-----------------------------------------------------------------------------]
+public:
+	std::string					findRequestHeader(const std::string& header);
+	std::string					findAnswertHeader(const std::string& header);
+///////////////////////////////////////////////////////////////////////////////]
+	/***  SETTERS  ***/
+public:
+	void	resetConnection();
 	void	resetRequest( void ) { _request = HttpRequest(); }
-	void	resetAnswer( void ) { _answer = httpAnswer(); }
+	void	resetAnswer( void ) { _answer = HttpAnswer(); }
+	void	setStatus(ConnectionStatus s) { _status = s; }
 	void	closeFd();
+//-----------------------------------------------------------------------------]
 ///////////////////////////////////////////////////////////////////////////////]
 
 };

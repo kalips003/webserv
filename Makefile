@@ -116,7 +116,7 @@ SRC := $(shell find src -name '*.cpp')
 OBJ := $(SRC:src/%.cpp=src/$(OBJ_FOLDER0)/%.o)
 HEAD = $(shell find src -name '*.hpp') $(shell find inc -name '*.hpp')
 
-FOLDERS_HEADERS := $(wildcard src/*/ src/*/*/)
+FOLDERS_HEADERS := $(wildcard src/*/ src/*/*/ src/*/*/*/)
 FOLDERS_INCLUDE := $(addprefix -I, $(FOLDERS_HEADERS))
 
 # -Iinc = -IncludeHeaders here: inc
