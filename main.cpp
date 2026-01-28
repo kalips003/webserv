@@ -1,5 +1,5 @@
 #include "Server.hpp"
-
+#include "Log.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
@@ -7,6 +7,12 @@ int main(int ac, char** av)
 {
 	if (ac != 2) {
 		std::cerr << C_430 "require one .conf file as argument" RESET << std::endl;
+		return 0;
+	}
+
+	Log& logger = Log::instance();
+	if (!logger.getStatus()) {
+		std::cerr << RED "Log failed to setup" RESET << std::endl;
 		return 0;
 	}
 

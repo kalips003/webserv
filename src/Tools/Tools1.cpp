@@ -123,8 +123,8 @@ std::string itostr(int n) {
 
 ///////////////////////////////////////////////////////////////////////////////]
 std::string printFd(int fd) {
-	oss colored_fd("\033[38;5;");
+	oss colored_fd;
 	int color = 16 + ((fd + 32) % 240);
-	colored_fd << color << "m" << fd << RESET;
+	colored_fd << "["<< "\e[38;5;" << color << "m#" << fd << RESET << "] ";
 	return colored_fd.str();
 }

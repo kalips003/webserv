@@ -155,7 +155,7 @@ $(NAME): $(OBJ) main.cpp $(HEAD)
 abc: clean_silent $(OBJ) main.cpp $(HEAD)
 	$(CC) $(FLAGS) $(INC) $(OBJ) main.cpp -o $(NAME)
 
-src/$(OBJ_FOLDER0)/%.o: src/%.cpp
+src/$(OBJ_FOLDER0)/%.o: src/%.cpp src/class/Log/Log.hpp
 	@mkdir -p $(dir $@)
 	@if ! $(CC) -c $(FLAGS) $(INC) $< -o $@; then \
 		$(call shmol_cat_error, $(RED), $(RED_L)); \
@@ -274,6 +274,7 @@ git3: fclean
 # 																				CLEAN
 clean:
 	@rm -f $(TEST_FOLDER)/a.out
+	@rm -rf log
 	@rm -f $(CLIENT)
 	@rm -rf $(OBJ_FOLDER)
 	@$(call print_cat, $(CLEAR), $(C_225), $(C_320), $(C_450), $(call pad_word, 10, "Objects"), $(call pad_word, 12, "Exterminated"));

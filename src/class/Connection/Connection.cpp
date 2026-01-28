@@ -1,4 +1,5 @@
 #include "Connection.hpp"
+#include "Log.hpp"
 
 #include <unistd.h>
 #include <netinet/in.h>
@@ -30,8 +31,8 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 // oss log; log << "ft_update()"; printLog(LOG, log.str(), 1);
 
 	if (_status == READING) {
-		oss msg; msg << "[#" << printFd(_data._client_fd) << "] --- READING --- ";
-		if (_request.getStatus() != HttpObj::READING_FIRST) printLog(DEBUG, msg.str(), 1);
+		if (_request.getStatus() != HttpObj::READING_FIRST)
+			LOG_DEBUG(printFd(_data._client_fd) << "--- READING --- ");
 
 		_status = ft_read(buff, sizeofbuff);
 		if (_status == SENDING)
@@ -39,7 +40,7 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 	}
 
 	if (_status == DOING || _status == DOING_CGI) {
-		oss msg; msg << "[#" << printFd(_data._client_fd) << "] --- DOING --- "; printLog(DEBUG, msg.str(), 1);
+		LOG_DEBUG(printFd(_data._client_fd) << "--- DOING --- ");
 		
 		_status = ft_doing();
 		if (_status == SENDING)
@@ -47,13 +48,13 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 	}
 
 	if (_status == SENDING) {
-		oss msg; msg << "[#" << printFd(_data._client_fd) << "] --- SENDING --- "; printLog(DEBUG, msg.str(), 1);
+		LOG_DEBUG(printFd(_data._client_fd) << "--- SENDING --- ");
 		
 		_status = ft_send(buff, sizeofbuff);
 	}
 
 	if (_status == CLOSED) {
-		oss msg; msg << "[#" << printFd(_data._client_fd) << "] --- CLOSING --- "; printLog(DEBUG, msg.str(), 1);
+		LOG_DEBUG(printFd(_data._client_fd) << "--- CLOSING --- ");
 		return false;
 	}
 
@@ -71,17 +72,19 @@ Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) 
 
 	int rtrn = _request.receive(buff, sizeofbuff, _data._client_fd);
 
-	if (rtrn == static_cast<HttpObj::HttpBodyStatus>(CLOSED))
-		return CLOSED;
-
-	else if (rtrn >= 100) {
+	if (rtrn >= 100) {
 		_answer.createError(rtrn);
 		return SENDING;
 	}
+	HttpObj::HttpBodyStatus r = static_cast<HttpObj::HttpBodyStatus>(rtrn);
 
-	if (rtrn < static_cast<HttpObj::HttpBodyStatus>(DOING))
+	if (r == HttpObj::CLOSED) {
+		LOG_DEBUG("ft_read(): CLOSED after receive()")
+		return CLOSED;
+	}
+	else if (rtrn < HttpObj::DOING)
 		return READING;
-	else if (rtrn == static_cast<HttpObj::HttpBodyStatus>(DOING))
+	else if (rtrn == HttpObj::DOING)
 		return DOING;
 
 	return SENDING;
@@ -184,7 +187,7 @@ std::ostream& operator<<(std::ostream& os, const Connection& c) {
 
 	struct sockaddr_in  client_addr = c.getClientAddr();
 
-    os << C_250 << inet_ntoa(client_addr.sin_addr) << RESET ":" << C_502 << ntohs(client_addr.sin_port) << RESET << std::endl;
+    os << C_250 << inet_ntoa(client_addr.sin_addr) << RESET ":" << C_431 << ntohs(client_addr.sin_port) << RESET;
     // os << C_434 "addr: " RESET << client_addr.sin_addr.s_addr << std::endl;
     // os << C_434 "sin_family: " RESET << client_addr.sin_family << std::endl;
     // os << C_525 "sin_port: " RESET << ntohs(client_addr.sin_port) << std::endl;

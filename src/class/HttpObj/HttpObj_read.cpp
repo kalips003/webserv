@@ -1,6 +1,7 @@
 #include "HttpObj.hpp"
 
 #include "Tools1.hpp"
+#include "Log.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 /** @brief Reads from fd into _buffer.
@@ -11,6 +12,7 @@ int    HttpObj::receive(char *buff, size_t sizeofbuff, int fd) {
 
 	int rtrn;
 	if (_status == READING_FIRST) {
+		LOG_DEBUG("receive(): READING_FIRST")
 		rtrn = readingFirstLine(buff, sizeofbuff, fd);
 		if (rtrn >= 100)
 			return rtrn;
@@ -18,13 +20,16 @@ int    HttpObj::receive(char *buff, size_t sizeofbuff, int fd) {
 	}
 
 	if (_status == READING_HEADER) {
+		LOG_DEBUG("receive(): READING_HEADER")
 		rtrn = readingHeaders(buff, sizeofbuff, fd);
+		LOG_LOG("receive(): AFTER READING_HEADER: " << rtrn)
 		if (rtrn >= 100)
 			return rtrn;
 		_status = static_cast<HttpBodyStatus>(rtrn);
 	}
 
 	if (_status == READING_BODY) {
+		LOG_DEBUG("receive(): READING_BODY")
 		rtrn = readingBody(buff, sizeofbuff, fd);
 		if (rtrn >= 100)
 			return rtrn;
@@ -32,6 +37,7 @@ int    HttpObj::receive(char *buff, size_t sizeofbuff, int fd) {
 	}
 
 	if (_status == CLOSED) {
+		LOG_DEBUG("receive(): CLOSED")
 		oss msg; msg << "[#" << printFd(fd) << "] → " RED "Connection closed (FIN received)" RESET; printLog(INFO, msg.str(), 1);
 	}
 	return _status;
@@ -65,6 +71,7 @@ int    HttpObj::readingFirstLine(char *buff, size_t sizeofbuff, int fd) {
 		if (rtrn)
 			return rtrn;
 
+		LOG_DEBUG("readingFirstLine() is found: " << _buffer);
 		_buffer.clear(); // empty _buffer, leave _leftovers untouched, next function will decide what to do with it
 		_bytes_written = 0;
 		return READING_HEADER;
@@ -88,12 +95,13 @@ int    HttpObj::readingFirstLine(char *buff, size_t sizeofbuff, int fd) {
 // - If not found: updates _bytes_received, returns READING_HEADER,
 // 
 * @return READING_STATUS or errCode on error	---*/
-int    HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd) {
+int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd) {
 
 	std::string delim = "\r\n\r\n";
 	bool	is_found = false;
 
-	ssize_t bytes_read;
+	LOG_DEBUG("_buffer: {" << _buffer << "} _leftover: {" << _leftovers << "}");
+	ssize_t bytes_read = 1; // hack
 	if (!_leftovers.size()) // nothing left from the parsing of the first line
 		bytes_read = read_until_delim_is_found(buff, sizeofbuff, fd, delim, is_found);
 	else {
@@ -102,7 +110,6 @@ int    HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd) {
 			_buffer = _leftovers.substr(0, pos);
 			_leftovers.resize(pos + delim.size());
 			is_found = true;
-			bytes_read = 1; // hack
 		}
 		else { // if there are still headers to read
 			_buffer = _leftovers;

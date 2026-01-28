@@ -1,4 +1,5 @@
 #include "HttpObj.hpp"
+#include "Log.hpp"
 
 #include <algorithm>
 
@@ -21,18 +22,21 @@
  *
  * @return READING_STATUS or errCode on error	---*/
 int	HttpObj::parseHeaders() {
+LOG_DEBUG("entering parseHeaders()");
 
 	int errRtrn = parse_buffer_for_headers();
 	if (errRtrn)
 		return errRtrn;
+LOG_DEBUG("return of: parse_buffer_for_headers(): " << errRtrn);
 
 	_bytes_total = isThereBodyinHeaders();
 	if (_bytes_total < 0) {
-		oss msg; msg << "SYNTAX ERROR - Bad body-size: " << _headers.find("content-length")->second; printLog(ERROR, msg.str(), 1);
+		LOG_ERROR( "SYNTAX ERROR - Bad body-size: " << _headers.find("content-length")->second);
 		return 400;
 	}
 	else if (!_bytes_total) {
 		int rtrn = this->validateBodyWithoutLength(); // if "content-length" from POST > 411 Length Required
+		LOG_DEBUG("return of: validateBodyWithoutLength(): " << rtrn);
 		_leftovers.clear();
 		return rtrn; // normally return DOING;
 	}
@@ -44,7 +48,7 @@ int	HttpObj::parseHeaders() {
 	
 	ssize_t wr_rtrn = write(_tmp_file._fd, _leftovers.c_str(), _leftovers.size());
 	if (wr_rtrn < static_cast<ssize_t>(_leftovers.size())) {
-		printErr("parseHeaders(): write()");
+		LOG_ERROR_SYS("parseHeaders(): write()");
 		return 500;
 	}
 	_bytes_written = static_cast<size_t>(wr_rtrn);
