@@ -47,6 +47,7 @@ int	HttpRequest::parsingHeaders(std::string& delim) {
 ssize_t      HttpRequest::isThereBody() const {
 
 	map_istr::const_iterator it = _headers.find("content-length");
+	
 	if (it == _headers.end())
 		return 0;
 	int r;
@@ -94,7 +95,7 @@ int HttpRequest::parse_header_for_syntax() {
 	v = splitOnDelimitor(_buffer, "\r\n");
 	if (!v.size()) {
 		_buffer.clear();
-		printErr(ERR9 "emtpy vector (you should never see this)");
+		printErr(ERR9 "empty vector (you should never see this)");
 		return 400;
 	}
 
@@ -102,7 +103,7 @@ int HttpRequest::parse_header_for_syntax() {
 	++it; // move past first line: "GET /index.html HTTP/1.1"
 
 	while (it != v.end()) {
-
+		// oss msg; msg << C_431 "Header before syntax: " RESET << *it; printLog(DEBUG, msg.str(), 1);
 		size_t colon_pos = it->find(':');
 		if (colon_pos == std::string::npos) {
 			oss msg; msg << "Bad header: " << *it;
@@ -115,6 +116,8 @@ int HttpRequest::parse_header_for_syntax() {
 		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 		std::string value = trim_white(it->substr(colon_pos + 1));
 		_headers[key] = value;
+
+		// msg.str(""); msg << C_431 "Header after syntax: " RESET << *it; printLog(DEBUG, msg.str(), 1);
 
 		++it;
 	}
@@ -136,6 +139,8 @@ int HttpRequest::parse_header_for_syntax() {
 int    HttpRequest::parse_headers_for_validity() {
 
 	_body_size = isThereBody();
+	// oss msg; msg << C_431 "_body_size before validity: " RESET << _body_size; printLog(DEBUG, msg.str(), 1);
+
 	if (_body_size < 0) {
 		oss msg; msg << "SYNTAX ERROR - Bad body-size: " << _headers.find("content-length")->second;
 		printLog(ERROR, msg.str(), 1);

@@ -49,7 +49,7 @@ public:
 //-----------------------------------------------------------------------------]
 public:
 	void			http_answer_ini();
-	std::string		rtrnFistLine();
+	std::string		rtrnFirstLine();
 private:
 	std::string		concatenateHeaders();
 

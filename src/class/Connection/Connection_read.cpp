@@ -32,10 +32,10 @@ enum ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 	buff[bytes_recv] = '\0';
 	std::string str_buff(buff, bytes_recv);
 
-	oss msg; msg << "[#" C_431 << _client_fd << RESET "] " << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes)" RESET;
-	printLog(INFO, msg.str(), 1);
-	msg.str(""); msg << C_134 "Packet: [" RESET << str_buff << C_134 "]" RESET;
-	printLog(DEBUG, msg.str(), 1);
+	// oss msg; msg << "[#" C_431 << _client_fd << RESET "] " << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes)" RESET;
+	// printLog(INFO, msg.str(), 1);
+	// msg.str(""); msg << C_134 "Packet: [" RESET << str_buff << C_134 "]" RESET;
+	// printLog(DEBUG, msg.str(), 1);
 
 	int rtrn;
 	if (_status == FIRST) {

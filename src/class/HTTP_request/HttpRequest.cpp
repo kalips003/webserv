@@ -91,7 +91,7 @@ check _buffer + buff for CRLF
 int    HttpRequest::readingHeaders(std::string& buff) {
 
 	std::string delim = "\r\n\r\n";
-oss msg; msg << C_431 "_buffer in readingHeaders: " RESET << _buffer; printLog(LOG, msg.str(), 1);
+	// oss msg; msg << C_431 "_buffer in readingHeaders: " RESET << _buffer; printLog(LOG, msg.str(), 1);
 
 	size_t n = _buffer.size() - (_buffer.size() < 3 ? _buffer.size() : 3);
 	std::string new_buff = _buffer.substr(n) + buff;

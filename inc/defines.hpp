@@ -3,7 +3,7 @@
 
 #include "_colors.h"
 
-#define DEBUG_MODE false
+#define DEBUG_MODE true
 
 
 // #define BUFFER_SIZE 4096

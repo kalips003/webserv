@@ -30,6 +30,7 @@ void    Server::run( void ) {
 	while (true) {
 
 		int nfds = epoll_wait(_epoll_fd, _events, MAX_EVENTS, -1); // timeout??
+		// oss msg; msg << "Number of epoll fds: " << nfds << RESET; printLog(DEBUG, msg.str(), 1);
 		if (nfds == -1) {
 			if (errno == EINTR)
 				continue;
