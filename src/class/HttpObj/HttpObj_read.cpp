@@ -97,19 +97,21 @@ int    HttpObj::readingFirstLine(char *buff, size_t sizeofbuff, int fd) {
 * @return READING_STATUS or errCode on error	---*/
 int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd) {
 
-	std::string delim = "\r\n\r\n";
-	bool	is_found = false;
+	std::string	delim = "\r\n\r\n";
+	bool		is_found = false;
 
 	LOG_DEBUG("_buffer: {" << _buffer << "} _leftover: {" << _leftovers << "}");
 	ssize_t bytes_read = 1; // hack
-	if (!_leftovers.size()) // nothing left from the parsing of the first line
+	if (_leftovers.empty()) // nothing left from the parsing of the first line
 		bytes_read = read_until_delim_is_found(buff, sizeofbuff, fd, delim, is_found);
 	else {
 		size_t pos = _leftovers.find(delim);
+		LOG_HERE("readingHeaders() delim found: " << pos);
 		if (pos != std::string::npos) { // if all the headers are in the _leftovers
 			_buffer = _leftovers.substr(0, pos);
-			_leftovers.resize(pos + delim.size());
+			_leftovers.erase(0, pos + delim.size());
 			is_found = true;
+			LOG_DEBUG("AFTER _buffer: {" << _buffer << "} _leftover: {" << _leftovers << "}");
 		}
 		else { // if there are still headers to read
 			_buffer = _leftovers;

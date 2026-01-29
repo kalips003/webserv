@@ -12,6 +12,13 @@ void	Log::log(const std::string& prefix, const std::string& msg) {
 	std::cout << prefix << msg << std::endl;
 }
 
+//-----------------------------------------------------------------------------]
+/**	 */
+void Log::log_here(const std::ostringstream& msg) {
+
+	std::cerr << OTHER_P << msg.str() << std::endl;
+}
+
 ///////////////////////////////////////////////////////////////////////////////]
 /***						LOG FUNCTIONS					 				***/
 ///////////////////////////////////////////////////////////////////////////////]

@@ -14,7 +14,7 @@ void Ft_Delete::printHello() {
 /**	Funciton called on second loop, once _cgi_status == CGI_DOING, 
 * child is set-up and so on 
 * @return -1 if cgi still going 
-* @return 0 if cgi finished (and handled)
+* @return Connection::SENDING if cgi finished (and handled)
 * @return ErrCode in the case of any error
 */
 int		Ft_Delete::exec_cgi() {
@@ -39,7 +39,7 @@ int		Ft_Delete::exec_cgi() {
 
 	// epollChangeFlags(_data._epoll_fd, _data._client_fd, _data._this_ptr, EPOLL_CTL_ADD);
 	// return errCode;
-	return 0;
+	return Connection::SENDING;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -69,7 +69,7 @@ int		Ft_Delete::handleFile(std::string& path) {
 		return 500;
 	}
 	
-	return 0;
+	return Connection::SENDING;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

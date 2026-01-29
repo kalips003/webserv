@@ -18,7 +18,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	HttpAnswer() : HttpObj(), _body_type(BODY_NONE) { _status = SENDING_HEAD; }
+	HttpAnswer() : HttpObj(), _version("HTTP/1.1"), _status_num(200), _status_msg("OK"), _body_type(BODY_NONE) { _status = SENDING_HEAD; }
 
 //-----------------------------------------------------------------------------]
 	/***  VIRTUALS  ***/

@@ -71,6 +71,7 @@ private:
 	/*** LOG FUNCTIONS ***/
 public:
 	static void	log(const std::string& prefix, const std::string& msg);
+	void 	log_here(const std::ostringstream& msg);
 
 	void	log_error_sys(const std::ostringstream& msg);
 	void	log_error(const std::ostringstream& msg);
@@ -88,6 +89,10 @@ public:
 // 					Macros for compile-time stripping
 // usage: LOG_ERROR_MSG("Failed to open file: " << path << ", errno=" << errno);
 ///////////////////////////////////////////////////////////////////////////////]
+
+#ifndef LOG_HERE
+# define LOG_HERE(x) { std::ostringstream oss; oss << x; Log::instance().log_here(oss); }
+#endif
 
 // / LVL_ERROR_SYSTEM
 #if (PRINT_LEVEL | LOG_LEVEL) & LVL_ERROR_SYSTEM

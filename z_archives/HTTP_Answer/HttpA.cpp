@@ -94,13 +94,13 @@ void httpa::http_answer_ini() {
 		_headers["Content-Length"] = itostr(_body.size());
 	}
 	defaultHeaders();
-	_head = rtrnFistLine() + concatenateHeaders() + "\r\n";
+	_head = rtrnFirstLine() + concatenateHeaders() + "\r\n";
 }
 
 // #include <sstream>
 //-----------------------------------------------------------------------------]
 /**  concatenate and return first line: <HTTP/1.1 200 OK\r\n>		---*/
-std::string httpa::rtrnFistLine() {
+std::string httpa::rtrnFirstLine() {
 
 	std::stringstream ss;
 	ss << _status;
@@ -299,7 +299,7 @@ std::ostream& operator<<(std::ostream& os, httpa& a) {
 
 	os << C_542 "---------------------------------------------\n" RESET;
 	os << C_542 "\t- ANSWER -\n\n" RESET;
-	os << a.rtrnFistLine() << std::endl;
+	os << a.rtrnFirstLine() << std::endl;
 	os << C_542 "\t- HEADERS -\n" RESET;
 
 	if (a.getHeaders().empty())

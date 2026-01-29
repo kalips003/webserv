@@ -1,5 +1,5 @@
-\
 #include "HttpRequest.hpp"
+#include "Log.hpp"
 
 #include "_colors.h"
 
@@ -34,20 +34,20 @@ int HttpRequest::isFirstLineValid(int fd) {
 		return 400;
 	}
 	_path = word;
+	LOG_LOG("isFirstLineValid(): _path: " << _path);
 
 	if (!(ss >> word) || word != "HTTP/1.1") { // ??? - Handle other versions?
-		oss msg; msg << RED "Invalid Version: " RESET << word; printLog(ERROR, msg.str(), 1);
+		LOG_ERROR(RED "Invalid Version: " RESET << word);
 		return 505;
 	}
 	_version = word;
 
 	if (ss >> word) { // extra garbage after the 3 tokens
-		oss msg; msg << RED "Invalid HEAD: " RESET << _buffer; printLog(ERROR, msg.str(), 1);
+		LOG_ERROR(RED "Invalid HEAD: " RESET << _buffer);
 		return 400;
 	}
 
-	oss msg; msg << "[#" << printFd(fd) << "] → " << _method << " " << _path; printLog(LOG, msg.str(), 1);
-
+	LOG_LOG(printFd(fd) << "→ " << _method << " " << _path);
 	return 0;
 }
 
@@ -65,7 +65,7 @@ std::ostream& operator<<(std::ostream& os, const HttpRequest& r) {
 
 	os << C_542 "-------------HTTP REQUEST--------------------\n" RESET;
 	os << C_542 "\tREQUEST:\n" RESET;
-	os << C_410 << r._method << " " C_144 << r._path << " " C_232 << r._version << RESET << std::endl;
+	// os << C_410 << r._method << " " C_144 << r._path << " " C_232 << r._version << RESET << std::endl;
 
 	os << C_542 "\tHTTP Object:\n" RESET << static_cast<const HttpObj&>(r);
 

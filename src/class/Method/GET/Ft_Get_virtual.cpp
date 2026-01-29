@@ -12,7 +12,7 @@ void Ft_Get::printHello() {
 /**	Funciton called on second loop, once _cgi_status == CGI_DOING, 
 * child is set-up and so on 
 * @return -1 if cgi still going 
-* @return 0 if cgi finished (and handled)
+* @return Connection::SENDING if cgi finished (and handled)
 * @return ErrCode in the case of any error
 */
 int		Ft_Get::exec_cgi() {
@@ -39,7 +39,7 @@ int		Ft_Get::exec_cgi() {
 // epollChangeFlags(_data._epoll_fd, _data._client_fd, _data._this_ptr, EPOLL_CTL_ADD);
 	// return errCode;
 
-	return 0;
+	return Connection::SENDING;
 }
 
 
@@ -56,15 +56,18 @@ int		Ft_Get::howToHandleFileNotExist(const std::string& ressource, int rtrn_open
 /** */
 int		Ft_Get::handleFile(std::string& path) {
 
-	if (access(path.c_str(), R_OK) != 0) // even if file exist, might not be readable by server
+	if (access(path.c_str(), R_OK) != 0) { // even if file exist, might not be readable by server {
+		LOG_DEBUG("handleFile(): access(): 403");
 		return 403;
+	}
 
-	if (!getAnswer().getTempFile().openFile(path, O_RDONLY, false))
+	if (!getAnswer().getTempFile().openFile(path, O_RDONLY, false)) {
+		LOG_DEBUG("getAnswer().getTempFile().openFile(): 500");
 		return 500;
+	}
 
 	getAnswer().setMIMEtype(path);
-	
-	return 0;
+	return Connection::SENDING;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -92,8 +95,7 @@ int		Ft_Get::handleDir(std::string& ressource) {
 
 // file exist, serve it
 	if (!rtrn) {
-		oss msg; msg << "Default file found: (" << default_file << ")";
-		printLog(DEBUG, msg.str(), 1);
+		LOG_DEBUG("Default file found: (" << default_file << ")");
 		return handleFile(default_file);
 	}
 
@@ -101,8 +103,7 @@ int		Ft_Get::handleDir(std::string& ressource) {
 	if (getLocationBlock()->data.autoindex == true)
 		return serveAutoIndexing(ressource);
 	else {
-		oss msg; msg << "Requested folder (" << ressource << ") exist, but Autoindexing is off";
-		printLog(WARNING, msg.str(), 1);
+		LOG_WARNING("Requested folder (" << ressource << ") exist, but Autoindexing is off");
 		return 403;
 	}
 }

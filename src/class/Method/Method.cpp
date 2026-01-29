@@ -1,4 +1,5 @@
 #include "Method.hpp"
+#include "Log.hpp"
 
 #include "Tools2.hpp"
 #include "Tools1.hpp"
@@ -22,10 +23,11 @@
  * - Checks existence and type of the resource
  * - Dispatches to Derived Class the handling of CGI, file, or directory as appropriate
  *
- * @return 0 on success, or HTTP error code on failure	---*/
+ * @return Connection::SENDING on success, or HTTP error code on failure	---*/
 int Method::normal_doing() {
+
 // is there query in the path? > /script.py?x=abc&y=42
-	const HttpRequest& req = _request;
+	HttpRequest& req = _request;
 	size_t pos = req.getPath().find_first_of('?');
 	std::string path;
 	std::string query;
@@ -35,27 +37,24 @@ int Method::normal_doing() {
 		path = req.getPath().substr(0, pos);
 		query = req.getPath().substr(pos + 1);
 	}
-oss log; log << "Full path of the asked ressource prior: " << path; printLog(LOG, log.str(), 1);
+	
 // sanitize given_path for %XX;
 	std::string sanitized;
 	if (sanitizePath(sanitized, path))
 		return 400;
-log.str(""); log << "path after sanitizePath: " << sanitized; printLog(LOG, log.str(), 1);
+	LOG_LOG("path after sanitizePath: " << sanitized);
 // set Task::_location_data* from all the location /blocks
 	if (!(_location_block = isLocationKnown(sanitized)))
 		return 500;
 // Once Location block is known, check if method is allowed
 	if (std::find(_location_block->data.allowed_methods.begin(), _location_block->data.allowed_methods.end(), _request.getMethod()) == _location_block->data.allowed_methods.end())
 		return 405;
-		
-log.str(""); log << "path before getFullPath: " << sanitized; printLog(LOG, log.str(), 1);
 // add root to path (- location_path)
 	std::string ressource; // ressource asked with absolute path: 'root/ressource - query'
 	int rtrn = getFullPath(ressource, sanitized);
 	if (rtrn)
 		return rtrn;
-	oss msg; msg << "Full path of the asked ressource: " << ressource;
-	printLog(LOG, msg.str(), 1);
+	LOG_LOG("Full path of the asked ressource: " << ressource);
 
 // DOESNT EXIST
 	struct stat ressource_info;
@@ -65,7 +64,7 @@ log.str(""); log << "path before getFullPath: " << sanitized; printLog(LOG, log.
 
 // is FILE
 	if (S_ISREG(ressource_info.st_mode)) {
-		printLog(DEBUG, "is FILE", 1);
+		LOG_LOG("is FILE");
 		const std::string* CGI_interpreter_path = isCGI(ressource); // ptr to /usr/bin/python3;
 		if (CGI_interpreter_path)
 			return iniCGI(ressource, query, CGI_interpreter_path);
@@ -74,11 +73,11 @@ log.str(""); log << "path before getFullPath: " << sanitized; printLog(LOG, log.
 	}
 // is DIRECTORY 
 	else if (S_ISDIR(ressource_info.st_mode)) {
-		printLog(DEBUG, "is DIRECTORY", 1);
+		LOG_LOG("is DIRECTORY");
 		if (sanitized[sanitized.size() - 1] != '/') { // if no trailing / in directory path, redirect
 			_answer.setFirstLine(301);
 			_answer.addToHeaders("Location", sanitized + "/");
-			return 0;
+			return Connection::SENDING;
 		}
 		return this->handleDir(ressource);
 	}

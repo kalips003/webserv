@@ -57,6 +57,10 @@ w:
 		kill $$PID; \
 	fi
 
+lldb: $(NAME)
+	@$(call random_shmol_cat, "LLDB", "does it work?", $(CLS), )
+	-lldb ./$(NAME) $(CONF_FILE)
+
 # --------------------------------------------------------------------------------- >
 # $(1)=$(ARGS) $(2)=$(TXT_cat) $(3)=$(TXT_below) $(4)=$(VALGRIND)(timeout 15s)
 define helper_tester
@@ -275,6 +279,7 @@ git3: fclean
 clean:
 	@rm -f $(TEST_FOLDER)/a.out
 	@rm -rf log
+	@rm -f www/web_cat/donations/*
 	@rm -f $(CLIENT)
 	@rm -rf $(OBJ_FOLDER)
 	@$(call print_cat, $(CLEAR), $(C_225), $(C_320), $(C_450), $(call pad_word, 10, "Objects"), $(call pad_word, 12, "Exterminated"));

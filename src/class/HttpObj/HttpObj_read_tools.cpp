@@ -30,6 +30,7 @@ LOG_DEBUG("entering parseHeaders()");
 LOG_DEBUG("return of: parse_buffer_for_headers(): " << errRtrn);
 
 	_bytes_total = isThereBodyinHeaders();
+	LOG_HERE("parseheaders: _bytes_total=" << _bytes_total);
 	if (_bytes_total < 0) {
 		LOG_ERROR( "SYNTAX ERROR - Bad body-size: " << _headers.find("content-length")->second);
 		return 400;
@@ -40,7 +41,8 @@ LOG_DEBUG("return of: parse_buffer_for_headers(): " << errRtrn);
 		_leftovers.clear();
 		return rtrn; // normally return DOING;
 	}
-	else if (_bytes_total > g_settings.getMaxBodySize())
+	else if (g_settings.getMaxBodySize() != -1 && (_bytes_total > g_settings.getMaxBodySize())) // < ???
+	// else if (_bytes_total > g_settings.getMaxBodySize())
 		return 413; // 413 Payload Too Large
 
 	if (!_tmp_file.createTempFile(&g_settings.getTempRoot()))

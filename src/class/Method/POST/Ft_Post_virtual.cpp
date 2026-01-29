@@ -14,7 +14,7 @@ void Ft_Post::printHello() {
 /**	Funciton called on second loop, once _cgi_status == CGI_DOING, 
 * child is set-up and so on 
 * @return -1 if cgi still going 
-* @return 0 if cgi finished (and handled)
+* @return Connection::SENDING if cgi finished (and handled)
 * @return ErrCode in the case of any error	---*/
 int		Ft_Post::exec_cgi() {
 	printLog(ERROR, "--> you have to do this part (execcgi)", 1);
@@ -38,7 +38,7 @@ int		Ft_Post::exec_cgi() {
 
 	// epollChangeFlags(_data._epoll_fd, _data._client_fd, _data._this_ptr, EPOLL_CTL_ADD);
 	// return errCode;
-	return 0;
+	return Connection::SENDING;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -71,7 +71,7 @@ int		Ft_Post::howToHandleFileNotExist(const std::string& ressource, int rtrn_ope
 		getAnswer().getFile().closeTemp(false); // can also remove it manually now
 
 		getAnswer().setFirstLine(201);
-		return 0;
+		return Connection::SENDING;
 	}
 	else {// if (rtrn_open == 403)
 		printLog(WARNING, "Post request File already exist: permission error", 1);
@@ -114,7 +114,7 @@ int		Ft_Post::handleFile(std::string& path) {
 		printLog(WARNING, "Post request File already exist: post_policy = unknown", 1);
 		return 500;
 	}
-	return 0;
+	return Connection::SENDING;
 }
 
 #include <fcntl.h>
@@ -150,7 +150,7 @@ int		Ft_Post::appendFile(const std::string& path) {// open(O_WRONLY | O_CREAT | 
 	}
 
 	close(dest_fd);
-	return 0;
+	return Connection::SENDING;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

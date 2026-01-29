@@ -16,8 +16,7 @@ const std::string* SettingsServer::find_setting(const std::string& setting) cons
 	map_strstr::const_iterator it = _global_settings.begin();
 	it = _global_settings.find(setting);
 	if (it == _global_settings.end()) {
-		oss msg; msg << C_511 "setting not found: " RESET << setting;
-		printLog(WARNING, msg.str(), 1);
+		LOG_WARNING(C_511 "setting not found: " RESET << setting);
 		return NULL;
 	}
 	else 
@@ -37,7 +36,7 @@ const block* SettingsServer::find_global_block(const std::string& block_name) co
 			return &(*it);
 	}
 	if (it == _block_settings.end()) {
-		std::cerr << RED "block not found: " RESET << block_name << std::endl;
+		LOG_ERROR(RED "block not found: " RESET << block_name);
 		return NULL;
 	}
 	return NULL;
@@ -76,8 +75,7 @@ const std::string*	SettingsServer::find_setting_in_block(const block* b, const s
 		return NULL;
 	map_strstr::const_iterator it = b->settings.find(setting);
 	if (it == b->settings.end()) {
-		oss msg; msg << C_522 "setting not found: " RESET << setting;
-		printLog(DEBUG, msg.str(), 1);
+		LOG_DEBUG(C_522 "setting not found: " RESET << setting);
 		return NULL;
 	}
 	else 
@@ -109,6 +107,6 @@ block* SettingsServer::find_root_block() {
 		if (it->name == "location" && it->path == "/")
 			return &(*it);
 	}
-	printLog(ERROR, RED "FATAL, Root location block / not found" RESET, 1);
+	LOG_ERROR(RED "FATAL, Root location block / not found" RESET);
 	return NULL;
 }

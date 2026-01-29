@@ -103,6 +103,10 @@ bool	temp_file::openFile(const std::string& path, int flags, bool tmp) {
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Update the _info struct before a read from it */
 bool temp_file::updateStat() {
+	if (_path.empty()) {
+		LOG_WARNING("updateStat(): trying to update with empty path");
+		return true;
+	}
 	if(stat(_path.c_str(), &_info)) {
 		printErr("updateStat(): stat()");
 		return false;

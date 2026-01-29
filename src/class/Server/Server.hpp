@@ -1,6 +1,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include "Log.hpp"
 #include <netinet/in.h>
 #include <map>
 #include <iostream>

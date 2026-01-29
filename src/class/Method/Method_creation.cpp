@@ -1,4 +1,5 @@
 #include "Method.hpp"
+#include "Log.hpp"
 
 #include "Connection.hpp"
 
@@ -59,6 +60,7 @@ Method::~Method() {
 Method*		Method::createTask(const std::string& method, const t_connec_data& data) {
 	Method::Ft_Type type = Method::parseMethod(method);
 
+	// LOG_LOG("createTask().data path: " << data._this_ptr->getRequest().getPath());
 	switch(type) {
 		case GET:		return new Ft_Get(data);
 		case POST:		return new Ft_Post(data);

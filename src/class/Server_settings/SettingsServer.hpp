@@ -1,6 +1,7 @@
 #ifndef SETTINGSSERVER_HPP
 #define SETTINGSSERVER_HPP
 
+#include "Log.hpp"
 #include <map>
 #include <vector>
 #include <string>

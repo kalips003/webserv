@@ -72,6 +72,7 @@ Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) 
 
 	int rtrn = _request.receive(buff, sizeofbuff, _data._client_fd);
 
+	LOG_HERE("ft_read: error? " << rtrn);
 	if (rtrn >= 100) {
 		_answer.createError(rtrn);
 		return SENDING;
@@ -101,7 +102,7 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 	if (!_body_task)
 		_body_task = Method::createTask(_request.getMethod(), _data);
 	if (!_body_task) {
-		printLog(ERROR, RED "_body task NULL" RESET, 1);
+		LOG_ERROR(RED "_body task NULL" RESET);
 		_answer.createError(500);
 		return SENDING;
 	}
@@ -194,4 +195,15 @@ std::ostream& operator<<(std::ostream& os, const Connection& c) {
     return os;
 }
 
+///////////////////////////////////////////////////////////////////////////////]
+std::ostream& operator<<(std::ostream& os, const Connection::transfer_data& t) {
+	os << "transfer_data { "
+	   << "client_fd=" << t._client_fd
+	   << ", epoll_fd=" << t._epoll_fd
+	   << ", this_ptr=" << t._this_ptr
+	   << ", buffer=" << static_cast<void*>(t._buffer)
+	   << ", sizeofbuff=" << t._sizeofbuff
+	   << " }";
+	return os;
+}
 

@@ -1,8 +1,8 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
+#include "Log.hpp"
 #include <string>
-
 #include <netinet/in.h>
 
 #include "defines.hpp"
@@ -42,6 +42,8 @@ public:
 			_this_ptr(c), 
 			_buffer(buffer),
 			_sizeofbuff(size) {}
+
+		friend std::ostream& operator<<(std::ostream& os, const transfer_data& t);
 	};
 
 	enum ConnectionStatus {
@@ -70,7 +72,7 @@ private:
 public:
 	Connection() :
 		_client_addr(), 
-		_addr_len(sizeof(_client_addr)), 
+		_addr_len(sizeof(_client_addr)),
 		_body_task(NULL), 
 		_status(READING), 
 		_data() { _data._this_ptr = this; }
@@ -81,6 +83,13 @@ public:
 		_body_task(NULL), 
 		_status(READING), 
 		_data(fd, epoll, this, buffer, size) {}
+
+	Connection(const Connection& other) :
+		_client_addr(other._client_addr), 
+		_addr_len(other._addr_len), 
+		_body_task(NULL), 
+		_status(READING), 
+		_data(other._data) { _data._this_ptr = this; }
 
 	~Connection();
 
@@ -106,8 +115,8 @@ public:
 	const struct sockaddr_in&	getClientAddr() const { return _client_addr; }
 	socklen_t					getAddrLen() const { return _addr_len; }
 	HttpRequest&				getRequest() { return _request; }
-	Method*						getBodyTask() const { return _body_task; }
 	HttpAnswer&					getAnswer() { return _answer; }
+	Method*						getBodyTask() const { return _body_task; }
 	ConnectionStatus			getStatus() const { return _status; }
 //-----------------------------------------------------------------------------]
 public:
@@ -127,5 +136,6 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& os, const Connection& c);
+std::ostream& operator<<(std::ostream& os, const Connection::transfer_data& t);
 
 #endif

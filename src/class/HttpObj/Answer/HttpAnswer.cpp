@@ -9,6 +9,7 @@
 void	HttpAnswer::createError(int errCode) {
 
 	std::string s = return_http_from_code(errCode);
+	LOG_HERE("createError: " << s);
 	if (s.empty())
 		return ;
 
@@ -23,8 +24,10 @@ void	HttpAnswer::createError(int errCode) {
 		"<img src=\"/errors/" + itostr(errCode) + ".jpg\" alt=\"error\">"
 		"</body></html>";
 
+	LOG_HERE("before");
 	if (_tmp_file._fd >= 0)
 		_tmp_file.~temp_file();
+	LOG_HERE("after");
 	
 	initializationBeforeSend();
 }
@@ -46,7 +49,7 @@ void	HttpAnswer::setFirstLine(int code) {
 /**	 Concactenate answer + headers into _head	---*/
 void HttpAnswer::initializationBeforeSend() {
 
-	oss first; first << _version << " " << _status << " " << _status_msg;
+	oss first; first << _version << " " << _status_num << " " << _status_msg;
 	_first = first.str();
 
 	_bytes_total = isThereBody();

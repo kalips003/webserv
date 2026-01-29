@@ -1,6 +1,8 @@
 #ifndef TASK_HPP
 #define TASK_HPP
 
+#include "Log.hpp"
+
 class Connection;
 class Server;
 class HttpRequest;

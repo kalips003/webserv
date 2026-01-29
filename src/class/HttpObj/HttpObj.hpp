@@ -1,6 +1,7 @@
 #ifndef HTTPOBJ_HPP
 #define HTTPOBJ_HPP
 
+#include "Log.hpp"
 #include <string>
 #include <map>
 #include <sys/types.h>
