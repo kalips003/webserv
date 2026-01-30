@@ -66,7 +66,7 @@ int		Ft_Delete::handleFile(std::string& path) {
 		return 403;
 
 	if (unlink(path.c_str()) < 0) {
-		printErr("unlink()");
+		LOG_ERROR("unlink()");
 		return 500;
 	}
 	

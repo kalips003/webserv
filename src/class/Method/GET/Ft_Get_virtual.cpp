@@ -76,7 +76,7 @@ int		Ft_Get::handleFile(std::string& path) {
 int		Ft_Get::handleDir(std::string& ressource) {
 
 	if (access(ressource.c_str(), X_OK) != 0) { // even if folder exist, we neeed the rights to traverse it
-		printErr(ressource.c_str());
+		LOG_ERROR(ressource.c_str());
 		return 403;
 	}
 

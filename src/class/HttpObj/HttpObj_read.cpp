@@ -158,7 +158,7 @@ int    HttpObj::readingBody(char *buff, size_t sizeofbuff, int fd) {
 	while (bytes_written < bytes_received) {
 	
 		if ((rtrn_write = write(_tmp_file._fd, _buffer.c_str() + bytes_written, bytes_received - bytes_written)) < 0) {
-			printErr("readingBody(): write()");
+			LOG_ERROR("readingBody(): write()");
 			return 500;
 		}
 		bytes_written += rtrn_write;

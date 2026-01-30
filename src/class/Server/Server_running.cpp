@@ -26,6 +26,7 @@ void    Server::run_better( void ) {
 
 #include "Tools1.hpp"
 #include <cerrno>
+#include <cstdlib>
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run( void ) {
 
@@ -40,7 +41,7 @@ void    Server::run( void ) {
 			if (errno == EINTR)
 				continue;
 			else {
-				printErr("epoll_wait() FATAL ERROR");
+				LOG_ERROR("epoll_wait() FATAL ERROR");
 				break;
 			}
 		}

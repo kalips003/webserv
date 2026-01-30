@@ -65,7 +65,7 @@ int		Ft_Post::howToHandleFileNotExist(const std::string& ressource, int rtrn_ope
 			return 400; // the request didnt include a body
 
 		if (rename(tmp_path.c_str(), ressource.c_str()) < 0) {
-			printErr("rename()");
+			LOG_ERROR("rename()");
 			return 500;
 		}
 		// HttpRequest still own the fd and /path of the temp, but cleared in destructor
@@ -104,7 +104,7 @@ int		Ft_Post::handleFile(std::string& path) {
 	else if (post_policy == "replace") { // open(O_WRONLY | O_CREAT | O_TRUNC)
 		const std::string& tmp_path = getRequest().getFile()._path;
 		if (rename(tmp_path.c_str(), path.c_str()) < 0) { // if file already exist, replace it silently
-			printErr("rename()");
+			LOG_ERROR("rename()");
 			return 500;
 		}
 		getRequest().getTempFile().closeTemp(false);

@@ -111,13 +111,13 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 
 	int pipefd[2];
 	if (pipe(pipefd) < 0) {
-		printErr("pipe()");
+		LOG_ERROR("pipe()");
 		return 500;
 	}
 
 	pid_t pid = fork();
 	if (pid < 0) {
-		printErr("fork()");
+		LOG_ERROR("fork()");
 		return 500;
 	}
 
@@ -144,7 +144,7 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 		};
 
 		execve((*CGI_interpreter_path).c_str(), argv, environ);
-		printErr("execve()");
+		LOG_ERROR("execve()");
 		_exit(1);
 	}
 //-----------------------------------------------------------------------------]

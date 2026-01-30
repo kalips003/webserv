@@ -52,7 +52,7 @@ void	Server::accept_clients(char *buff, size_t sizeofbuff) {
 		if (rtrn == ACCEPT_EMPTY)
 			break;
 		else if (rtrn == ACCEPT_FATAL) {
-			printErr(RED "Server Rebooted by security. accept()" RESET);
+			LOG_ERROR(RED "Server Rebooted by security. accept()" RESET);
 			reboot();
 		}
 	}

@@ -188,7 +188,7 @@ ssize_t	httpa::fillBuffer(char *buff, size_t size_buff) {
 			else
 				bytesLoaded = read(_fd_body, buff, size_buff);
 			if (bytesLoaded < 0)
-				printErr(C_350 "read()");
+				LOG_ERROR(C_350 "read()");
 			break ;
 
 		case ENDED :

@@ -95,7 +95,7 @@ int httpr::parse_header_for_syntax() {
 	v = splitOnDelimitor(_buffer, "\r\n");
 	if (!v.size()) {
 		_buffer.clear();
-		printErr(ERR9 "emtpy vector (you should never see this)");
+		LOG_ERROR(ERR9 "emtpy vector (you should never see this)");
 		return 400;
 	}
 
@@ -149,7 +149,7 @@ int    httpr::parse_headers_for_validity() {
 		return 500;
 
 	if (write(fd, _body.c_str(), _body.size()) < static_cast<ssize_t>(_body.size())) {
-		printErr("write()");
+		LOG_ERROR("write()");
 		close(fd);
 		return 500;
 	}
@@ -203,7 +203,7 @@ int	httpr::openFdBody(const char* path) {
 	_fd_body = open(path, O_CREAT | O_RDWR | O_TRUNC, 0600);
 
 	if (_fd_body < 0)
-		return printErr("open()"), 400;
+		LOG_ERROR("open()");
  
 	_tmp_body_path = path;
 

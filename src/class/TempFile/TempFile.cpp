@@ -70,7 +70,7 @@ bool	temp_file::createTempFile(const std::string* root_path) {
 			return true;
 		}
 		else if (errno != EEXIST) {
-			printErr("createTempFile(): open()");
+			LOG_ERROR("createTempFile(): open()");
 			return false;
 		}
 
@@ -95,7 +95,7 @@ bool	temp_file::openFile(const std::string& path, int flags, bool tmp) {
 		return true;
 	}
 	
-	printErr("createTempFile(): open()");
+	LOG_ERROR("createTempFile(): open()");
 	return false;
 }
 
@@ -108,7 +108,7 @@ bool temp_file::updateStat() {
 		return true;
 	}
 	if(stat(_path.c_str(), &_info)) {
-		printErr("updateStat(): stat()");
+		LOG_ERROR("updateStat(): stat()");
 		return false;
 	}
 	return true;
@@ -119,7 +119,7 @@ bool temp_file::updateStat() {
 bool temp_file::updateFlags(int flags_to_remove, int flags_to_add) {
 	int flags = fcntl(_fd, F_GETFL);
 	if (flags == -1) {
-		printErr("updateFlags(): fcntl()");
+		LOG_ERROR("updateFlags(): fcntl()");
 		return false;
 	}
 
@@ -127,7 +127,7 @@ bool temp_file::updateFlags(int flags_to_remove, int flags_to_add) {
 	flags |= flags_to_add;
 
 	if (fcntl(_fd, F_SETFL, flags) == -1) {
-		printErr("updateFlags(): fcntl()");
+		LOG_ERROR("updateFlags(): fcntl()");
 		return false;
 	}
 	return true;

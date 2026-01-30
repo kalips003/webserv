@@ -111,7 +111,7 @@ int	httpr::readingBody(std::string& buff) {
 	if (_fd_body >= 0) {
 	
 		if (write(_fd_body, buff.c_str(), buff.size()) < static_cast<ssize_t>(buff.size())) {
-			printErr("write()");
+			LOG_ERROR("write()");
 			return 500;
 		}
 	}

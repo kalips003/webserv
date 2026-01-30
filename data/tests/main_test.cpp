@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 
+#include "Log.hpp"
 #include "Server.hpp"
 #include "Tools1.hpp"
 
@@ -19,7 +20,7 @@ int main(int ac, char** av)
 	std::cout << WARNING << std::endl;
 	std::cout << ERROR << std::endl;
 	std::cout << INFO << std::endl;
-	printErr("epoll_ctl()");
+	LOG_ERROR("epoll_ctl()");
 
 	return 0;
 }

@@ -107,7 +107,7 @@ ssize_t	HttpObj::sendBufferFile(char *buff, size_t sizeofbuff, int fd, int fd_fi
 
 	ssize_t bytesLoaded = read(fd_file, buff, sizeofbuff);
 	if (bytesLoaded < 0) {
-		printErr("sendBufferFile(): read()");
+		LOG_ERROR("sendBufferFile(): read()");
 		return bytesLoaded;
 	}
 

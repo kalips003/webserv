@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "Server.hpp"
 #include "_colors.h"
 
@@ -105,7 +106,7 @@ bool	Server::create_epoll() {
 
 	// EPOLL_CLOEXEC = Set the close-on-exec (FD_CLOEXEC) flag on the new fd. Prevents FD from leaking to child processes after exec()
 	if (_epoll_fd == -1) {
-		printErr("epoll_create1()");
+		LOG_ERROR("epoll_create1()");
 		return false;
 	}
 
@@ -113,7 +114,7 @@ bool	Server::create_epoll() {
 	ev.events = EPOLLIN;
 	ev.data.ptr = this;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, _socket_fd, &ev)) {
-		printErr("epoll_ctl()");
+		LOG_ERROR("epoll_ctl()");
 		return false;
 	}
 

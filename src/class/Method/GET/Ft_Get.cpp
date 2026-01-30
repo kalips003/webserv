@@ -2,6 +2,7 @@
 
 #include "HttpRequest.hpp"
 #include "HttpAnswer.hpp"
+#include "Log.hpp"
 #include "Tools1.hpp"
 
 #include <dirent.h>
@@ -15,7 +16,7 @@ int Ft_Get::serveAutoIndexing(const std::string& path) {
 
 	DIR* dir = opendir(path.c_str());
 	if (!dir) {
-		printErr(path.c_str());
+		LOG_ERROR(path.c_str());
 		return 403;
 	}
 
