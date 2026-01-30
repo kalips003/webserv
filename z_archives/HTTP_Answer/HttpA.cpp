@@ -149,7 +149,7 @@ enum ConnectionStatus    httpa::sending(char *buff, size_t size_buff, int fd_cli
 	oss msg; msg << "Packet sent: loaded [" << bytesLoaded << "] sent [" << bytesSent << "]";
 	if (_sending_status != SENDING_BODY_FD)
 		msg << C_420 "\nPacket: {" RESET << std::string(buff, bytesSent) << C_420 "}" RESET;
-	printLog(DEBUG, msg.str(), 1);
+	LOG_DEBUG(msg);
 
 	updateAfterSend(buff, bytesLoaded, bytesSent);
 	if (_sending_status == ENDED)

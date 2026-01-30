@@ -68,7 +68,8 @@ bool	Server::create_listening_socket() {
 
 	_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_socket_fd < 0) {
-		return printErr(RED "socket() failed" RESET);
+		LOG_ERROR(RED "socket() failed" RESET);
+		return false;
 	}
 	_addr.sin_port = htons(g_settings.getPortNum());
 	_addr.sin_family = AF_INET;
@@ -82,7 +83,8 @@ bool	Server::create_listening_socket() {
 	if (bind_status) {
 	// most common because port already in use: EADDRINUSE
 	// or wrong IPaddr, or permission issue: EACCES (port < 1024 = privileged port)
-		return printErr(RED "bind() failed" RESET);
+		LOG_ERROR(RED "bind() failed" RESET);
+		return false;
 	}
 
 // listen() marks the socket as ready to recieve
@@ -91,7 +93,10 @@ bool	Server::create_listening_socket() {
 	int listen_status = listen(_socket_fd, HOW_MANY_REQUEST_PER_LISTEN);
 	// 3 step handshake: SYN > SYN-ACK > ACK
 	if (!!listen_status)
-		return printErr(RED "listen() failed" RESET);
+	{
+		LOG_ERROR(RED "listen() failed" RESET);
+		return false;
+	}
 
 	if (!set_flags(_socket_fd, O_NONBLOCK))
 		return false;

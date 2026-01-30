@@ -31,12 +31,14 @@ bool 	SettingsServer::checkAnyRoot(std::string& some_root) {
 	struct stat st;
 	if (stat(root.c_str(), &st) != 0) {
 		LOG_ERROR("Issue with some config root: " << root);
-		return printErr(ERR8 "stat()");
+		LOG_ERROR(ERR8 "stat()");
+		return false;
 	}
 
 	if (!S_ISDIR(st.st_mode)) {
 		LOG_ERROR("Issue with some config root (not a directory): " << root);
-		return printErr(ERR9 "stat()");
+		LOG_ERROR(ERR9 "stat()");
+		return false;
 	}
 
 	some_root = root;

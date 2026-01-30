@@ -127,7 +127,10 @@ int		Ft_Post::appendFile(const std::string& path) {// open(O_WRONLY | O_CREAT | 
 
 	int src_fd = getRequest().getFile()._fd;
 	if (src_fd < 0)
-		return printLog(ERROR, "appendFile(): You shouldnt see this", 1), 500;
+	{
+		LOG_ERROR("appendFile(): You shouldnt see this");
+		return 500;
+	}
 
 // reset fd to the start
 	lseek(src_fd, 0, SEEK_SET);

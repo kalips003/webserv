@@ -105,7 +105,10 @@ bool 	SettingsServer::setRoot() {
 	else { // relative path, append pwd
 		char buf[PATH_MAX];
 		if (!getcwd(buf, PATH_MAX))
-			return printErr(ERR8 "getcwd()");
+		{
+			LOG_ERROR(ERR8 "getcwd()");
+			return false;
+		}
 
 		std::string server_path = buf;
 		_root = server_path + "/" + root;
@@ -113,13 +116,13 @@ bool 	SettingsServer::setRoot() {
 // check if root is directory, can be accessed, ...?
 	struct stat st;
 	if (stat(_root.c_str(), &st) != 0) {
-		oss msg; msg << ERR8 "stat(): Cant access: " << _root;
-		return printErr(msg.str().c_str());
+		LOG_ERROR(ERR8 "stat(): Cant access: " << _root);
+		return false;
 	}
 
 	if (!S_ISDIR(st.st_mode)) {
-		oss msg; msg << ERR9 "stat(): Cant access: " << _root;
-		return printErr(msg.str().c_str());
+		LOG_ERROR(ERR9 "stat(): Cant access: " << _root);
+		return false;
 	}
 	root_block->settings["root"] = _root;
 
@@ -150,20 +153,20 @@ bool 	SettingsServer::setTemp() {
 	struct stat st;
 //	Check accessibility for the server process
 	if (stat(_temp_root.c_str(), &st) != 0) {
-		oss msg; msg << ERR8 "stat(): Cant access: " << _temp_root;
-		return printErr(msg.str().c_str());
+		LOG_ERROR(ERR8 "stat(): Can't access: " << _temp_root);
+		return false;
 	}
 
 //	Check if its a DIR
 	if (!S_ISDIR(st.st_mode)) {
-		oss msg; msg << ERR9 << _temp_root << " Inst a Directory";
-		return printErr(msg.str().c_str());
+		LOG_ERROR(ERR9 << _temp_root << " Isn't a Directory");
+		return false;
 	}
 
 //	Check permission for the server process
 	if (access(_temp_root.c_str(), R_OK | W_OK | X_OK) != 0) {
-		oss msg; msg << ERR7 "Temp folder not accessible (r/w/x): " << _temp_root;
-		return printErr(msg.str().c_str());
+		LOG_ERROR(ERR7 "Temp folder not accessible (r/w/x): " << _temp_root);
+		return false;
 	}
 
 	return true;
