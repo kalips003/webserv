@@ -70,9 +70,8 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 * @return CONNECTION_STATUS		---*/
 Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 
-	int rtrn = _request.receive(buff, sizeofbuff, _data._client_fd);
+	int rtrn = _request.receive_request(buff, sizeofbuff, _data._client_fd);
 
-	LOG_HERE("ft_read: error? " << rtrn);
 	if (rtrn >= 100) {
 		_answer.createError(rtrn);
 		return SENDING;
@@ -152,7 +151,7 @@ Connection::ConnectionStatus 	Connection::ft_send(char *buff, size_t sizeofbuff)
 *
 * if setting not found, return empty ""	---*/
 std::string		Connection::findRequestHeader(const std::string& header) {
-	const std::string* rtrn = _request.find_setting(header);
+	const std::string* rtrn = _request.find_in_headers(header);
 	return rtrn ? *rtrn : "";
 }
 //-----------------------------------------------------------------------------]
@@ -161,7 +160,7 @@ std::string		Connection::findRequestHeader(const std::string& header) {
 *
 * if setting not found, return empty ""	---*/
 std::string		Connection::findAnswertHeader(const std::string& header) {
-	const std::string* rtrn = _answer.find_setting(header);
+	const std::string* rtrn = _answer.find_in_headers(header);
 	return rtrn ? *rtrn : "";
 }
 
@@ -198,12 +197,12 @@ std::ostream& operator<<(std::ostream& os, const Connection& c) {
 ///////////////////////////////////////////////////////////////////////////////]
 std::ostream& operator<<(std::ostream& os, const Connection::transfer_data& t) {
 	os << "transfer_data { "
-	   << "client_fd=" << t._client_fd
-	   << ", epoll_fd=" << t._epoll_fd
-	   << ", this_ptr=" << t._this_ptr
-	   << ", buffer=" << static_cast<void*>(t._buffer)
-	   << ", sizeofbuff=" << t._sizeofbuff
-	   << " }";
+		<< "client_fd=" << t._client_fd
+		<< ", epoll_fd=" << t._epoll_fd
+		<< ", this_ptr=" << t._this_ptr
+		<< ", buffer=" << static_cast<void*>(t._buffer)
+		<< ", sizeofbuff=" << t._sizeofbuff
+		<< " }";
 	return os;
 }
 

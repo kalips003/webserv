@@ -9,14 +9,13 @@
 void	HttpAnswer::createError(int errCode) {
 
 	std::string s = return_http_from_code(errCode);
-	LOG_HERE("createError: " << s);
 	if (s.empty())
 		return ;
 
 	_status_num = errCode;
 	_status_msg = s;
 
-	_headers["Content-Type"] = "text/html| charset=utf-8";
+	_headers["content-type"] = "text/html| charset=utf-8";
 	// _headers["Content-Length"] set up in http_answer_ini();
 
 	_body = "<html><body style=\"background:#111;color:#eee;text-align:center;\">"
@@ -24,10 +23,8 @@ void	HttpAnswer::createError(int errCode) {
 		"<img src=\"/errors/" + itostr(errCode) + ".jpg\" alt=\"error\">"
 		"</body></html>";
 
-	LOG_HERE("before");
 	if (_tmp_file._fd >= 0)
 		_tmp_file.~temp_file();
-	LOG_HERE("after");
 	
 	initializationBeforeSend();
 }
@@ -54,7 +51,7 @@ void HttpAnswer::initializationBeforeSend() {
 
 	_bytes_total = isThereBody();
 	if (_bytes_total)
-		_headers["Content-Length"] = itostr(_bytes_total);
+		_headers["content-length"] = itostr(_bytes_total);
 
 	setDefaultHeaders();
 	concatenateIntoHead();

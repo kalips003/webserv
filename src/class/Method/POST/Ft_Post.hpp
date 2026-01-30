@@ -34,7 +34,7 @@
 class   Ft_Post : public Method {
 
 private:
-
+	temp_file	treated_file;
 
 public:
 	Ft_Post(const t_connec_data& data) : Method(data) {}
@@ -49,7 +49,7 @@ public:
 	int		appendFile(const std::string& path);
 
 private:
-	void	function1();
+	void	treatMultipart();
 
 };
 

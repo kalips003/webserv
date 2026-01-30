@@ -2,7 +2,6 @@
 #include "Log.hpp"
 
 #include "Tools2.hpp"
-#include "Tools1.hpp"
 
 #include <sys/stat.h>
 #include <signal.h>
@@ -27,36 +26,32 @@
 int Method::normal_doing() {
 
 // is there query in the path? > /script.py?x=abc&y=42
-	HttpRequest& req = _request;
-	size_t pos = req.getPath().find_first_of('?');
 	std::string path;
 	std::string query;
+	size_t pos = _request.getPath().find_first_of('?');
 	if (pos == std::string::npos)
-		path = req.getPath();
+		path = _request.getPath();
 	else {
-		path = req.getPath().substr(0, pos);
-		query = req.getPath().substr(pos + 1);
+		path = _request.getPath().substr(0, pos);
+		query = _request.getPath().substr(pos + 1);
 	}
 	
 // sanitize given_path for %XX;
 	std::string sanitized;
-	if (sanitizePath(sanitized, path))
+	if (SettingsServer::sanitizePath(sanitized, path))
 		return 400;
 	LOG_LOG("path after sanitizePath: " << sanitized);
-// set Task::_location_data* from all the location /blocks
-	if (!(_location_block = isLocationKnown(sanitized)))
-		return 500;
-// Once Location block is known, check if method is allowed
-	if (std::find(_location_block->data.allowed_methods.begin(), _location_block->data.allowed_methods.end(), _request.getMethod()) == _location_block->data.allowed_methods.end())
-		return 405;
+
+// set Method::_location_data* from all the location /blocks
+	_location_block = SettingsServer::isLocationKnown(sanitized); // validity checked in request.validateLocationBlock()
+
 // add root to path (- location_path)
 	std::string ressource; // ressource asked with absolute path: 'root/ressource - query'
-	int rtrn = getFullPath(ressource, sanitized);
-	if (rtrn)
-		return rtrn;
+	SettingsServer::getFullPath(ressource, sanitized); // validity checked in request.validateLocationBlock()
 	LOG_LOG("Full path of the asked ressource: " << ressource);
 
 // DOESNT EXIST
+	int rtrn;
 	struct stat ressource_info;
 	rtrn = isFileNOK(ressource, ressource_info);
 	if (rtrn)
@@ -111,13 +106,13 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 
 	int pipefd[2];
 	if (pipe(pipefd) < 0) {
-		printErr("pipe()");
+		LOG_ERROR_SYS("Method::iniCGI(): pipe()");
 		return 500;
 	}
 
 	pid_t pid = fork();
 	if (pid < 0) {
-		printErr("fork()");
+		LOG_ERROR_SYS("Method::iniCGI(): fork()");
 		return 500;
 	}
 
@@ -144,7 +139,7 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 		};
 
 		execve((*CGI_interpreter_path).c_str(), argv, environ);
-		printErr("execve()");
+		LOG_ERROR_SYS(RED "Method::iniCGI( CHILD ): execve()" RESET);
 		_exit(1);
 	}
 //-----------------------------------------------------------------------------]

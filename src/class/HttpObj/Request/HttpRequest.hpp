@@ -20,14 +20,16 @@ private:
 public:
 	HttpRequest() : HttpObj(), _body_type(BODY_NONE) { _status = READING_FIRST; }
 
+
 //-----------------------------------------------------------------------------]
 	/***  VIRTUALS  ***/
 public:
-	int		validateBodyWithoutLength();
-	int		isFirstLineValid(int fd);
+	virtual int		isFirstLineValid(int fd);
+	virtual int		parseHeadersForValidity();
 
 ///////////////////////////////////////////////////////////////////////////////]
 public:
+	int				validateLocationBlock(ssize_t body_size);
 
 
 ///////////////////////////////////////////////////////////////////////////////]

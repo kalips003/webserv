@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 
 #include "TempFile.hpp"
+
+class Sink;
 ///////////////////////////////////////////////////////////////////////////////]
 /*
 	start-line
@@ -54,6 +56,7 @@ protected:
 	HttpBodyStatus	_status;
 ///////////////////////////////////////////////////////////////////////////////]
 
+
 public:
 	HttpObj() : _tmp_file(), _bytes_total(0), _bytes_written(0), _status(CLOSED) {}
 	~HttpObj() {}
@@ -63,14 +66,12 @@ public:
 	/***  READ  ***/
 public:
 	static ssize_t	readBuffer(char *buff, size_t sizeofbuff, int fd, std::string& to_append_to);
-	ssize_t 		read_until_delim_is_found(char *buff, size_t sizeofbuff, int fd, const std::string& delimitor, bool& is_found);
+	ssize_t			readForDelim(char *buff, size_t sizeofbuff, int fd, const std::string& delim, bool remove_delim, Sink& to_store_to);
 public:
-	int				receive(char *buff, size_t sizeofbuff, int fd);
+	int				receive_request(char *buff, size_t sizeofbuff, int fd);
 		int			readingFirstLine(char *buff, size_t sizeofbuff, int fd);
 		int			readingHeaders(char *buff, size_t sizeofbuff, int fd);
-			int		parseHeaders();
-			int		parse_buffer_for_headers();
-		int			readingBody(char *buff, size_t sizeofbuff, int fd);
+		int			streamingBody(char *buff, size_t sizeofbuff, int fd);
 
 
 //-----------------------------------------------------------------------------]
@@ -83,16 +84,21 @@ public:
 private:
 	HttpBodyStatus	whatToSend() const;
 
+
 //-----------------------------------------------------------------------------]
 	/***  VIRTUALS  ***/
 public:
+	virtual int		isFirstLineValid(int fd) { (void)fd; return 0; }
+	virtual int		parseHeadersForValidity() { return 0; }
 	virtual int		validateBodyWithoutLength() { return static_cast<int>(DOING); }
-	virtual int		isFirstLineValid(int fd);
+
 
 //-----------------------------------------------------------------------------]
 	/***  TOOLS  ***/
 public:
-	void			concatenateIntoHead();
+	void	concatenateIntoHead();
+	int		parse_head_for_headers();
+	int		findDelimInLeftovers(const std::string& delim, bool remove_delim, Sink& to_append_to);
 
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -103,9 +109,12 @@ public:
 	HttpBodyStatus		getStatus() const { return _status; }
 	ssize_t				getFullSize() { return _tmp_file.getBodySize(); }
 	temp_file&			getFile() { return _tmp_file; }
+	std::string&		getBuffer() { return _buffer; }
+	std::string&		getLeftovers() { return _leftovers; }
 //-----------------------------------------------------------------------------]
 public:
-	const std::string*	find_setting(const std::string& set) const ;
+	const std::string*	find_in_headers(const std::string& set) const ;
+	std::string*		find_in_headers(const std::string& set);
 	ssize_t				isThereBodyinHeaders() const ;
 	size_t				isThereBody();
 ///////////////////////////////////////////////////////////////////////////////]
@@ -126,5 +135,31 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& os, const HttpObj& r);
+
+///////////////////////////////////////////////////////////////////////////////]
+/**	Pure virtual to write either to a string& or append to a fd 		   ---*/
+class Sink {
+public:
+	virtual bool write(const char* data, size_t len) = 0;
+	virtual ~Sink() {}  // always add virtual destructor
+};
+
+class StringSink : public Sink {
+	std::string& s;
+public:
+	StringSink(std::string& ref) : s(ref) {}
+	bool write(const char* data, size_t len);
+};
+
+class FileSink : public Sink {
+	temp_file& f;
+public:
+	FileSink(temp_file& tf) : f(tf) {}
+	bool write(const char* data, size_t len);
+};
+///////////////////////////////////////////////////////////////////////////////]
+
+
+
 
 #endif

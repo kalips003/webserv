@@ -19,7 +19,7 @@ c_it	Server::pop_connec(c_it it) {
 	next++;
 	Connection& client = it->second;
 
-	if (client.findRequestHeader("connection") == "keep-alive" && client.findAnswertHeader("Connection") != "close") {
+	if (client.findRequestHeader("Connection") == "keep-alive" && client.findAnswertHeader("Connection") != "close") {
 		LOG_INFO(printFd(client.getClientFd()) <<  "closing: Connection kept-alive.");
 		client.resetConnection();
 	}

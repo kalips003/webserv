@@ -56,7 +56,9 @@ private:
 
 public:
 	SettingsServer() : _port_num(-1), _client_max_body_size(-1), _root_location_data(NULL) {}
-
+static int			sanitizePath(std::string& path_to_fill, const std::string& given_path);
+static const block*	isLocationKnown(const std::string& given_path);
+static int 			getFullPath(std::string& path_to_fill, const std::string& sanitized);
 
 //-----------------------------------------------------------------------------]
 

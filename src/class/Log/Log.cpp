@@ -33,7 +33,7 @@ void Log::log_error_sys(const std::ostringstream& msg) {
 #endif
 
 #if PRINT_LEVEL & LVL_ERROR_SYSTEM
-	std::cout << ERROR_SYS_P << msg.str() << " (" << strerror(errno) << ")\n";
+	std::cerr << ERROR_SYS_P << msg.str() << " (" << strerror(errno) << ")\n";
 #endif
 	(void)msg;
 }

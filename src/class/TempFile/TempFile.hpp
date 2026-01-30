@@ -24,6 +24,7 @@ class temp_file {
 	bool	updateFlags(int flags_to_remove, int flags_to_add);
 	ssize_t	getBodySize();
 	void	closeTemp(bool _delete);
+	void	resetFileFd();
 
 	/***  FRIENDS  ***/
 	friend std::ostream& operator<<(std::ostream& os, const temp_file& r);

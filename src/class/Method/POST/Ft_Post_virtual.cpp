@@ -173,7 +173,7 @@ void	Ft_Post::prepareChild(const std::string& ressource, const std::string& quer
 
 	std::string content_length = itostr(getRequest().getFile().getBodySize());
 	setenv("CONTENT_LENGTH", content_length.c_str(), 1);
-	const std::string* content_type = getRequest().find_setting("content-type");
+	const std::string* content_type = getRequest().find_in_headers("content-type");
 	if (!content_type)
 		printLog(WARNING, "CGI POST, Content-Type missing", 1);
 	setenv("CONTENT_TYPE", (*content_type).c_str(), 1);

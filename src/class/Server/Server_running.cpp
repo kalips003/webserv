@@ -64,6 +64,5 @@ void    Server::run( void ) {
 
 			}
 		}
-		reboot();
 	}
 }
