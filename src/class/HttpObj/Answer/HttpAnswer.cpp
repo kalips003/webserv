@@ -66,29 +66,29 @@ int HttpAnswer::isFirstLineValid(int fd) {
 	std::string word;
 
 	if (!(ss >> word) || word != "HTTP/1.1") { // ??? - Handle other versions?
-		oss msg; msg << RED "Invalid Version: " RESET << word; printLog(ERROR, msg.str(), 1);
+		LOG_ERROR(RED "Invalid Version: " RESET << word);
 		return 505;
 	}
 	_version = word;
 
 	if (!(ss >> word)) {
-		oss msg; msg << RED "Invalid Answer Status: " RESET << word; printLog(ERROR, msg.str(), 1);
+		LOG_ERROR(RED "Invalid Answer Status: " RESET << word);
 		return 501; // or 400
 	}
 	int code; 
 	if (!atoi_v2(word, code) || return_http_from_code(code).empty()) {
-		oss msg; msg << RED "Invalid Answer Status: " RESET << word; printLog(ERROR, msg.str(), 1);
+		LOG_ERROR(RED "Invalid Answer Status: " RESET << word);
 		return 501; // or 400
 	}
 	_status_num = code;
 	
 	_status_msg = ss.str();
 	if (!(ss >> word)) {
-		oss msg; msg << RED "No context Message" RESET; printLog(ERROR, msg.str(), 1);
+		LOG_ERROR(RED "No context Message" RESET);
 		return 400;
 	}
 
-	oss msg; msg << "[#" << printFd(fd) << "] → " << _version << " " << code << "(" << _status_msg << ")"; printLog(LOG, msg.str(), 1);
+	LOG_DEBUG(printFd(fd) << "→ " << _version << " " << code << "(" << _status_msg << ")");
 
 	return 0;
 }

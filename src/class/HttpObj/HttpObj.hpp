@@ -90,8 +90,6 @@ private:
 public:
 	virtual int		isFirstLineValid(int fd) { (void)fd; return 0; }
 	virtual int		parseHeadersForValidity() { return 0; }
-	virtual int		validateBodyWithoutLength() { return static_cast<int>(DOING); }
-
 
 //-----------------------------------------------------------------------------]
 	/***  TOOLS  ***/

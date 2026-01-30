@@ -1,58 +1,56 @@
-#ifndef HTTPA_HPP
-#define HTTPA_HPP
+#ifndef HTTPMULTIPART_HPP
+#define HTTPMULTIPART_HPP
 
 #include "HttpObj.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 // "GET /index.html HTTP/1.1\r\nHost: example.com\r\n\r\n<body>"
 ///////////////////////////////////////////////////////////////////////////////]
-class HttpAnswer : public HttpObj {
+class HttpMultipart : public HttpObj {
 
 private:
 ///////////////////////////////////////////////////////////////////////////////]
-    std::string		_version; // HTTP/1.1
-    int				_status_num; // 200
-    std::string		_status_msg; // OK
+	std::string		_delim;
+	std::string		_name; // GET
+	std::string		_filename; // /index.html
 
 	enum BodyMode	_body_type; // content-length mode; chunked-transfer mode; no body expected (GET, HEAD); multipart (POST form/file)
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	HttpAnswer() : HttpObj(), _version("HTTP/1.1"), _status_num(200), _status_msg("OK"), _body_type(BODY_NONE) { _status = SENDING_HEAD; }
+	HttpMultipart(const std::string& s) : 
+		HttpObj(),
+		_delim(s),
+		_body_type(BODY_NONE) { _status = READING_FIRST; }
+
 
 //-----------------------------------------------------------------------------]
 	/***  VIRTUALS  ***/
 public:
-	int		isFirstLineValid(int fd);
+	virtual int		isFirstLineValid(int fd) { (void)fd; return 0; }
+	virtual int		parseHeadersForValidity() { return 0; }
 
 ///////////////////////////////////////////////////////////////////////////////]
 public:
-	void	createError(int errCode);
-	void	setFirstLine(int errCode);
-	void	initializationBeforeSend();
-
 
 ///////////////////////////////////////////////////////////////////////////////]
-	/***  GETTERS  ***/
+/***  GETTERS  ***/
 public:
-	const std::string&	getVersion() { return _version; }
-	int					getStatusNum() { return _status_num; }
-	const std::string&	getStatusMsg() { return _status_msg; }
-	temp_file&			getTempFile() { return _tmp_file; }
+	const std::string&	getDelim() const { return _delim; }
+	const std::string&	getName() const { return _name; }
+	const std::string&	getFilename() const { return _filename; }
 //-----------------------------------------------------------------------------]
 private:
-
-///////////////////////////////////////////////////////////////////////////////]
-	/***  SETTERS  ***/
+/***  SETTERS  ***/
 public:
 //-----------------------------------------------------------------------------]
 private:
 ///////////////////////////////////////////////////////////////////////////////]
 
 	/***  FRIENDS  ***/
-	friend std::ostream& operator<<(std::ostream& os, const HttpAnswer& r);
+	friend std::ostream& operator<<(std::ostream& os, const HttpMultipart& r);
 };
 
-std::ostream& operator<<(std::ostream& os, const HttpAnswer& r);
+std::ostream& operator<<(std::ostream& os, const HttpMultipart& r);
 
 #endif

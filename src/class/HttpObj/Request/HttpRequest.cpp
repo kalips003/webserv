@@ -21,17 +21,17 @@ int HttpRequest::isFirstLineValid(int fd) {
 	std::string word;
 
 	if (!(ss >> word) || isMethodValid(word) < 0) {
-		oss msg; msg << RED "Invalid Method: " RESET << word; printLog(ERROR, msg.str(), 1);
+		LOG_ERROR(RED "Invalid Method: " RESET << word);
 		return 501; // or 400
 	}
 	_method = word;
 	
 	if (!(ss >> word) || word[0] != '/') {
-		oss msg; msg << RED "Invalid Path (not absolute): " RESET << word; printLog(ERROR, msg.str(), 1);
+		LOG_ERROR(RED "Invalid Path (not absolute): " RESET << word);
 		return 400;
 	}
 	_path = word;
-	LOG_LOG("isFirstLineValid(): _path: " << _path);
+	LOG_DEBUG("isFirstLineValid(): _path: " << _path);
 
 	if (!(ss >> word) || word != "HTTP/1.1") { // ??? - Handle other versions?
 		LOG_ERROR(RED "Invalid Version: " RESET << word);
