@@ -1,4 +1,5 @@
 #include "HttpR.hpp"
+#include "Log.hpp"
 #include "_colors.h"
 
 #include <unistd.h>
@@ -36,8 +37,7 @@ int    httpr::readingFirstLine(std::string& str_buff) {
 		_buffer += str_buff;
 
 		if (_buffer.size() > MAX_LIMIT_FOR_HEAD) {
-			oss msg; msg << "Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF";
-			printLog(WARNING, msg.str(), 1);
+			LOG_WARNING("Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF");
 			return 400;
 		}
 		return FIRST;
@@ -47,29 +47,25 @@ int    httpr::readingFirstLine(std::string& str_buff) {
 	std::string word;
 
 	if (!(ss >> word) || isMethodValid(word) < 0) {
-		oss msg; msg << RED "Invalid Method: " RESET << word;
-		printLog(WARNING, msg.str(), 1);
+		LOG_WARNING(RED "Invalid Method: " RESET << word);
 		return 501; // or 400
 	}
 	_method = word;
 
 	if (!(ss >> word) || !isPathValid(word)) {
-		oss msg; msg << RED "Invalid Path: " RESET << word;
-		printLog(WARNING, msg.str(), 1);
+		LOG_WARNING(RED "Invalid Path: " RESET << word);
 		return 400;
 	}
 	_path = word;
 
 	if (!(ss >> word) || word != "HTTP/1.1") {
-		oss msg; msg << RED "Invalid Version: " RESET << word;
-		printLog(WARNING, msg.str(), 1);
+		LOG_WARNING(RED "Invalid Version: " RESET << word);
 		return 505;
 	}
 	_version = word;
 
 	if (ss >> word) { // extra garbage after the 3 tokens
-		oss msg; msg << RED "Invalid HEAD: " RESET << _buffer.substr(0, _buffer.find("\r\n"));
-		printLog(WARNING, msg.str(), 1);
+		LOG_WARNING(RED "Invalid HEAD: " RESET << _buffer.substr(0, _buffer.find("\r\n")));
 		return 400;
 	}
 

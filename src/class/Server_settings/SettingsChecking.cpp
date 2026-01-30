@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "SettingsServer.hpp"
 
 #include <iostream>
@@ -16,7 +17,7 @@
  *
  * @return	  FALSE on any error, TRUE otherwise				---*/
 bool	SettingsServer::check_settings() {
-// oss log; log << "check_settings()"; printLog(LOG, log.str(), 1);
+	LOG_LOG("check_settings()");
 
 	default_settings_setup();
 
@@ -31,7 +32,8 @@ bool	SettingsServer::check_settings() {
 	}
 	if (!setRoot())
 		return false;
-// oss msg; msg << C_431 "ROOT BLOCK: \n" RESET << *_root_location_data; printLog(LOG, msg.str(), 0);
+
+LOG_LOG(C_431 "ROOT BLOCK: \n" RESET << *_root_location_data);
 
 	if (!setTemp())
 		return false;
@@ -90,7 +92,7 @@ void	SettingsServer::default_settings_setup() {
  * remove trailing '/' if present: '/path/' > '/path'
  * @return      True if root exist and is setup, False otherwise		---*/
 bool 	SettingsServer::setRoot() {
-// oss log; log << "setRoot()"; printLog(LOG, log.str(), 1);
+	LOG_LOG("setRoot()");
 
 	block *root_block = find_root_block();
 	std::string root = root_block->settings.find("root")->second;
@@ -132,7 +134,7 @@ bool 	SettingsServer::setRoot() {
  * Needs parse_config_file first and server _root set up
  * @return      True if temp exist and is setup, False otherwise		---*/
 bool 	SettingsServer::setTemp() {
-// oss log; log << "setTemp()"; printLog(LOG, log.str(), 1);
+	LOG_LOG("setTemp()");
 
 	const std::string* temp = find_setting("tmp_root");
 	std::string temp_folder = temp ? *temp : "/tmp";

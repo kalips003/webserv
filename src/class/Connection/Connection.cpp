@@ -28,7 +28,7 @@ void	Connection::closeFd() {
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Use internal _status do decide what to do with the given buffer */
 bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
-// oss log; log << "ft_update()"; printLog(LOG, log.str(), 1);
+	LOG_LOG("ft_update()");
 
 	if (_status == READING) {
 		if (_request.getStatus() != HttpObj::READING_FIRST)

@@ -1,6 +1,10 @@
+#include "Log.hpp"
 #include "Server.hpp"
 
 #include "defines.hpp"
+#include <unistd.h>
+
+bool	g_ServerEnd;
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run_better( void ) {
 
@@ -25,9 +29,11 @@ void    Server::run_better( void ) {
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run( void ) {
 
+	g_ServerEnd = false;
+	init_signals();
 	char buffer[BUFFER_SIZE];
 
-	while (true) {
+	while (!g_ServerEnd) {
 
 		int nfds = epoll_wait(_epoll_fd, _events, MAX_EVENTS, -1); // timeout??
 		if (nfds == -1) {
@@ -47,8 +53,7 @@ void    Server::run( void ) {
 			}
 
 			if (_events[i].events & EPOLLERR || _events[i].events & EPOLLRDHUP) {
-				oss msg; msg << "[#" C_431 << static_cast<Connection*>(_events[i].data.ptr)->getClientFd() << RESET "] " RED "connection closed (FIN received)" RESET;
-				printLog(DEBUG, msg.str(), 1);
+				LOG_DEBUG("[#" C_431 << static_cast<Connection*>(_events[i].data.ptr)->getClientFd() << RESET "] " RED "connection closed (FIN received)" RESET);
 				pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
 			}
 
@@ -64,6 +69,6 @@ void    Server::run( void ) {
 
 			}
 		}
-		reboot();
+		// reboot();
 	}
 }

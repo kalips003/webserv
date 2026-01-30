@@ -1,5 +1,6 @@
 #include "HttpObj.hpp"
 
+#include "Log.hpp"
 #include "Tools1.hpp"
 
 #include <netinet/in.h>
@@ -20,8 +21,8 @@ ssize_t HttpObj::readBuffer(char *buff, size_t sizeofbuff, int fd, std::string& 
 	if (bytes_recv <= 0)
 		return bytes_recv;
 
-oss msg; msg << "[#" << printFd(fd) << "] " << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes)" RESET; printLog(INFO, msg.str(), 1);
-// msg.str(""); msg << C_134 "Packet: [" RESET << std::string(buff, bytes_recv) << C_134 "]" RESET;printLog(DEBUG, msg.str(), 1);
+LOG_INFO("[#" << printFd(fd) << "] " << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes)" RESET);
+LOG_DEBUG(C_134 "Packet: [" RESET << std::string(buff, bytes_recv) << C_134 "]" RESET);
 
 	to_append_to.append(buff, bytes_recv);
 
@@ -88,8 +89,8 @@ ssize_t	HttpObj::sendBufferString(char *buff, size_t sizeofbuff, int fd, std::st
 	if (bytesSent <= 0)
 		return bytesSent;
 
-oss msg; msg << "[#" << printFd(fd) << "] " << C_134 "packet sent (" RESET << bytesSent << C_134 " bytes)" RESET; printLog(INFO, msg.str(), 1);
-// msg.str(""); msg << C_134 "Packet: [" RESET << to_send_from.substr(0, bytesSent) << C_134 "]" RESET;printLog(DEBUG, msg.str(), 1);
+LOG_INFO("[#" << printFd(fd) << "] " << C_134 "packet sent (" RESET << bytesSent << C_134 " bytes)" RESET);
+LOG_DEBUG(C_134 "Packet: [" RESET << to_send_from.substr(0, bytesSent) << C_134 "]" RESET);
 
 	to_send_from.erase(0, bytesSent);
 
@@ -117,13 +118,13 @@ ssize_t	HttpObj::sendBufferFile(char *buff, size_t sizeofbuff, int fd, int fd_fi
 
 	if (bytesSent < bytesLoaded) {
 		_leftovers.append(buff, bytesSent);
-		oss msg; msg << "[#" << printFd(fd) << "] " << C_134 "partial packet sent (loaded: " RESET << bytesLoaded << C_134 ", sent: " RESET << bytesSent << C_134 " bytes)" RESET; printLog(LOG, msg.str(), 1);
+		LOG_LOG("[#" << printFd(fd) << "] " << C_134 "partial packet sent (loaded: " RESET << bytesLoaded << C_134 ", sent: " RESET << bytesSent << C_134 " bytes)" RESET);
 	}
 	else {
-		oss msg; msg << "[#" << printFd(fd) << "] " << C_134 "packet sent (" RESET << bytesSent << C_134 " bytes)" RESET; printLog(INFO, msg.str(), 1);
+		LOG_INFO("[#" << printFd(fd) << "] " << C_134 "packet sent (" RESET << bytesSent << C_134 " bytes)" RESET);
 	} 
 
-// msg.str(""); msg << C_134 "Packet: [" RESET << std::string(buff, bytesSent) << C_134 "]" RESET;printLog(DEBUG, msg.str(), 1);
+LOG_DEBUG(C_134 "Packet: [" RESET << std::string(buff, bytesSent) << C_134 "]" RESET);
 
 	return bytesSent;
 }

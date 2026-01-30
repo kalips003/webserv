@@ -38,7 +38,6 @@ int    HttpObj::receive(char *buff, size_t sizeofbuff, int fd) {
 
 	if (_status == CLOSED) {
 		LOG_DEBUG("receive(): CLOSED")
-		oss msg; msg << "[#" << printFd(fd) << "] → " RED "Connection closed (FIN received)" RESET; printLog(INFO, msg.str(), 1);
 	}
 	return _status;
 }
@@ -79,7 +78,7 @@ int    HttpObj::readingFirstLine(char *buff, size_t sizeofbuff, int fd) {
 	else {
 		_bytes_written += bytes_read;
 		if (_bytes_written > MAX_LIMIT_FOR_HEAD) {
-			oss msg; msg << "Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF"; printLog(ERROR, msg.str(), 1);
+			LOG_ERROR("Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF");
 			return 400;
 		}
 	}
@@ -131,7 +130,7 @@ int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd) {
 	else {
 		_bytes_written += bytes_read;
 		if (_bytes_written > MAX_LIMIT_FOR_HEADERS) {
-			oss msg; msg << "Max Limit (" RED << MAX_LIMIT_FOR_HEADERS << RESET ") reached before finding '\\r\\n\\r\\n'"; printLog(ERROR, msg.str(), 1);
+			LOG_ERROR("Max Limit (" RED << MAX_LIMIT_FOR_HEADERS << RESET ") reached before finding '\\r\\n\\r\\n'");
 			return 400;
 		}
 	}

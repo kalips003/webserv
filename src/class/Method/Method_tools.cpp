@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "Method.hpp"
 
 #include "SettingsServer.hpp"
@@ -66,8 +67,7 @@ int Method::getFullPath(std::string& path_to_fill, const std::string& sanitized)
 		if (*it == ".") continue;
 		if (*it == "..") {
 			if (stack.empty()) {
-				oss msg; msg << "Escape attempt from root: " C_431 << sanitized << RESET "]";
-				printLog(ERROR, msg.str(), 1);
+				LOG_ERROR("Escape attempt from root: " C_431 << sanitized << RESET "]");
 				return 403;
 			}
 			stack.pop_back();
@@ -102,7 +102,7 @@ int Method::sanitizePath(std::string& path_to_fill, const std::string& given_pat
 
 		if (given_path[i] == '%') {
 			if (i + 2 >= given_path.size()) {
-				printLog(ERROR, "Truncated %XX sequence", 1);
+				LOG_ERROR("Truncated %XX sequence");
 				return 400;
 			}
 
@@ -114,13 +114,11 @@ int Method::sanitizePath(std::string& path_to_fill, const std::string& given_pat
 
 			long val = strtol(hex, &end, 16);
 			if (*end != '\0') { // invalid hex digits
-				oss msg; msg << "Invalid %XX sequence: %" << hex;
-				printLog(ERROR, msg.str(), 1);
+				LOG_ERROR("Invalid %XX sequence: %" << hex);
 				return 400;
 			}
 			if (val <= 31 || val > 127) { // control chars
-				oss msg; msg << "Control / Invalid character in path: %" << hex;
-				printLog(ERROR, msg.str(), 1);
+				LOG_ERROR("Control / Invalid character in path: %" << hex);
 				return 400;
 			}
 			path_to_fill += static_cast<char>(val);
@@ -128,7 +126,7 @@ int Method::sanitizePath(std::string& path_to_fill, const std::string& given_pat
 		} else {
 			char c = given_path[i];
 			if ((c >= 0 && c <= 31) || c == 127) { // control chars
-				printLog(ERROR, "Control character in path", 1);
+				LOG_ERROR("Control character in path");
 				return 400;
 			}
 			path_to_fill += c;

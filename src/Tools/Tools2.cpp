@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include "Log.hpp"
 #include "Tools1.hpp"
 #include "_colors.h"
 
@@ -114,8 +115,7 @@ int	createTempFile(std::string& to_store_path_name, const std::string* root_path
 
 	if (!dirExists(root.c_str())) {
 		if (!createDir(root.c_str())) {
-			oss msg; msg << "Cannot create temp directory: " << root << ". Check permissions!";
-			printLog(ERROR, msg.str(), 1);
+			LOG_ERROR("Cannot create temp directory: " << root << ". Check permissions!");
 			return -1;
 		}
 	}
@@ -141,7 +141,7 @@ int	createTempFile(std::string& to_store_path_name, const std::string* root_path
 			return fd;
 		}
 	}
-	printLog(WARNING, "Too many attempts at creating temp file failed", 1);
+	LOG_WARNING("Too many attempts at creating temp file failed");
 	return fd;
 }
 
@@ -160,8 +160,7 @@ std::string find_MIME_type(const std::string& path) {
 
 	const std::string* rtrn = g_settings.find_setting_in_blocks("mime_types", "", path.substr(pos + 1));
 	if (!rtrn) {
-		oss msg; msg << RED "unknown MIME type: " RESET << path.substr(pos + 1);
-		printLog(DEBUG, msg.str(), 1);
+		LOG_DEBUG(RED "unknown MIME type: " RESET << path.substr(pos + 1));
 		return "application/octet-stream";
 	}
 	return *rtrn;

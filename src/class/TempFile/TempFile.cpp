@@ -1,5 +1,6 @@
 #include "HttpObj.hpp"
 
+#include "Log.hpp"
 #include "Tools1.hpp"
 #include "Tools2.hpp"
 
@@ -44,8 +45,7 @@ bool	temp_file::createTempFile(const std::string* root_path) {
 		return false;
 
 	if (access(root_path->c_str(), W_OK | X_OK) != 0) {
-		oss msg; msg << "createTempFile(): Issue with temp directory (" << root_path << ")";
-		printErr(msg.str().c_str());
+		LOG_ERROR("createTempFile(): Issue with temp directory (" << root_path << ")");
 		return false;
 	}
 
@@ -75,7 +75,7 @@ bool	temp_file::createTempFile(const std::string* root_path) {
 		}
 
 	}
-	printLog(WARNING, "Too many attempts at creating temp file failed", 1);
+	LOG_WARNING("Too many attempts at creating temp file failed");
 	return false;
 }
 

@@ -1,5 +1,6 @@
 #include "Ft_Post.hpp"
 
+#include "Log.hpp"
 #include "Tools1.hpp"
 #include "Tools2.hpp"
 #include "HttpAnswer.hpp"
@@ -7,7 +8,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////]
 void Ft_Post::printHello() {
-	printLog(DEBUG, "Post method called", 1);
+	LOG_DEBUG("POST method called");
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -17,7 +18,7 @@ void Ft_Post::printHello() {
 * @return Connection::SENDING if cgi finished (and handled)
 * @return ErrCode in the case of any error	---*/
 int		Ft_Post::exec_cgi() {
-	printLog(ERROR, "--> you have to do this part (execcgi)", 1);
+	LOG_ERROR("--> you have to do this part (execcgi)");
 
 //
 	// Implementation
@@ -74,7 +75,7 @@ int		Ft_Post::howToHandleFileNotExist(const std::string& ressource, int rtrn_ope
 		return Connection::SENDING;
 	}
 	else {// if (rtrn_open == 403)
-		printLog(WARNING, "Post request File already exist: permission error", 1);
+		LOG_WARNING("Post request File already exist: permission error");
 		return 403;
 	}
 }
@@ -97,7 +98,7 @@ int		Ft_Post::handleFile(std::string& path) {
 //	
 	std::string post_policy = getLocationBlock()->data.post_policy;
 	if (post_policy == "reject") {
-		oss msg; msg << "Attempt to over-write an existing file (POST; post_policy = reject): " C_410 << path << RESET; printLog(WARNING, msg.str(), 1);
+		LOG_WARNING("Attempt to over-write an existing file (POST; post_policy = reject): " C_410 << path << RESET);
 		return 409;
 	}
 	else if (post_policy == "replace") { // open(O_WRONLY | O_CREAT | O_TRUNC)
@@ -111,7 +112,7 @@ int		Ft_Post::handleFile(std::string& path) {
 	else if (post_policy == "append")
 		return appendFile(path);
 	else {
-		printLog(WARNING, "Post request File already exist: post_policy = unknown", 1);
+		LOG_WARNING("Post request File already exist: post_policy = unknown");
 		return 500;
 	}
 	return Connection::SENDING;
@@ -138,13 +139,13 @@ int		Ft_Post::appendFile(const std::string& path) {// open(O_WRONLY | O_CREAT | 
 	ssize_t n;
 	while ((n = read(src_fd, buf, sizeof(buf))) > 0) {
 		if (write(dest_fd, buf, n) != n) {
-			oss msg; msg << "Append from: " << getRequest().getFile()._path << " to: " << path << " failed\n"; printErr((msg.str()).c_str());
+			LOG_ERROR("Append from: " << getRequest().getFile()._path << " to: " << path << " failed\n");
 			close(dest_fd);
 			return 500; // partial write happened
 		}
 	}
 	if (n < 0) {
-		oss msg; msg << "Append from: " << getRequest().getFile()._path << " to: " << path << " failed\n"; printErr((msg.str()).c_str());
+		LOG_ERROR("Append from: " << getRequest().getFile()._path << " to: " << path << " failed\n");
 		close(dest_fd);
 		return 500;
 	}
@@ -175,7 +176,7 @@ void	Ft_Post::prepareChild(const std::string& ressource, const std::string& quer
 	setenv("CONTENT_LENGTH", content_length.c_str(), 1);
 	const std::string* content_type = getRequest().find_setting("content-type");
 	if (!content_type)
-		printLog(WARNING, "CGI POST, Content-Type missing", 1);
+		LOG_WARNING("CGI POST, Content-Type missing");
 	setenv("CONTENT_TYPE", (*content_type).c_str(), 1);
 	setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);

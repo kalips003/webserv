@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "HttpStatusCode.hpp"
+#include "Log.hpp"
 #include "Tools1.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -210,7 +211,7 @@ void	httpa::updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesSent) 
 
 		case SENDING_HEAD :
 			if (bytesSent == static_cast<ssize_t>(_head.size())) {
-				printLog(DEBUG, RED "HEAD cleared" RESET, 1);
+				LOG_DEBUG(RED "HEAD cleared" RESET);
 				_head.clear();
 				_bytes_sent = 0;
 			}
@@ -236,8 +237,7 @@ void	httpa::updateAfterSend(char *buff, ssize_t bytesLoaded, ssize_t bytesSent) 
 			std::cout << C_350 "Answer ENDED" RESET << std::endl;
 	}
 	_sending_status = isThereBody();
-	oss msg; msg << C_431 "[_sending_status]" RESET << _sending_status;
-	printLog(DEBUG, msg.str(), 1);
+	LOG_DEBUG(C_431 "[_sending_status]" RESET << _sending_status);
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

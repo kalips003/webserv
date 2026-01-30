@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "SettingsServer.hpp"
 
 #include <iostream>
@@ -16,7 +17,7 @@
  * @param some_root  Path to normalize and validate.
  * @return true if valid; false otherwise.	---*/
 bool 	SettingsServer::checkAnyRoot(std::string& some_root) {
-// oss log; log << "checkAnyRoot(): some_root=\"" << some_root << "\""; printLog(LOG, log.str(), 1);
+	LOG_LOG("checkAnyRoot(): some_root=\"" << some_root << "\"");
 
 	std::string root = some_root;
 
@@ -29,14 +30,12 @@ bool 	SettingsServer::checkAnyRoot(std::string& some_root) {
 // check if root is directory, can be accessed?
 	struct stat st;
 	if (stat(root.c_str(), &st) != 0) {
-		oss msg; msg << "Issue with some config root: " << root;
-		printLog(ERROR, msg.str(), 1);
+		LOG_ERROR("Issue with some config root: " << root);
 		return printErr(ERR8 "stat()");
 	}
 
 	if (!S_ISDIR(st.st_mode)) {
-		oss msg; msg << "Issue with some config root (not a directory): " << root;
-		printLog(ERROR, msg.str(), 1);
+		LOG_ERROR("Issue with some config root (not a directory): " << root);
 		return printErr(ERR9 "stat()");
 	}
 

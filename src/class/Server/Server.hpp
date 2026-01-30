@@ -11,6 +11,8 @@
 #include "Connection.hpp"
 #include "SettingsServer.hpp"
 
+extern bool g_ServerEnd;
+
 ///////////////////////////////////////////////////////////////////////////////]
 typedef std::map<int, Connection> map_clients;
 typedef std::map<int, Connection>::iterator c_it;
@@ -79,6 +81,8 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////]
 };
+
+int	init_signals(void);
 
 std::ostream&	operator<<(std::ostream& oss, Server& s);
 

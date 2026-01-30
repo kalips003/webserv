@@ -1,12 +1,13 @@
 #include "Ft_Delete.hpp"
 
+#include "Log.hpp"
 #include "Tools1.hpp"
 #include "Tools2.hpp"
 #include "HttpAnswer.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 void Ft_Delete::printHello() {
-	printLog(DEBUG, "DELETE method called", 1);
+	LOG_DEBUG("DELETE method called");
 }
 
 #include <sys/wait.h>
@@ -18,7 +19,7 @@ void Ft_Delete::printHello() {
 * @return ErrCode in the case of any error
 */
 int		Ft_Delete::exec_cgi() {
-	printLog(ERROR, "--> you have to do this part DELETE (execcgi)", 1);
+	LOG_ERROR("--> you have to do this part DELETE (execcgi)");
 
 //
 	// Implementation
@@ -93,7 +94,7 @@ void	Ft_Delete::prepareChild(const std::string& ressource, const std::string& qu
 	setenv("CONTENT_LENGTH", content_length.c_str(), 1);
 	const std::string* content_type = getRequest().find_setting("content-type");
 	if (!content_type)
-		printLog(WARNING, "CGI DELETE, Content-Type missing", 1);
+		LOG_WARNING("CGI DELETE, Content-Type missing");
 	setenv("CONTENT_TYPE", (*content_type).c_str(), 1);
 	setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);

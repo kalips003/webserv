@@ -1,4 +1,5 @@
 #include "HttpR.hpp"
+#include "Log.hpp"
 #include "_colors.h"
 
 #include <fcntl.h>
@@ -24,13 +25,13 @@ int	httpr::parsingHeaders(std::string& delim) {
 
 	int errRtrn = parse_header_for_syntax();
 	if (errRtrn != READING_BODY) {
-		printLog(WARNING, "SYNTAX ERROR - while parsing headers for syntax", 1);
+		LOG_WARNING("SYNTAX ERROR - while parsing headers for syntax");
 		return errRtrn;
 	}
 
 	errRtrn = parse_headers_for_validity();
 	if (errRtrn > 100) {
-		printLog(WARNING, "SYNTAX ERROR - while parsing headers for validity", 1);
+		LOG_WARNING("SYNTAX ERROR - while parsing headers for validity");
 		return errRtrn;
 	}
 
@@ -105,8 +106,7 @@ int httpr::parse_header_for_syntax() {
 
 		size_t colon_pos = it->find(':');
 		if (colon_pos == std::string::npos) {
-			oss msg; msg << "Bad header: " << *it;
-			printLog(WARNING, msg.str(), 1);
+			LOG_WARNING("Bad header: ");
 			_buffer.clear();
 			return 400;
 		}
@@ -137,8 +137,7 @@ int    httpr::parse_headers_for_validity() {
 
 	_body_size = isThereBody();
 	if (_body_size < 0) {
-		oss msg; msg << "SYNTAX ERROR - Bad body-size: " << _headers.find("content-length")->second;
-		printLog(ERROR, msg.str(), 1);
+		LOG_ERROR("SYNTAX ERROR - Bad body-size: " << _headers.find("content-length")->second);
 		return 400;
 	}
 	if (!_body_size)
@@ -178,8 +177,7 @@ std::string httpr::find_setting(const std::string& set) const {
 	map_strstr::const_iterator it = _headers.begin();
 	it = _headers.find(set);
 	if (it == _headers.end()) {
-		// oss msg; msg << RED "setting not found: " RESET << set;
-		// printLog(ERROR, msg.str(), 1);
+		LOG_ERROR(RED "setting not found: " RESET);
 		return "";
 	}
 	else 

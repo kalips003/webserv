@@ -1,5 +1,6 @@
 #include "HttpObj.hpp"
 
+#include "Log.hpp"
 #include "Tools1.hpp"
 
 #include <string.h>
@@ -26,7 +27,7 @@ HttpObj::HttpBodyStatus	HttpObj::whatToSend() const {
 //-----------------------------------------------------------------------------]
 int HttpObj::isFirstLineValid(int fd) {
 	_first = _buffer;
-	oss msg; msg << "[#" << printFd(fd) << "] → " << _first; printLog(LOG, msg.str(), 1);
+	LOG_LOG("[#" << printFd(fd) << "] → " << _first);
 	return 0;
 }
 
@@ -58,7 +59,7 @@ const std::string*	HttpObj::find_setting(const std::string& set) const {
 	map_strstr::const_iterator it = _headers.begin();
 	it = _headers.find(set);
 	if (it == _headers.end()) {
-		// oss msg; msg << RED "setting not found: " RESET << set; printLog(DEBUG, msg.str(), 1);
+		LOG_DEBUG(RED "setting not found: " RESET << set);
 		return NULL;
 	}
 	else 

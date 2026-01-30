@@ -1,4 +1,5 @@
 #include "HttpObj.hpp"
+#include "Log.hpp"
 #include "Tools1.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -24,7 +25,7 @@ HttpObj::HttpBodyStatus	HttpObj::send(char *buff, size_t sizeofbuff, int fd) {
 
 // handle errors
 	if (bytesSent == 0) {
-		oss msg; msg << "[#" << printFd(fd) << "] → " RED "Connection closed (FIN received)" RESET; printLog(INFO, msg.str(), 1);
+		LOG_INFO("[#" << printFd(fd) << "] → " RED "Connection closed (FIN received)" RESET);
 		return (_status = CLOSED);
 	}
 	else if (bytesSent < 0)

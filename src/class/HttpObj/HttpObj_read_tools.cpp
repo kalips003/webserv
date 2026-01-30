@@ -83,7 +83,7 @@ int HttpObj::parse_buffer_for_headers() {
 
 		size_t colon_pos = it->find(':');
 		if (colon_pos == std::string::npos) {
-			oss msg; msg << C_512 "Bad header: {" RESET << *it << C_512 "}" RESET; printLog(ERROR, msg.str(), 1);
+			LOG_ERROR(C_512 "Bad header: {" RESET << *it << C_512 "}" RESET);
 			_buffer.clear();
 			return 400;
 		}

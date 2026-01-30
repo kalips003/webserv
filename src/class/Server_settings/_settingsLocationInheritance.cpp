@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "SettingsServer.hpp"
 
 #include "Tools1.hpp"
@@ -16,15 +17,14 @@ static bool compareByPathLen(const block* a, const block* b);
  * Invalid or unresolvable blocks are removed from _block_settings, with warnings logged.
  * @note Root '/' block is treated as already initialized.	---*/
 void SettingsServer::setAllBlockLocations() {
-// oss log; log << "setAllBlockLocations()"; printLog(LOG, log.str(), 1);
+	LOG_LOG("setAllBlockLocations()");
 
 	for (std::vector<block>::iterator it = _block_settings.begin(); it != _block_settings.end(); ++it) {
 		if (it->hasPath == false)
 			continue;
 
 		if (it->path[0] != '/') {
-			oss msg; msg << "Location block without '/': " << it->path;
-			printLog(WARNING, msg.str(), 1);
+			LOG_WARNING("Location block without '/': " << it->path);
 			_block_settings.erase(it);
 			--it;
 			continue ;
@@ -35,14 +35,12 @@ void SettingsServer::setAllBlockLocations() {
 		
 		std::vector<const block*> parent_tree = rtrnMapOfMatches(*it);
 		if (!setLocationData(*it, parent_tree)) {
-			oss msg; msg << C_431 "Invalid location block detected, ignored:" RESET << *it;
-			printLog(WARNING, msg.str(), 1);
+			LOG_WARNING(C_431 "Invalid location block detected, ignored:" RESET << *it);
 			_block_settings.erase(it);
 			--it;
 			continue;
 		}
-
-// oss msg; msg << C_431 "BLOCK: \n" RESET << *it; printLog(LOG, msg.str(), 0);
+	LOG_LOG(C_431 "BLOCK: \n" RESET << *it);
 	}
 }
 
