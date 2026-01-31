@@ -38,17 +38,14 @@ void    Server::run( void ) {
 				break;
 			}
 		}
-
 		for (int i = 0; i < nfds; ++i) {
-
 			if (_events[i].data.ptr == this) {
 				accept_clients(buffer, sizeof(buffer)); // new connection
 				continue;
 			}
 
 			if (_events[i].events & EPOLLERR || _events[i].events & EPOLLRDHUP) {
-				oss msg; msg << "[#" C_431 << static_cast<Connection*>(_events[i].data.ptr)->getClientFd() << RESET "] " RED "connection closed (FIN received)" RESET;
-				printLog(DEBUG, msg.str(), 1);
+				LOG_INFO(static_cast<Connection*>(_events[i].data.ptr)->getClientFd() << RED "connection closed (FIN received)" RESET);
 				pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
 			}
 

@@ -14,7 +14,6 @@
  * @param it   std::map<int, connection> iterator to pop
  * @return     next client in the list		---*/
 c_it	Server::pop_connec(c_it it) {
-
 	c_it next = it;
 	next++;
 	Connection& client = it->second;
