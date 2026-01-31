@@ -123,6 +123,8 @@ public:
 	void				setStringBody(const std::string& s) { _body = s; }
 	void				setMIMEtype(const std::string& path);
 	void				closeTemp(bool del);
+	void				setBytesTotal(ssize_t b) { _bytes_total = b; }
+	void				setBytesWritten(size_t b) { _bytes_written = b; }
 //-----------------------------------------------------------------------------]
 private:
 ///////////////////////////////////////////////////////////////////////////////]

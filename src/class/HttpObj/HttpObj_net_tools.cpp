@@ -63,6 +63,7 @@ int    HttpObj::streamingBody(char *buff, size_t sizeofbuff, int fd) {
  *     - write up to (and optionally excluding) delim to `to_store_to`
  *     - remaining bytes go into _leftovers
  *     - _buffer is cleared
+ *
  * - If delim is not found:
  *     - new data is appended to _buffer
  *

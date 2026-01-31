@@ -24,7 +24,7 @@
 	hello world\n
 	\r\n
 */
-void	Ft_Post::treatMultipart() {
+int		Ft_Post::treatMultipart() {
 
 	const std::string* c_type = _request.find_in_headers("Content-Type");
 	if (!c_type)
@@ -50,6 +50,52 @@ void	Ft_Post::treatMultipart() {
 	if (boundary.empty())
 		return ; // error
 
-	HttpMultipart obj(boundary);
+	_request.getFile().resetFileFd();
+	std::vector<HttpMultipart> body_parts;
+	body_parts.push_back(HttpMultipart(boundary, ""));
+	body_parts.back().getFile().updateStat();
+	body_parts.back().setBytesTotal(_request.getFile()._info.st_size);
+
+	bool finished = false;
+	while (!finished) {
+		int rtrn = body_parts.back().parse_multifile(_data._buffer, _data._sizeofbuff, _request.getFile()._fd);
+		if (rtrn >= 100)
+			return rtrn;
+		if (rtrn == HttpObj::CLOSED) // EOF found before delim
+			return 400;
+		if (rtrn ==  HttpObj::DOING) { // this instance found (--BOUNDARY) _buffer the last read, _leftovers the rest
+
+			std::string& leftover = body_parts.back().getLeftovers();
+			if (leftover.size() >= boundary.size() + 4) {
+				if (leftover[boundary.size() + 3] == '\r' && leftover[boundary.size() + 3] == '\n')
+					; // write _buffer into file = file is finished
+					; // remove \r\n from _leftover
+					; // push_back new Multipart(body_parts.back())
+				else if (leftover[boundary.size() + 3] == '-' && leftover[boundary.size() + 3] == '-')
+					if (stuff after, is it malformed?)
+					; // write _buffer into file = file is finished
+					; // finished
+			
+			
+			} else {
+				read(_request.getFile()._fd, _data._buffer, 2);
+			
+			}
+		
+
+
+
+		}
+	
+	
+
+	
+	}
+
+	// after reading headers and such
+	obj.setBytesWritten(0);
+	obj.getFile().createTempFile(&g_settings.getTempRoot());
 
 }
+
+int helper()

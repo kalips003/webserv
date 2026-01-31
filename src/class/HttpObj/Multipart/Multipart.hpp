@@ -10,25 +10,28 @@ class HttpMultipart : public HttpObj {
 
 private:
 ///////////////////////////////////////////////////////////////////////////////]
-	std::string		_delim;
-	std::string		_name; // GET
-	std::string		_filename; // /index.html
+	std::string		_delim; // boundary=----geckoformboundaryeb47a963
+	std::string		_name; // name="foo"
+	std::string		_filename; // filename="bar.txt"
 
-	enum BodyMode	_body_type; // content-length mode; chunked-transfer mode; no body expected (GET, HEAD); multipart (POST form/file)
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	HttpMultipart(const std::string& s) : 
+	HttpMultipart(const std::string& s, const std::string& leftovers) : 
 		HttpObj(),
-		_delim(s),
-		_body_type(BODY_NONE) { _status = READING_FIRST; }
+		_delim(s) { _status = READING_FIRST; 
+					_leftovers = leftovers; }
 
+	HttpMultipart(const HttpMultipart& other);
+
+int		parse_multifile(char *buff, size_t sizeofbuff, int fd);
+int		readingBody(char *buff, size_t sizeofbuff, int fd);
 
 //-----------------------------------------------------------------------------]
 	/***  VIRTUALS  ***/
 public:
-	virtual int		isFirstLineValid(int fd) { (void)fd; return 0; }
-	virtual int		parseHeadersForValidity() { return 0; }
+	virtual int		isFirstLineValid(int fd);
+	virtual int		parseHeadersForValidity();
 
 ///////////////////////////////////////////////////////////////////////////////]
 public:

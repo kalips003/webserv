@@ -20,6 +20,7 @@ temp_file::~temp_file() {
 
 
 ///////////////////////////////////////////////////////////////////////////////]
+/** copy the path, but open a new fd (O_RDWR) */
 temp_file& temp_file::operator=(const temp_file& other) {
 	if (this != &other && other._fd >= 0) {
 		_path = other._path;
