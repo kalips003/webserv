@@ -35,7 +35,6 @@ void    Server::run( void ) {
 	char buffer[BUFFER_SIZE];
 
 	while (!g_ServerEnd) {
-
 		int nfds = epoll_wait(_epoll_fd, _events, MAX_EVENTS, -1); // timeout??
 		if (nfds == -1) {
 			if (errno == EINTR)
@@ -46,7 +45,7 @@ void    Server::run( void ) {
 			}
 		}
 
-		for (int i = 0; i < nfds; ++i) {
+		for (int i = 0; i < nfds && !g_ServerEnd; ++i) {
 
 			if (_events[i].data.ptr == this) {
 				accept_clients(buffer, sizeof(buffer)); // new connection
@@ -61,15 +60,12 @@ void    Server::run( void ) {
 			if (_events[i].events & EPOLLIN) {
 				if (!static_cast<Connection*>(_events[i].data.ptr)->ft_update(buffer, sizeof(buffer)))
 					pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
-
 			}
 
 			if (_events[i].events & EPOLLOUT) {
 				if (!static_cast<Connection*>(_events[i].data.ptr)->ft_update(buffer, sizeof(buffer)))
 					pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
-
 			}
 		}
-		// reboot();
 	}
 }

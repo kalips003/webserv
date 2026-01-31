@@ -20,8 +20,10 @@ static void handle_sigint(int signum, siginfo_t *info, void *context)
 	(void)info;
 	(void)context;
 	(void)signum;
+
+	g_ServerEnd = true;
 	write( 1, RED "\nSay goodbye to your cats buddy\n" RESET, 44);
-	exit(1);
+	// exit(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

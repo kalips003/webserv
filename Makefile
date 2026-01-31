@@ -234,7 +234,7 @@ test2: $(OBJ) $(TEST_MAIN) $(HEAD)
 # ╰────────────────────────────────────────────────────────────────────────────╯
 
 # --------------------------------------------------------------------------------- >
-VALGRIND = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s $(V_FLAG)
+VALGRIND = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s --track-fds=yes --trace-children=yes $(V_FLAG)
 # VALGRIND = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s --trace-children=yes --track-fds=yes
 # VALGRIND_OTHER = valgrind --vgdb=yes
 # V_FLAG = --gen-suppressions=all 
