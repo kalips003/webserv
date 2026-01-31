@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "Method.hpp"
 
 #include "SettingsServer.hpp"

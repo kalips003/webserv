@@ -1,6 +1,10 @@
+#include "Log.hpp"
 #include "Server.hpp"
 
 #include "defines.hpp"
+#include <unistd.h>
+
+bool	g_ServerEnd;
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run_better( void ) {
 
@@ -22,23 +26,27 @@ void    Server::run_better( void ) {
 
 #include "Tools1.hpp"
 #include <cerrno>
+#include <cstdlib>
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run( void ) {
 
+	g_ServerEnd = false;
+	init_signals();
 	char buffer[BUFFER_SIZE];
 
-	while (true) {
-
+	while (!g_ServerEnd) {
 		int nfds = epoll_wait(_epoll_fd, _events, MAX_EVENTS, -1); // timeout??
 		if (nfds == -1) {
 			if (errno == EINTR)
 				continue;
 			else {
-				printErr("epoll_wait() FATAL ERROR");
+				LOG_ERROR("epoll_wait() FATAL ERROR");
 				break;
 			}
 		}
-		for (int i = 0; i < nfds; ++i) {
+
+		for (int i = 0; i < nfds && !g_ServerEnd; ++i) {
+
 			if (_events[i].data.ptr == this) {
 				accept_clients(buffer, sizeof(buffer)); // new connection
 				continue;
@@ -52,13 +60,11 @@ void    Server::run( void ) {
 			if (_events[i].events & EPOLLIN) {
 				if (!static_cast<Connection*>(_events[i].data.ptr)->ft_update(buffer, sizeof(buffer)))
 					pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
-
 			}
 
 			if (_events[i].events & EPOLLOUT) {
 				if (!static_cast<Connection*>(_events[i].data.ptr)->ft_update(buffer, sizeof(buffer)))
 					pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
-
 			}
 		}
 	}

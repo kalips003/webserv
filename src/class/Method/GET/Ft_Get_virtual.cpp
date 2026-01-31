@@ -1,12 +1,13 @@
 #include "Ft_Get.hpp"
 
 
+#include "Log.hpp"
 #include "Tools1.hpp"
 #include "Tools2.hpp"
 #include "HttpAnswer.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 void Ft_Get::printHello() {
-	printLog(DEBUG, "GET method called", 1);
+	LOG_DEBUG("GET method called");
 }
 
 /**	Funciton called on second loop, once _cgi_status == CGI_DOING, 
@@ -16,7 +17,7 @@ void Ft_Get::printHello() {
 * @return ErrCode in the case of any error
 */
 int		Ft_Get::exec_cgi() {
-	printLog(ERROR, "--> you have to do this part GET (execcgi)", 1);
+	LOG_ERROR("--> you have to do this part GET (execcgi)");
 
 
 	//
@@ -75,7 +76,7 @@ int		Ft_Get::handleFile(std::string& path) {
 int		Ft_Get::handleDir(std::string& ressource) {
 
 	if (access(ressource.c_str(), X_OK) != 0) { // even if folder exist, we neeed the rights to traverse it
-		printErr(ressource.c_str());
+		LOG_ERROR(ressource.c_str());
 		return 403;
 	}
 

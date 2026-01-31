@@ -2,6 +2,7 @@
 
 #include "HttpStatusCode.hpp"
 
+#include "Log.hpp"
 #include "Tools1.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -88,7 +89,7 @@ int HttpAnswer::isFirstLineValid(int fd) {
 		return 400;
 	}
 
-	LOG_DEBUG(printFd(fd) << "→ " << _version << " " << code << "(" << _status_msg << ")");
+	LOG_LOG("[#" << printFd(fd) << "] → " << _version << " " << code << "(" << _status_msg << ")");
 
 	return 0;
 }

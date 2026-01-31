@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include "Log.hpp"
 #include "Tools1.hpp"
 #include "_colors.h"
 
@@ -25,11 +26,11 @@ bool	set_flags(int fd_to_set, int flag_to_add) {
 
 	int flags = fcntl(fd_to_set, F_GETFL, 0);
 	if (flags < 0){
-		printErr(RED "fcntl()" RESET);
+		LOG_ERROR(RED "fcntl()" RESET);
 		return false;
 	}
 	if (fcntl(fd_to_set, F_SETFL, flags | flag_to_add) < 0){
-		printErr(RED "accept()" RESET);
+		LOG_ERROR(RED "accept()" RESET);
 		return false;
 	}
 	return true;
@@ -50,7 +51,7 @@ bool	epollChangeFlags(int epoll_fd, int client_fd, uint32_t new_flag, int mode) 
 	ev.data.fd = client_fd;
 
 	if (epoll_ctl(epoll_fd, mode, client_fd, &ev)) {
-		printErr("epoll_ctl() <!> WARNING _clients");
+		LOG_ERROR("epoll_ctl() <!> WARNING _clients");
 		return false;
 	}
 	return true;
@@ -70,7 +71,7 @@ bool	epollChangeFlags(int epoll_fd, int client_fd, void* ptr, uint32_t new_flag,
 	ev.data.ptr = ptr;
 
 	if (epoll_ctl(epoll_fd, mode, client_fd, &ev)) {
-		printErr("epoll_ctl() <!> WARNING _clients");
+		LOG_ERROR("epoll_ctl() <!> WARNING _clients");
 		return false;
 	}
 	return true;
@@ -87,7 +88,7 @@ bool dirExists(const char* path) {
 ///////////////////////////////////////////////////////////////////////////////]
 bool createDir(const char* path, mode_t mode = 0777) {
 	if (mkdir(path, mode) != 0) {
-		printErr("mkdir()");
+		LOG_ERROR("mkdir()");
 		return false;
 	}
 	return true;
@@ -114,8 +115,7 @@ int	createTempFile(std::string& to_store_path_name, const std::string* root_path
 
 	if (!dirExists(root.c_str())) {
 		if (!createDir(root.c_str())) {
-			oss msg; msg << "Cannot create temp directory: " << root << ". Check permissions!";
-			printLog(ERROR, msg.str(), 1);
+			LOG_ERROR("Cannot create temp directory: " << root << ". Check permissions!");
 			return -1;
 		}
 	}
@@ -134,14 +134,14 @@ int	createTempFile(std::string& to_store_path_name, const std::string* root_path
 		if (access(temp_name.c_str(), F_OK) != 0) {
 			fd = open(temp_name.c_str(), open_flags, 0666);
 			if (fd < 0) {
-				printErr("open()");
+				LOG_ERROR("open()");
 				return fd;
 			}
 			to_store_path_name = temp_name;
 			return fd;
 		}
 	}
-	printLog(WARNING, "Too many attempts at creating temp file failed", 1);
+	LOG_WARNING("Too many attempts at creating temp file failed");
 	return fd;
 }
 
@@ -160,8 +160,7 @@ std::string find_MIME_type(const std::string& path) {
 
 	const std::string* rtrn = g_settings.find_setting_in_blocks("mime_types", "", path.substr(pos + 1));
 	if (!rtrn) {
-		oss msg; msg << RED "unknown MIME type: " RESET << path.substr(pos + 1);
-		printLog(DEBUG, msg.str(), 1);
+		LOG_DEBUG(RED "unknown MIME type: " RESET << path.substr(pos + 1));
 		return "application/octet-stream";
 	}
 	return *rtrn;

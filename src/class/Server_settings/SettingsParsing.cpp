@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "SettingsServer.hpp"
 
 #include <iostream>
@@ -153,13 +154,12 @@ static bool	parse_blocks(std::ifstream& file, std::string& line, size_t pos, blo
 			s2 = trim_white(s2.substr(0, s2.size() - 1));
 		if (s2.empty()) return true;
 		if (s2.find('}') != std::string::npos) {
-			oss msg; msg << ERR0 RED "invalid block: [" RESET << s << RED "]" RESET;
-			printLog(ERROR, msg.str(), 1);
+			LOG_ERROR(ERR0 RED "invalid block: [" RESET << s << RED "]" RESET);
 			return false;
 		}
 		size_t pos = s2.find_first_of(" \t");
 		if (pos == std::string::npos) {
-// oss msg; msg << ERR0 RED "block are without value: [" RESET << s << RED "]" RESET; printLog(WARNING, msg.str(), 1);
+			LOG_WARNING(ERR0 RED "block are without value: [" RESET << s << RED "]" RESET);
 			b.settings[s2] = "";
 			continue ;
 		}

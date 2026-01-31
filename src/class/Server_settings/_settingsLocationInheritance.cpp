@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "SettingsServer.hpp"
 
 #include "Tools1.hpp"
@@ -16,7 +17,7 @@ static bool compareByPathLen(const block* a, const block* b);
  * Invalid or unresolvable blocks are removed from _block_settings, with warnings logged.
  * @note Root '/' block is treated as already initialized.	---*/
 void SettingsServer::setAllBlockLocations() {
-// oss log; log << "setAllBlockLocations()"; printLog(LOG, log.str(), 1);
+	LOG_LOG("setAllBlockLocations()");
 
 	for (std::vector<block>::iterator it = _block_settings.begin(); it != _block_settings.end(); ++it) {
 		if (it->hasPath == false)
@@ -37,8 +38,7 @@ void SettingsServer::setAllBlockLocations() {
 			it = _block_settings.erase(it);
 			continue;
 		}
-
-// oss msg; msg << C_431 "BLOCK: \n" RESET << *it; printLog(LOG, msg.str(), 0);
+	LOG_LOG(C_431 "BLOCK: \n" RESET << *it);
 	}
 }
 

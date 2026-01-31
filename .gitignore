@@ -1,1 +1,6 @@
 data/.gitmsg
+*.o
+webserv
+compile_commands.json
+www/web_cat/donations/*
+log/*

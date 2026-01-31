@@ -107,8 +107,8 @@ int		HttpObj::receive_request(char *buff, size_t sizeofbuff, int fd) {
 		_status = static_cast<HttpBodyStatus>(rtrn);
 	}
 
-	if (_status == CLOSED) { LOG_DEBUG("receive_request(): CLOSED");
-		LOG_INFO(printFd(fd) << "→ " RED "Connection closed (FIN received)" RESET);
+	if (_status == CLOSED) {
+		LOG_DEBUG("receive(): CLOSED")
 	}
 	
 	return _status;
@@ -134,7 +134,7 @@ int		HttpObj::readingFirstLine(char *buff, size_t sizeofbuff, int fd) {
 	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, delim, true, to_store_to);
 	if(read_rtrn == -2) {
 		if (_bytes_written > MAX_LIMIT_FOR_HEAD) {
-			LOG_WARNING("Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF");
+			LOG_ERROR("Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF");
 			return 400;
 		}
 		return HttpObj::READING_FIRST;
@@ -160,7 +160,7 @@ int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd) {
 	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, delim, true, to_store_to);
 	if(read_rtrn == -2) {
 		if (_bytes_written > MAX_LIMIT_FOR_HEADERS) {
-			LOG_WARNING("Max Limit (" RED << MAX_LIMIT_FOR_HEADERS << RESET ") reached before finding '\r\n\r\n'");
+			LOG_ERROR("Max Limit (" RED << MAX_LIMIT_FOR_HEADERS << RESET ") reached before finding '\\r\\n\\r\\n'");
 			return 400;
 		}
 		return HttpObj::READING_HEADER;
@@ -202,16 +202,16 @@ int		HttpObj::findDelimInLeftovers(const std::string& delim, bool remove_delim, 
 	if (_leftovers.empty())
 		return 0;
 	
-	// if(true); //dont erase delim, either end of buffer, or beginnning of leftover 
+// if(true); //dont erase delim, either end of buffer, or beginnning of leftover 
 	size_t pos = _leftovers.find(delim);
 	if (pos == std::string::npos) {
-		_buffer = _leftovers;
-		_leftovers.clear();
-		return 0;
+			_buffer = _leftovers;
+			_leftovers.clear();
+			return 0;
 	}
 	else {
 		if (!to_store_to.write(_leftovers.c_str(), pos + (remove_delim ? delim.size() : 0))) {
-			LOG_ERROR_SYS("findDelimInLeftovers(): partial write() detected");
+				LOG_ERROR_SYS("findDelimInLeftovers(): partial write() detected");
 			return 500;
 		}
 		size_t pos_cut = remove_delim ? pos + delim.size() : pos;
