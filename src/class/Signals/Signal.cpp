@@ -3,6 +3,7 @@
 #include "_colors.h"
 #include "Server.hpp"
 
+#include <stdlib.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /** @brief Signal handler for SIGINT (Ctrl+C)
  *
@@ -14,14 +15,13 @@
  * @param info   Additional signal information (ignored in this handler).
  * @param context Processor context at the time of signal (ignored in this handler).
  */
-
 static void handle_sigint(int signum, siginfo_t *info, void *context)
 {
 	(void)info;
 	(void)context;
 	(void)signum;
-	g_ServerEnd = true;
 	write( 1, RED "\nSay goodbye to your cats buddy\n" RESET, 44);
+	exit(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
