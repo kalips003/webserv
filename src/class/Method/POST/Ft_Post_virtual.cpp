@@ -54,8 +54,10 @@ int		Ft_Post::howToHandleFileNotExist(const std::string& ressource, int rtrn_ope
 	if (folder_path.empty()) // only happen if location_root == '/'
 		folder_path = "/"; // delete a file in "/"
 
-	if (access(folder_path.c_str(), W_OK | X_OK) != 0) // need write / exec permissions
+	if (access(folder_path.c_str(), W_OK | X_OK) != 0) {// need write / exec permissions
+		LOG_DEBUG("Ft_Post::howToHandleFileNotExist() cant access: " << folder_path);
 		return 403;
+	}
 //	
 	if (rtrn_open == 404) {
 

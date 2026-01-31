@@ -23,10 +23,8 @@ void SettingsServer::setAllBlockLocations() {
 			continue;
 
 		if (it->path[0] != '/') {
-			oss msg; msg << "Location block without '/': " << it->path;
-			printLog(WARNING, msg.str(), 1);
-			_block_settings.erase(it);
-			--it;
+			LOG_ERROR("Location block without '/': " << it->path);
+			it = _block_settings.erase(it);
 			continue ;
 		}
 
@@ -35,10 +33,8 @@ void SettingsServer::setAllBlockLocations() {
 		
 		std::vector<const block*> parent_tree = rtrnMapOfMatches(*it);
 		if (!setLocationData(*it, parent_tree)) {
-			oss msg; msg << C_431 "Invalid location block detected, ignored:" RESET << *it;
-			printLog(WARNING, msg.str(), 1);
-			_block_settings.erase(it);
-			--it;
+			LOG_WARNING(C_431 "Invalid location block detected, ignored:" RESET << *it);
+			it = _block_settings.erase(it);
 			continue;
 		}
 
@@ -125,7 +121,7 @@ bool	SettingsServer::setLocationData(block& for_this_block, const std::vector<co
 // ssize_t					client_max_body_size;
 	setting_match = rtrnWordMatch(for_this_block, "client_max_body_size", map_of_matches);
 	if (!atoi_v2(setting_match, for_this_block.data.client_max_body_size))
-			return false;
+		return false;
 
 	return true;
 }

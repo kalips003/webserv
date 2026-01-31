@@ -14,11 +14,11 @@ HttpObj::HttpBodyStatus	HttpObj::send(char *buff, size_t sizeofbuff, int fd) {
 	ssize_t bytesSent;
 
 // send from correct source
-	if (_status == SENDING_HEAD)
+	if (_status == HttpObj::SENDING_HEAD)
 		bytesSent = sendBufferString(buff, sizeofbuff, fd, _head);
-	else if (_status == SENDING_BODY)
+	else if (_status == HttpObj::SENDING_BODY)
 		bytesSent = sendBufferString(buff, sizeofbuff, fd, _body);
-	else if (_status == SENDING_BODY_FD) {
+	else if (_status == HttpObj::SENDING_BODY_FD) {
 
 		if (!_leftovers.empty())
 			bytesSent = sendBufferString(buff, sizeofbuff, fd, _leftovers);
@@ -29,7 +29,7 @@ HttpObj::HttpBodyStatus	HttpObj::send(char *buff, size_t sizeofbuff, int fd) {
 
 // handle errors
 	if (bytesSent == 0) {
-		oss msg; msg << "[#" << printFd(fd) << "] → " RED "Connection closed (FIN received)" RESET; printLog(INFO, msg.str(), 1);
+		LOG_INFO(printFd(fd) << "→ " RED "Connection closed (FIN received)" RESET);
 		return (_status = CLOSED);
 	}
 	else if (bytesSent < 0)

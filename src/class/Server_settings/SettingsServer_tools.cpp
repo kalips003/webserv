@@ -29,14 +29,12 @@ bool 	SettingsServer::checkAnyRoot(std::string& some_root) {
 // check if root is directory, can be accessed?
 	struct stat st;
 	if (stat(root.c_str(), &st) != 0) {
-		oss msg; msg << "Issue with some config root: " << root;
-		printLog(ERROR, msg.str(), 1);
+		LOG_ERROR("Issue with some config root: " << root);
 		return printErr(ERR8 "stat()");
 	}
 
 	if (!S_ISDIR(st.st_mode)) {
-		oss msg; msg << "Issue with some config root (not a directory): " << root;
-		printLog(ERROR, msg.str(), 1);
+		LOG_ERROR("Issue with some config root (not a directory): " << root);
 		return printErr(ERR9 "stat()");
 	}
 

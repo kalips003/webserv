@@ -50,6 +50,15 @@ void	Ft_Post::treatMultipart() {
 	if (boundary.empty())
 		return ; // error
 
-	HttpMultipart obj(boundary);
+
+
+
+
+
+
+
+
+	// HttpMultipart obj(boundary, "");
+	// HttpMultipart obj(const other&)
 
 }

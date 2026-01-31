@@ -64,7 +64,6 @@
 //
 * @return READING_STATUS or errCode on error		---*/
 int		HttpObj::receive_request(char *buff, size_t sizeofbuff, int fd) {
-
 	int rtrn;
 
 	if (_status == HttpObj::READING_FIRST) { LOG_DEBUG("receive_request(): READING_FIRST");
@@ -114,7 +113,6 @@ int		HttpObj::receive_request(char *buff, size_t sizeofbuff, int fd) {
 	
 	return _status;
 }
-
 
 //-----------------------------------------------------------------------------]
 /** @brief Reads from fd into _buffer until "\r\n" is found.

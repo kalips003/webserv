@@ -120,6 +120,8 @@ bool 	SettingsServer::setRoot() {
 		return printErr(msg.str().c_str());
 	}
 	root_block->settings["root"] = _root;
+	if (!atoi_v2(root_block->settings["client_max_body_size"], root_block->data.client_max_body_size))
+		return false;
 
 	std::vector<const block *> empty;
 	setLocationData(*root_block, empty);

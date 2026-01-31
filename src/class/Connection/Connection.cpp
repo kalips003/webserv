@@ -13,6 +13,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////]
 Connection::~Connection() {
+LOG_DEBUG("Connection destructor called [" << _data._client_fd << "]");
 	if (_body_task) {
 		delete _body_task;
 		_body_task = NULL;
@@ -36,7 +37,7 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 
 		_status = ft_read(buff, sizeofbuff);
 		if (_status == SENDING)
-			epollChangeFlags(_data._epoll_fd, _data._client_fd, EPOLLOUT, EPOLL_CTL_MOD);
+			epollChangeFlags(_data._epoll_fd, _data._client_fd, this, EPOLLOUT, EPOLL_CTL_MOD);
 	}
 
 	if (_status == DOING || _status == DOING_CGI) {
@@ -57,7 +58,6 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 		LOG_DEBUG(printFd(_data._client_fd) << "--- CLOSING --- ");
 		return false;
 	}
-
 	return true;
 }
 
@@ -137,8 +137,8 @@ Connection::ConnectionStatus 	Connection::ft_send(char *buff, size_t sizeofbuff)
 
 	HttpObj::HttpBodyStatus r = _answer.send(buff, sizeofbuff, _data._client_fd);
 	if (r == HttpObj::CLOSED)
-		return CLOSED;
-	return SENDING;
+		return Connection::CLOSED;
+	return Connection::SENDING;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

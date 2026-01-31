@@ -24,6 +24,7 @@ struct location_data {
 	std::string					cgi_interpreter;
 	std::vector<std::string>	allowed_methods;
 	ssize_t						client_max_body_size;
+
 };
 
 // name arg { set1 a; set2 b }

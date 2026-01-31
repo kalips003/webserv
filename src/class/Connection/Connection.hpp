@@ -75,14 +75,18 @@ public:
 		_addr_len(sizeof(_client_addr)),
 		_body_task(NULL), 
 		_status(READING), 
-		_data() { _data._this_ptr = this; }
+		_data() { _data._this_ptr = this; 
+LOG_DEBUG("Default constructor called [" << _data._client_fd << "]");
+			}
 
 	Connection(int fd, int epoll, struct sockaddr_in c, socklen_t al, char* buffer, size_t size) :
 		_client_addr(c), 
 		_addr_len(al), 
 		_body_task(NULL), 
 		_status(READING), 
-		_data(fd, epoll, this, buffer, size) {}
+		_data(fd, epoll, this, buffer, size) {
+LOG_DEBUG("Copy constructor called [" << _data._client_fd << "]");
+		}
 
 	Connection(const Connection& other) :
 		_client_addr(other._client_addr), 

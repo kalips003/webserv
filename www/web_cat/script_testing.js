@@ -36,6 +36,31 @@ function uploadFile() {
 	.catch(err => console.error(err));
 }
 
+function uploadFiles() {
+	const path_to_upload = 'donations/file2'; // server endpoint
+	
+	const files = document.getElementById('fileInput').files;
+	if (!files.length) {
+		alert('No files selected');
+		return;
+	}
+
+	const formData = new FormData();
+	for (let i = 0; i < files.length; i++) {
+		// append each file; you can use the same field name or different names
+		formData.append('files[]', files[i]);
+	}
+
+	fetch(path_to_upload, {
+		method: 'POST',
+		body: formData
+	})
+	.then(response => response.text())
+	.then(data => alert('Server response: ' + data))
+	.catch(err => console.error(err));
+}
+
+
 //////////////////////////////////////////////////////////////////////
 function deleteFile() {
     const path_to_delete = 'donations/file1';  // relative to website root
