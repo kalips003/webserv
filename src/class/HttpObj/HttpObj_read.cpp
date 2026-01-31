@@ -204,7 +204,7 @@ int		HttpObj::findDelimInLeftovers(const std::string& delim, bool remove_delim, 
 	if (_leftovers.empty())
 		return 0;
 	
-	if(true); //dont erase delim, either end of buffer, or beginnning of leftover 
+	// if(true); //dont erase delim, either end of buffer, or beginnning of leftover 
 	size_t pos = _leftovers.find(delim);
 	if (pos == std::string::npos) {
 		_buffer = _leftovers;

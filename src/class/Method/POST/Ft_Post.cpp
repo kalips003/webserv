@@ -28,13 +28,13 @@ int		Ft_Post::treatMultipart() {
 
 	const std::string* c_type = _request.find_in_headers("Content-Type");
 	if (!c_type)
-		return ; // some http error content type missing
+		return 0; // some http error content type missing
 
 // Content-Type: multipart/form-data; boundary=abc; charset=UTF-8
 // Content-Type: multipart/form-data; boundary=----geckoformboundaryeb47a963ac0d54a6202a6abec127252
 	size_t pos = (*c_type).find("multipart/form-data");
 	if (pos == std::string::npos)
-		return ; // not multipart
+		return 0; // not multipart
 	
 	std::string boundary;
 	std::vector<std::string> v = splitOnDelimitor(*c_type, ";");
@@ -48,7 +48,7 @@ int		Ft_Post::treatMultipart() {
 		}
 	}
 	if (boundary.empty())
-		return ; // error
+		return 0; // error
 
 	_request.getFile().resetFileFd();
 	std::vector<HttpMultipart> body_parts;
@@ -63,39 +63,35 @@ int		Ft_Post::treatMultipart() {
 			return rtrn;
 		if (rtrn == HttpObj::CLOSED) // EOF found before delim
 			return 400;
-		if (rtrn ==  HttpObj::DOING) { // this instance found (--BOUNDARY) _buffer the last read, _leftovers the rest
+		// if (rtrn ==  HttpObj::DOING) { // this instance found (--BOUNDARY) _buffer the last read, _leftovers the rest
 
-			std::string& leftover = body_parts.back().getLeftovers();
-			if (leftover.size() >= boundary.size() + 4) {
-				if (leftover[boundary.size() + 3] == '\r' && leftover[boundary.size() + 3] == '\n')
-					; // write _buffer into file = file is finished
-					; // remove \r\n from _leftover
-					; // push_back new Multipart(body_parts.back())
-				else if (leftover[boundary.size() + 3] == '-' && leftover[boundary.size() + 3] == '-')
-					if (stuff after, is it malformed?)
-					; // write _buffer into file = file is finished
-					; // finished
+		// 	std::string& leftover = body_parts.back().getLeftovers();
+		// 	if (leftover.size() >= boundary.size() + 4) {
+		// 		if (leftover[boundary.size() + 3] == '\r' && leftover[boundary.size() + 3] == '\n')
+		// 			; // write _buffer into file = file is finished
+		// 			; // remove \r\n from _leftover
+		// 			; // push_back new Multipart(body_parts.back())
+		// 		else if (leftover[boundary.size() + 3] == '-' && leftover[boundary.size() + 3] == '-')
+		// 			if (stuff after, is it malformed?)
+		// 			; // write _buffer into file = file is finished
+		// 			; // finished
 			
 			
-			} else {
-				read(_request.getFile()._fd, _data._buffer, 2);
+		// 	} else {
+		// 		read(_request.getFile()._fd, _data._buffer, 2);
 			
-			}
+		// 	}
 		
 
 
 
 		}
-	
-	
-
-	
-	}
+	// }
 
 	// after reading headers and such
-	obj.setBytesWritten(0);
-	obj.getFile().createTempFile(&g_settings.getTempRoot());
-
+	// obj.setBytesWritten(0);
+	// obj.getFile().createTempFile(&g_settings.getTempRoot());
+	return 0;
 }
 
-int helper()
+// int helper()

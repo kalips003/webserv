@@ -49,7 +49,7 @@ public:
 	int		appendFile(const std::string& path);
 
 private:
-	void	treatMultipart();
+	int	treatMultipart();
 
 };
 

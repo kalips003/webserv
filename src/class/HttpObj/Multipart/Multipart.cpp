@@ -6,6 +6,7 @@
 #include "Tools1.hpp"
 // #include "HttpMethods.hpp"
 #include "SettingsServer.hpp"
+#include <cstddef>
 
 ///////////////////////////////////////////////////////////////////////////////]
 /*
@@ -86,14 +87,14 @@ int		HttpMultipart::readingBody(char *buff, size_t sizeofbuff, int fd) {
 
 	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, "\r\n" + _delim, false, to_store_to); // << keep boundary
 	if(read_rtrn == -2) { // not found yet
-		if (_bytes_written > _bytes_total) {
+		if (_bytes_written > static_cast<size_t>(_bytes_total)) {
 			LOG_WARNING("Tempfile size (" RED << _bytes_total << RESET ") reached before finding: " << _delim)
 			return 400;
 		}
 	
 		ssize_t rtrn_write;
 		size_t to_write_to_file = _buffer.size() >= _delim.size() + 2 ? _buffer.size() - _delim.size() - 1 : 0;
-		if ((rtrn_write = write(_tmp_file._fd, _buffer.c_str(), to_write_to_file)) < to_write_to_file) {
+		if (static_cast<size_t>(rtrn_write = write(_tmp_file._fd, _buffer.c_str(), to_write_to_file)) < to_write_to_file) {
 			LOG_ERROR_SYS("readingBody(): write(): partial write");
 			return 500;
 		}
