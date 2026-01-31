@@ -38,7 +38,7 @@ void SettingsServer::setAllBlockLocations() {
 			it = _block_settings.erase(it);
 			continue;
 		}
-	LOG_LOG(C_431 "BLOCK: \n" RESET << *it);
+		LOG_DEBUG(C_431 "BLOCK: \n" RESET << *it);
 	}
 }
 
@@ -131,7 +131,7 @@ bool	SettingsServer::setLocationData(block& for_this_block, const std::vector<co
 static std::string rtrnWordMatch(const block& for_this_block, const std::string& setting_to_find, const std::vector<const block*>& map_of_matches) {
 
 	map_strstr::const_iterator match = for_this_block.settings.find(setting_to_find);
-	if (match != for_this_block.settings.end())
+	if (match != for_this_block.settings.end()) //  && !match->second.empty() if i want inheritance in case of empty
 		return match->second;
 
 	for (std::vector<const block*>::const_iterator it = map_of_matches.begin(); it != map_of_matches.end(); ++it) {

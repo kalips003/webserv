@@ -29,10 +29,6 @@ void	Connection::closeFd() {
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Use internal _status do decide what to do with the given buffer */
 bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
-	// LOG_LOG("ft_update(): buffer{" << std::string(buff, sizeofbuff) << "}");
-	LOG_LOG("ft_update(): this " << this);
-
-	LOG_HERE("_status : " << _status);
 
 	if (_status == READING) {
 		if (_request.getStatus() != HttpObj::READING_FIRST)
@@ -54,7 +50,6 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 	if (_status == SENDING) {
 		LOG_DEBUG(printFd(_data._client_fd) << "--- SENDING --- ");
 		_status = ft_send(buff, sizeofbuff);
-		LOG_HERE("_status : " << _status);
 	}
 
 	if (_status == CLOSED) {

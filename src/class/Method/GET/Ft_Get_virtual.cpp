@@ -55,7 +55,7 @@ int		Ft_Get::howToHandleFileNotExist(const std::string& ressource, int rtrn_open
 #include <fcntl.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /** */
-int		Ft_Get::handleFile(std::string& path) {
+int		Ft_Get::handleFileExist(std::string& path) {
 
 	if (access(path.c_str(), R_OK) != 0) { // even if file exist, might not be readable by server {
 		LOG_DEBUG("handleFile(): access(): 403");
@@ -97,7 +97,7 @@ int		Ft_Get::handleDir(std::string& ressource) {
 // file exist, serve it
 	if (!rtrn) {
 		LOG_DEBUG("Default file found: (" << default_file << ")");
-		return handleFile(default_file);
+		return handleFileExist(default_file);
 	}
 
 // only 404, try autoindexing

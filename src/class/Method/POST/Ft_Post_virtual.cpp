@@ -62,7 +62,7 @@ int		Ft_Post::howToHandleFileNotExist(const std::string& ressource, int rtrn_ope
 //	
 	if (rtrn_open == 404) {
 
-		const std::string& tmp_path = getRequest().getFile()._path;
+		const std::string& tmp_path = _request.getFile()._path;
 		if (tmp_path.empty())
 			return 400; // the request didnt include a body
 
@@ -71,9 +71,9 @@ int		Ft_Post::howToHandleFileNotExist(const std::string& ressource, int rtrn_ope
 			return 500;
 		}
 		// HttpRequest still own the fd and /path of the temp, but cleared in destructor
-		getAnswer().getFile().closeTemp(false); // can also remove it manually now
+		_answer.getFile().closeTemp(false); // can also remove it manually now
 
-		getAnswer().setFirstLine(201);
+		_answer.setFirstLine(201);
 		return Connection::SENDING;
 	}
 	else {// if (rtrn_open == 403)
@@ -83,7 +83,7 @@ int		Ft_Post::howToHandleFileNotExist(const std::string& ressource, int rtrn_ope
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-int		Ft_Post::handleFile(std::string& path) {
+int		Ft_Post::handleFileExist(std::string& path) {
 
 // does folder we wanna put the file in exist? and permission?
 	std::string folder_path = path.substr(0, path.find_last_of("/"));
@@ -104,12 +104,12 @@ int		Ft_Post::handleFile(std::string& path) {
 		return 409;
 	}
 	else if (post_policy == "replace") { // open(O_WRONLY | O_CREAT | O_TRUNC)
-		const std::string& tmp_path = getRequest().getFile()._path;
+		const std::string& tmp_path = _request.getFile()._path;
 		if (rename(tmp_path.c_str(), path.c_str()) < 0) { // if file already exist, replace it silently
 			LOG_ERROR("rename()");
 			return 500;
 		}
-		getRequest().getTempFile().closeTemp(false);
+		_request.getTempFile().closeTemp(false);
 	}
 	else if (post_policy == "append")
 		return appendFile(path);
@@ -127,7 +127,7 @@ int		Ft_Post::handleFile(std::string& path) {
 int		Ft_Post::appendFile(const std::string& path) {// open(O_WRONLY | O_CREAT | O_APPEND)
 
 
-	int src_fd = getRequest().getFile()._fd;
+	int src_fd = _request.getFile()._fd;
 	if (src_fd < 0)
 	{
 		LOG_ERROR("appendFile(): You shouldnt see this");
@@ -144,13 +144,13 @@ int		Ft_Post::appendFile(const std::string& path) {// open(O_WRONLY | O_CREAT | 
 	ssize_t n;
 	while ((n = read(src_fd, buf, sizeof(buf))) > 0) {
 		if (write(dest_fd, buf, n) != n) {
-			LOG_ERROR("Append from: " << getRequest().getFile()._path << " to: " << path << " failed\n");
+			LOG_ERROR("Append from: " << _request.getFile()._path << " to: " << path << " failed\n");
 			close(dest_fd);
 			return 500; // partial write happened
 		}
 	}
 	if (n < 0) {
-		LOG_ERROR("Append from: " << getRequest().getFile()._path << " to: " << path << " failed\n");
+		LOG_ERROR("Append from: " << _request.getFile()._path << " to: " << path << " failed\n");
 		close(dest_fd);
 		return 500;
 	}
@@ -177,16 +177,16 @@ void	Ft_Post::prepareChild(const std::string& ressource, const std::string& quer
 	setenv("SCRIPT_FILENAME", ressource.c_str(), 1);
 	setenv("REDIRECT_STATUS", "200", 1);
 
-	std::string content_length = itostr(getRequest().getFile().getBodySize());
+	std::string content_length = itostr(_request.getFile().getBodySize());
 	setenv("CONTENT_LENGTH", content_length.c_str(), 1);
-	const std::string* content_type = getRequest().find_in_headers("content-type");
+	const std::string* content_type = _request.find_in_headers("content-type");
 	if (!content_type)
 		LOG_WARNING("CGI POST, Content-Type missing");
 	setenv("CONTENT_TYPE", (*content_type).c_str(), 1);
 	setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
 	
-	int fd_body_tmp = getRequest().getFile()._fd;
+	int fd_body_tmp = _request.getFile()._fd;
 	if (fd_body_tmp >= 0) {
 		lseek(fd_body_tmp, 0, SEEK_SET);
 		dup2(fd_body_tmp, STDIN_FILENO);

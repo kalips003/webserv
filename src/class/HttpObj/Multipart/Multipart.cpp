@@ -22,6 +22,7 @@
 	\r\n
 	--BOUNDARY--\r\n
  */
+/**	@return HttpObj::DOING if finished finding last delim, CLOSED on EOF */
 int		HttpMultipart::parse_multifile(char *buff, size_t sizeofbuff, int fd) {
 
 	int rtrn;
@@ -31,6 +32,9 @@ int		HttpMultipart::parse_multifile(char *buff, size_t sizeofbuff, int fd) {
 		rtrn = readingFirstLine(buff, sizeofbuff, fd);
 		if (rtrn >= 100)
 			return rtrn;
+		LOG_ERROR("rtrn = " << rtrn << "; _delim = " << _delim);
+		LOG_INFO("_first = {" << _first << "}");
+		LOG_LOG("_buffer = {" << _buffer << "}");
 
 		_status = static_cast<HttpBodyStatus>(rtrn);
 		if (_status == HttpObj::READING_HEADER) {
@@ -63,7 +67,7 @@ int		HttpMultipart::parse_multifile(char *buff, size_t sizeofbuff, int fd) {
 
 	if (_status == READING_BODY) { LOG_DEBUG("parse_multifile(): READING_BODY");
 
-		rtrn = streamingBody(buff, sizeofbuff, fd);
+		rtrn = readingBody(buff, sizeofbuff, fd);
 		if (rtrn >= 100)
 			return rtrn;
 		_status = static_cast<HttpBodyStatus>(rtrn);
@@ -85,7 +89,7 @@ int		HttpMultipart::readingBody(char *buff, size_t sizeofbuff, int fd) {
 
 	StringSink			to_store_to(_buffer);
 
-	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, "\r\n" + _delim, false, to_store_to); // << keep boundary
+	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, "\r\n" + _delim, true, to_store_to); // << keep boundary
 	if(read_rtrn == -2) { // not found yet
 		if (_bytes_written > static_cast<size_t>(_bytes_total)) {
 			LOG_WARNING("Tempfile size (" RED << _bytes_total << RESET ") reached before finding: " << _delim)

@@ -71,7 +71,6 @@ int		HttpObj::receive_request(char *buff, size_t sizeofbuff, int fd) {
 		rtrn = readingFirstLine(buff, sizeofbuff, fd);
 		if (rtrn >= 100)
 			return rtrn;
-
 		_status = static_cast<HttpBodyStatus>(rtrn);
 		if (_status == HttpObj::READING_HEADER) {
 			rtrn = this->isFirstLineValid(fd);
@@ -131,7 +130,7 @@ int		HttpObj::readingFirstLine(char *buff, size_t sizeofbuff, int fd) {
 	const std::string	delim = "\r\n";
 	StringSink			to_store_to(_first);
 
-	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, delim, true, to_store_to);
+	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, delim, false, to_store_to); // << put back in false, propagate from above
 	if(read_rtrn == -2) {
 		if (_bytes_written > MAX_LIMIT_FOR_HEAD) {
 			LOG_ERROR("Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF");

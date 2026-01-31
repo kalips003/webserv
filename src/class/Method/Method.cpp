@@ -50,6 +50,13 @@ int Method::normal_doing() {
 	SettingsServer::getFullPath(ressource, sanitized); // validity checked in request.validateLocationBlock()
 	LOG_LOG("Full path of the asked ressource: " << ressource);
 
+// HANDLE FILE
+	return handleFile(ressource, query, sanitized);
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+int Method::handleFile(std::string& ressource, std::string& query, std::string& sanitized) {
+
 // DOESNT EXIST
 	int rtrn;
 	struct stat ressource_info;
@@ -64,7 +71,7 @@ int Method::normal_doing() {
 		if (CGI_interpreter_path)
 			return iniCGI(ressource, query, CGI_interpreter_path);
 		else
-			return this->handleFile(ressource);
+			return this->handleFileExist(ressource);
 	}
 // is DIRECTORY 
 	else if (S_ISDIR(ressource_info.st_mode)) {
@@ -79,6 +86,8 @@ int Method::normal_doing() {
 	else
 		return 403; // other filesystem objects: symlinks, sockets, devices, FIFOs…
 }
+
+
 
 // #include <signal.h>
 // #include <unistd.h>

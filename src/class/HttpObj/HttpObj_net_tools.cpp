@@ -103,12 +103,18 @@ ssize_t		HttpObj::readForDelim(char *buff, size_t sizeofbuff, int fd, const std:
 		LOG_ERROR_SYS(printFd(fd) << "→ readForDelim(): partial write() detected");
 		return 500;
 	}
-	_leftovers = _buffer.substr(pos + (remove_delim ? delim.size() : 0));
+	_leftovers = _buffer.substr(pos + (remove_delim ? 0 : delim.size()));
 	_buffer.clear();
 	
 	return 1;
 }
-
+// _buffer = hello<delim>reste
+// remove_delim = false
+// _destination : hello<delim>
+// _leftovers : reste
+// remove_delim = true
+// _destination : hello
+// _leftovers : <delim>reste
 ///////////////////////////////////////////////////////////////////////////////]
 /***  								SEND									***/
 ///////////////////////////////////////////////////////////////////////////////]
@@ -129,9 +135,7 @@ ssize_t	HttpObj::sendBufferString(char *buff, size_t sizeofbuff, int fd, std::st
 	if (bytesSent <= 0)
 		return bytesSent;
 
-oss msg; msg << "[#" << printFd(fd) << "] " << C_134 "packet sent (" RESET << bytesSent << C_134 " bytes)" RESET; printLog(INFO, msg.str(), 1);
-// msg.str(""); msg << C_134 "Packet: [" RESET << to_send_from.substr(0, bytesSent) << C_134 "]" RESET;printLog(DEBUG, msg.str(), 1);
-
+	LOG_INFO(printFd(fd) << C_134 "packet sent (" RESET << bytesSent << C_134 " bytes)" RESET);
 	to_send_from.erase(0, bytesSent);
 
 	return bytesSent;

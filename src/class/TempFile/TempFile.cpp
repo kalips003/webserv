@@ -1,6 +1,5 @@
 #include "HttpObj.hpp"
 
-#include "Log.hpp"
 #include "Tools1.hpp"
 #include "Tools2.hpp"
 

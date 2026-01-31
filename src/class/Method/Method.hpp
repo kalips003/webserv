@@ -74,6 +74,7 @@ public:
 				_location_block(NULL) {}
 
 	virtual	~Method();
+int handleFile(std::string& ressource, std::string& query, std::string& sanitized);
 
 
 //-----------------------------------------------------------------------------]
@@ -122,7 +123,7 @@ public:
 * @param ressource_info: initialized stat struct of ressource
 * @return	Must return directly the correct ft_do return 
 *	(0 on success, or errCode)	---*/
-	virtual int		handleFile(std::string& ressource) = 0;
+	virtual int		handleFileExist(std::string& ressource) = 0;
 //-----------------------------------------------------------------------------]
 /** If the ressource exist and is a Directory, how should the Method handle it?
 * @param ressource: the cleaned absolute path of the request

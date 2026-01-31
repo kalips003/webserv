@@ -43,11 +43,12 @@ public:
 	void	printHello();
 	int		exec_cgi();
 	int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
-	int		handleFile(std::string& ressource);
+	int		handleFileExist(std::string& ressource);
 	int		handleDir(std::string& ressource);
 	void	prepareChild(const std::string& ressource, const std::string& query);
 	int		appendFile(const std::string& path);
 
+	void setlocationBlock(block* b) { _location_block = b; }
 private:
 	int	treatMultipart();
 

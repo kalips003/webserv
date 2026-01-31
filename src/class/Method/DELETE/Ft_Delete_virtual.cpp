@@ -54,7 +54,7 @@ int		Ft_Delete::howToHandleFileNotExist(const std::string& ressource, int rtrn_o
 ///////////////////////////////////////////////////////////////////////////////]
 // DELETE /file
 /** */
-int		Ft_Delete::handleFile(std::string& path) {
+int		Ft_Delete::handleFileExist(std::string& path) {
 
 //	/path/to/to_delete/file > /path/to/to_delete
 	std::string folder_path = path.substr(0, path.find_last_of("/"));

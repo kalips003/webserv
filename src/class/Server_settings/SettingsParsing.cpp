@@ -154,12 +154,12 @@ static bool	parse_blocks(std::ifstream& file, std::string& line, size_t pos, blo
 			s2 = trim_white(s2.substr(0, s2.size() - 1));
 		if (s2.empty()) return true;
 		if (s2.find('}') != std::string::npos) {
-			LOG_ERROR(ERR0 RED "invalid block: [" RESET << s << RED "]" RESET);
+			LOG_ERROR(RED "invalid block: [" RESET << s << RED "]" RESET);
 			return false;
 		}
 		size_t pos = s2.find_first_of(" \t");
 		if (pos == std::string::npos) {
-			LOG_WARNING(ERR0 RED "block are without value: [" RESET << s << RED "]" RESET);
+			LOG_WARNING(RED "block are without value: [" RESET << s << RED "]" RESET);
 			b.settings[s2] = "";
 			continue ;
 		}

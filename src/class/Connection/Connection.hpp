@@ -77,6 +77,14 @@ public:
 		_status(READING), 
 		_data() { _data._this_ptr = this; }
 
+	Connection(char* buffer, size_t size) :
+		_client_addr(), 
+		_addr_len(sizeof(_client_addr)),
+		_body_task(NULL), 
+		_status(READING), 
+		_data() { _data._this_ptr = this; 
+					_data._buffer = buffer; _data._sizeofbuff = size; }
+
 	Connection(int fd, int epoll, struct sockaddr_in c, socklen_t al, char* buffer, size_t size) :
 		_client_addr(c), 
 		_addr_len(al), 
@@ -118,6 +126,7 @@ public:
 	HttpAnswer&					getAnswer() { return _answer; }
 	Method*						getBodyTask() const { return _body_task; }
 	ConnectionStatus			getStatus() const { return _status; }
+	const transfer_data&		getTransferData() { return _data; }
 //-----------------------------------------------------------------------------]
 public:
 	std::string					findRequestHeader(const std::string& header);

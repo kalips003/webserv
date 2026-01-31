@@ -180,7 +180,7 @@ void	HttpObj::setDefaultHeaders() {
 	_headers["date"] = std::string(buf);
 
 // Last modified timestamp of the file
-	if (_tmp_file._fd) {
+	if (_tmp_file._fd != -1) {
 		_tmp_file.updateStat();
 		t = _tmp_file._info.st_mtime;
 		gmtime_r(&t, &tm_utc);

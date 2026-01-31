@@ -109,6 +109,7 @@ public:
 	temp_file&			getFile() { return _tmp_file; }
 	std::string&		getBuffer() { return _buffer; }
 	std::string&		getLeftovers() { return _leftovers; }
+	std::string&		getFirst() { return _first; }
 //-----------------------------------------------------------------------------]
 public:
 	const std::string*	find_in_headers(const std::string& set) const ;
