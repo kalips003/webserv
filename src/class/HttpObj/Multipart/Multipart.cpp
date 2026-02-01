@@ -107,7 +107,6 @@ int		HttpMultipart::tool_check_next_two_char(int fd) {
 			end[0] = _leftovers[_delim.size() + 2];
 		_bytes_written += read_rtrn;
 	}
-LOG_LOG("end: ["<< end << "]")
 	_leftovers.erase(0, 2); // erase first '\r\n' in previsions for the next HttpMultipart
 
 	if (end[0] == '-' && end[1] == '-') {

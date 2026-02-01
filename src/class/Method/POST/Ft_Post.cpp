@@ -5,6 +5,9 @@
 #include "Multipart.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 /*
+	Content-Disposition: form-data; name="file"; filename="a.txt"\r\n // mandatory
+	filename present → file | no filename → regular form field
+
 	--BOUNDARY\r\n
 	<part headers>\r\n
 	\r\n
@@ -17,28 +20,12 @@
 	\r\n
 	--BOUNDARY--\r\n
  */
- /* 		filename present → file | no filename → regular form field
-	Content-Disposition: form-data; name="file"; filename="a.txt"\r\n // mandatory
-	Content-Type: text/plain\r\n // Content-Type is optional (default: text/plain)
-	\r\n
-	hello world\n
-	\r\n
-*/
-
-
-/* other "Content-Type":
-application/x-www-form-urlencoded
-	username=kali&age=42&debug=true
-
-application/json
-	{"user":"kali","admin":true}
-
-text/plain
-	hello server
-
-application/octet-stream
-	binary
- */
+///////////////////////////////////////////////////////////////////////////////]
+/** Implementation of Method::treatContentType (that return -1)
+* here to treat "Content-Type" (implemented, only multipart/form-data) 
+* this function find content type == multipart/form-data and recover the boundary
+* the next one does the splitting and treating of _request._tmp_file
+* @return -1 if no multipart, errCode on any error, Connection::SENDING if all goes well */
 int		Ft_Post::treatContentType(std::string& ressource, std::string& query) {
 
 // IS Content-Type = multipart/form-data?
@@ -69,14 +56,6 @@ int		Ft_Post::treatContentType(std::string& ressource, std::string& query) {
 	return treatMultipart(delim, ressource, query);
 }
 
-#include <iostream>
-///////////////////////////////////////////////////////////////////////////////]
-/**		--BOUNDARY\r\n
-		<part headers>\r\n
-		\r\n
-		<part body>
-		\r\n
-		--BOUNDARY-- 		*/
 ///////////////////////////////////////////////////////////////////////////////]
 /** Parses a multipart/form-data request body, splits it into individual parts,
  * and processes each part (file or metadata) against the target resource.
@@ -99,7 +78,6 @@ int		Ft_Post::treatMultipart(std::string& delim, std::string& ressource, std::st
 // loop fills vector
 	HttpObj::HttpBodyStatus status = body_parts.back().getStatus();
 	while (status != HttpObj::DOING) {
-		LOG_ERROR("about to receive: " << current)
 		int rtrn = current->receive(_data._buffer, _data._sizeofbuff, fd_original, ::read);
 		if (rtrn >= 100)
 			return rtrn;
@@ -123,10 +101,8 @@ int		Ft_Post::treatMultipart(std::string& delim, std::string& ressource, std::st
 				body_parts.push_back(HttpMultipart(*current));
 				current = &body_parts.back();
 				status = current->getStatus();
-				LOG_ERROR("about to continue in first loop: " << rtrn << "size vector: " << body_parts.size())
 				continue;
 			}
-			LOG_ERROR("about to break from first loop: " << rtrn)
 			// rtrn == HttpObj::CLOSED
 			break;
 		}
@@ -154,3 +130,17 @@ int		Ft_Post::treatMultipart(std::string& delim, std::string& ressource, std::st
 	_answer.setFirstLine(201);
 	return Connection::SENDING;
 }
+
+/* other "Content-Type":
+application/x-www-form-urlencoded
+	username=kali&age=42&debug=true
+
+application/json
+	{"user":"kali","admin":true}
+
+text/plain
+	hello server
+
+application/octet-stream
+	binary
+ */

@@ -40,7 +40,7 @@ int Method::normal_doing() {
 	std::string sanitized;
 	if (SettingsServer::sanitizePath(sanitized, path))
 		return 400;
-	LOG_LOG("path after sanitizePath: " << sanitized);
+	LOG_LOG("path (" <<  _request.getPath() << ") after sanitizePath: " << sanitized);
 
 // set Method::_location_data* from all the location /blocks
 	_location_block = SettingsServer::isLocationKnown(sanitized); // validity checked in request.validateLocationBlock()
@@ -58,7 +58,7 @@ int Method::normal_doing() {
 		_answer.addToHeaders("Location", sanitized + "/");
 		return Connection::SENDING;
 	}
-	
+
 // check "Content-Type" = "multipart/form-data";
 	int rtrn = this->treatContentType(ressource, query);
 	if (rtrn != -1)
@@ -84,7 +84,7 @@ int Method::handleRessource(std::string& ressource, std::string& query) {
 
 // is FILE
 	if (S_ISREG(ressource_info.st_mode)) {
-		LOG_LOG("is FILE");
+		LOG_DEBUG("is FILE");
 		const std::string* CGI_interpreter_path = isCGI(ressource); // ptr to /usr/bin/python3;
 		if (CGI_interpreter_path)
 			return iniCGI(ressource, query, CGI_interpreter_path);
@@ -93,7 +93,7 @@ int Method::handleRessource(std::string& ressource, std::string& query) {
 	}
 // is DIRECTORY 
 	else if (S_ISDIR(ressource_info.st_mode)) {
-		LOG_LOG("is DIRECTORY");
+		LOG_DEBUG("is DIRECTORY");
 		return this->handleDir(ressource);
 	}
 	else
