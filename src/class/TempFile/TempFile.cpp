@@ -25,6 +25,7 @@ temp_file& temp_file::operator=(const temp_file& other) {
 	if (this != &other && other._fd >= 0) {
 		_path = other._path;
 		_fd = open(_path.c_str(), O_RDWR | O_CLOEXEC);
+		_delete = other._delete;
 	}
 	return *this;
 }
@@ -80,7 +81,13 @@ bool	temp_file::createTempFile(const std::string* root_path) {
 }
 
 /////////////////////////////////////////////////////////////////////////////]
-// O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC, 0666
+/** Opens a file at the given path with the O_CLOEXEC + specified flags. 
+ * (O_RDWR | O_CREAT | O_EXCL, 0666)
+ * If tmp is true, the file will be marked for deletion on close.
+ *
+ * Returns:
+ *  - true  : file successfully opened
+ *  - false : path empty, file already open, or open() failed  ---*/
 bool	temp_file::openFile(const std::string& path, int flags, bool tmp) {
 
 	if (path.empty() || _fd != -1)
@@ -135,15 +142,18 @@ bool temp_file::updateFlags(int flags_to_remove, int flags_to_add) {
 
 
 ///////////////////////////////////////////////////////////////////////////////]
+/** @return the size of the file if exist */
 ssize_t	temp_file::getBodySize() {
+	if (_fd < 0 || _path.empty()) return 0;
 	if (!updateStat()) return -1;
 	return _info.st_size;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
+/** Closes the file descriptor and optionally deletes the file. */
 void	temp_file::closeTemp(bool del) {
 
-	if (del)
+	if (del && !_path.empty())
 		unlink(_path.c_str());
 	_path.clear();
 
@@ -156,7 +166,7 @@ void	temp_file::closeTemp(bool del) {
 #include <fcntl.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Reset the fd of the file to point at the start of it */
-void	temp_file::resetFileFd() {
+void	temp_file::resetFileFdBegining() {
 	lseek(_fd, 0, SEEK_SET);
 }
 
@@ -166,4 +176,19 @@ std::ostream& operator<<(std::ostream& os, const temp_file& r) {
 
 	os << C_542 "File (fd=" RESET << r._fd << C_542 ") _path: {\n" RESET << r._path << C_542 "}" RESET << std::endl;
 	return os;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+temp_file& temp_file::operator<=(temp_file& other) {
+	if (this != &other) {
+		closeTemp(true);
+		_fd = other._fd;
+		_path = other._path;
+		_delete = other._delete;
+		
+		other._fd = -1;
+		other._path.clear();
+		other._delete = false;
+	}
+	return *this;
 }

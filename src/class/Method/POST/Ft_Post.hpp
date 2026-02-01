@@ -40,17 +40,20 @@ public:
 	Ft_Post(const t_connec_data& data) : Method(data) {}
 
 // parent virtual funcitons:
-	void	printHello();
-	int		exec_cgi();
-	int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
-	int		handleFileExist(std::string& ressource);
-	int		handleDir(std::string& ressource);
-	void	prepareChild(const std::string& ressource, const std::string& query);
-	int		appendFile(const std::string& path);
+	virtual void	printHello();
+	virtual int		exec_cgi();
+	virtual int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
+	virtual int		handleFileExist(std::string& ressource);
+	virtual int		handleDir(std::string& ressource);
+	virtual void	prepareChild(const std::string& ressource, const std::string& query);
+	virtual int		appendFile(const std::string& path);
+	virtual int		treatContentType(std::string& ressource, std::string& query);
 
-	void setlocationBlock(block* b) { _location_block = b; }
 private:
-	int	treatMultipart();
+	int			treatMultipart(std::string& delim, std::string& ressource, std::string& query);
+
+/**	SETTERS */
+	void 	setlocationBlock(block* b) { _location_block = b; }
 
 };
 

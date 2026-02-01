@@ -63,6 +63,9 @@ int		HttpRequest::parseHeadersForValidity() {
 	if (!_bytes_total)
 		return HttpObj::DOING;
 
+	if (_bytes_total != 0 && !(_method == "POST" || _method == "PUT" || _method == "PATCH"))
+		return HttpObj::DOING;
+
 // there is a body, we create it
 	if (!_tmp_file.createTempFile(&g_settings.getTempRoot()))
 		return 500;
@@ -113,7 +116,7 @@ int		HttpRequest::validateLocationBlock(ssize_t body_size) {
 		return 405;
 	}
 // check is method require a body
-	if ((_method == "POST" || _method == "PUT") && !body_size) {
+	if ((_method == "POST" || _method == "PUT" || _method == "PATCH") && !body_size) {
 		LOG_WARNING("Method " << _method << " require a body");
 		return 411; // 411 Length Required
 	}

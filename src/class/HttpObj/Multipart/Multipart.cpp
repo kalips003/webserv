@@ -23,102 +23,106 @@
 	--BOUNDARY--\r\n
  */
 /**	@return HttpObj::DOING if finished finding last delim, CLOSED on EOF */
-int		HttpMultipart::parse_multifile(char *buff, size_t sizeofbuff, int fd) {
-
-	int rtrn;
-
-	if (_status == HttpObj::READING_FIRST) { LOG_DEBUG("parse_multifile(): READING_FIRST");
-		
-		rtrn = readingFirstLine(buff, sizeofbuff, fd);
-		if (rtrn >= 100)
-			return rtrn;
-		LOG_ERROR("rtrn = " << rtrn << "; _delim = " << _delim);
-		LOG_INFO("_first = {" << _first << "}");
-		LOG_LOG("_buffer = {" << _buffer << "}");
-
-		_status = static_cast<HttpBodyStatus>(rtrn);
-		if (_status == HttpObj::READING_HEADER) {
-			rtrn = this->isFirstLineValid(fd);
-			if (rtrn)
-				return rtrn;
-		}
-	}
-
-	if (_status == READING_HEADER) { LOG_DEBUG("parse_multifile(): READING_HEADER");
-		
-		rtrn = readingHeaders(buff, sizeofbuff, fd);
-		if (rtrn >= 100)
-			return rtrn;
-		
-		_status = static_cast<HttpBodyStatus>(rtrn);
-		if (_status == HttpObj::READING_BODY) {
-			rtrn = parse_head_for_headers(); // check syntax
-			if (rtrn)
-				return rtrn;
-
-			rtrn = this->parseHeadersForValidity();
-			if (rtrn >= 100)
-				return rtrn;
-			_status = static_cast<HttpBodyStatus>(rtrn);
-			if (!_tmp_file.createTempFile(&g_settings.getTempRoot()))
-				return 500;
-		}
-	}
-
-	if (_status == READING_BODY) { LOG_DEBUG("parse_multifile(): READING_BODY");
-
-		rtrn = readingBody(buff, sizeofbuff, fd);
-		if (rtrn >= 100)
-			return rtrn;
-		_status = static_cast<HttpBodyStatus>(rtrn);
-	}
-
-	if (_status == CLOSED) { LOG_DEBUG("parse_multifile(): CLOSED");
-		LOG_INFO(printFd(fd) << "→ " RED "READ closed (EOF)" RESET);
-	}
-	
-	return _status;
-}
-
-
 //-----------------------------------------------------------------------------]
 /**
 // _bytes_total should have the value of other._body.size
 // _bytes_written get incremented, never reset */
-int		HttpMultipart::readingBody(char *buff, size_t sizeofbuff, int fd) {
+int		HttpMultipart::readingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 
 	StringSink			to_store_to(_buffer);
 
-	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, "\r\n" + _delim, true, to_store_to); // << keep boundary
-	if(read_rtrn == -2) { // not found yet
-		if (_bytes_written > static_cast<size_t>(_bytes_total)) {
-			LOG_WARNING("Tempfile size (" RED << _bytes_total << RESET ") reached before finding: " << _delim)
-			return 400;
-		}
-	
-		ssize_t rtrn_write;
-		size_t to_write_to_file = _buffer.size() >= _delim.size() + 2 ? _buffer.size() - _delim.size() - 1 : 0;
-		if (static_cast<size_t>(rtrn_write = write(_tmp_file._fd, _buffer.c_str(), to_write_to_file)) < to_write_to_file) {
-			LOG_ERROR_SYS("readingBody(): write(): partial write");
-			return 500;
-		}
-		_buffer.erase(0, to_write_to_file);
-		return HttpObj::READING_BODY;
-	}
+	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, "\r\n" + _delim, 0b10, to_store_to, reader); // << keep boundary in _leftovers
 	if (read_rtrn == 500)
 		return 500;
 	if (!read_rtrn)
 		return HttpObj::CLOSED; // EOF found
 	if (read_rtrn == -1)
 		return HttpObj::READING_BODY;
+	
+	size_t to_write_to_file;
+	if (read_rtrn == -2) { // not found yet
+		if (_bytes_written > static_cast<size_t>(_bytes_total)) {
+			LOG_WARNING("Tempfile size (" RED << _bytes_total << RESET ") reached before finding: " << _delim)
+			return 400;
+		}
+		to_write_to_file = _buffer.size() >= _delim.size() + 2 ? _buffer.size() - _delim.size() - 1 : 0;
+	}
+	else // found
+		to_write_to_file = _buffer.size();
 
-//	read_rtrn == 1 (--BOUNDARY was found) _buffer the last read, _leftovers the rest
-	// check next 2 char , we only found \r\n--DELIM..
-	// check for \r\n or -- or 400
+	ssize_t rtrn_write;
+	if (static_cast<size_t>(rtrn_write = write(_tmp_file._fd, _buffer.c_str(), to_write_to_file)) < to_write_to_file) {
+		LOG_ERROR_SYS("readingBody(): write(): partial write");
+		return 500;
+	}
+	// LOG_DEBUG("readingBody() is found: _buffer before: " << _buffer);
+	_buffer.erase(0, to_write_to_file);
 
-	LOG_DEBUG("readingBody() is found: " << _buffer);
+	if (read_rtrn == -2)
+		return HttpObj::READING_BODY;
+//	read_rtrn == 1 (r\n--BOUNDARY was found) written to to_store_to, _leftovers the rest (boundary included)
+	// LOG_DEBUG("readingBody() is found: _buffer: " << _buffer);
+	// LOG_DEBUG("readingBody() is found: _leftovers: " << _leftovers);
 	return HttpObj::DOING;
 }
+
+/*
+	--BOUNDARY\r\n
+	<part headers>\r\n
+	\r\n
+	<part body>
+	\r\n
+	--BOUNDARY\r\n
+	<part headers>\r\n
+	\r\n
+	<part body>
+	\r\n
+	--BOUNDARY--\r\n
+ */
+///////////////////////////////////////////////////////////////////////////////]
+/** Checks the next two bytes after a multipart found its boundary to check if
+ * final "--", continue "\r\n", or malformed request (400)
+ * 
+ * Reads from _leftovers or the underlying fd if necessary.
+ * Consumes the leading "\r\n" before the boundary and updates _bytes_written.
+ *
+ * @return - HttpObj::DOING  : a regular boundary was found, more parts follow
+ * @return - HttpObj::CLOSED : final boundary ("--") found, optionally allowing a trailing CRLF
+ * @return - 400             : invalid multipart formatting or unexpected data 	---*/
+int		HttpMultipart::tool_check_next_two_char(int fd) {
+
+	char end[3] = "..";
+	ssize_t stuff_after_delim = _leftovers.size() - (_delim.size() + 2);
+// LOG_HERE(RED "0.3: _leftovers: {" RESET << _leftovers <<RED "}\n" RESET "stuff_after_delim: " << stuff_after_delim)
+	if (stuff_after_delim >= 2) {// [\r\n + DELIM + ".."]
+		end[0] = _leftovers[_delim.size() + 2];
+		end[1] = _leftovers[_delim.size() + 3];
+	}
+	else {
+		ssize_t read_rtrn = read(fd, end + stuff_after_delim, 2 - stuff_after_delim);
+// LOG_HERE(RED "0.3: _leftovers: {" RESET << _leftovers <<RED "}\n" RESET "stuff_after_delim: " << stuff_after_delim)
+		if (read_rtrn < 2 - stuff_after_delim)
+			return 400;
+		if (stuff_after_delim == 1)
+			end[0] = _leftovers[_delim.size() + 2];
+		_bytes_written += read_rtrn;
+	}
+LOG_LOG("end: ["<< end << "]")
+	_leftovers.erase(0, 2); // erase first '\r\n' in previsions for the next HttpMultipart
+
+	if (end[0] == '-' && end[1] == '-') {
+		if (_bytes_written != static_cast<size_t>(_bytes_total)) {// garbage after, last '\r\n' can exist
+			if (static_cast<size_t>(_bytes_total) == _bytes_written + 2 && tool_check_next_two_char(fd) == HttpObj::DOING)
+				return HttpObj::CLOSED;
+			return 400;
+		}
+		return HttpObj::CLOSED;
+	}
+	if (end[0] == '\r' && end[1] == '\n')
+		return HttpObj::DOING;
+	return 400;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////]
 int		HttpMultipart::isFirstLineValid(int fd) { 
@@ -147,7 +151,9 @@ int		HttpMultipart::parseHeadersForValidity() {
 	if (v.empty() || v[0] != "form-data" || _name.empty())
 		return 400;
 
-	return 0;
+	if (!_tmp_file.createTempFile(&g_settings.getTempRoot()))
+		return 500;
+	return HttpObj::READING_BODY;
 }
 
 // #include "SettingsServer.hpp"

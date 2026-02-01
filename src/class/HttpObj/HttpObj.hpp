@@ -12,8 +12,10 @@
 
 #include "TempFile.hpp"
 
+
 class Sink;
 ///////////////////////////////////////////////////////////////////////////////]
+typedef ssize_t (*ReadFunc)(int, void*, size_t);
 /*
 	start-line
 	headers
@@ -65,13 +67,13 @@ public:
 //-----------------------------------------------------------------------------]
 	/***  READ  ***/
 public:
-	static ssize_t	readBuffer(char *buff, size_t sizeofbuff, int fd, std::string& to_append_to);
-	ssize_t			readForDelim(char *buff, size_t sizeofbuff, int fd, const std::string& delim, bool remove_delim, Sink& to_store_to);
+	static ssize_t	readBuffer(char *buff, size_t sizeofbuff, int fd, std::string& to_append_to, ReadFunc reader);
+	ssize_t			readForDelim(char *buff, size_t sizeofbuff, int fd, const std::string& delim, int remove_delim, Sink& to_store_to, ReadFunc reader);
 public:
-	int				receive_request(char *buff, size_t sizeofbuff, int fd);
-		int			readingFirstLine(char *buff, size_t sizeofbuff, int fd);
-		int			readingHeaders(char *buff, size_t sizeofbuff, int fd);
-		int			streamingBody(char *buff, size_t sizeofbuff, int fd);
+	int				receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
+		int			readingFirstLine(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
+		int			readingHeaders(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
+		int			streamingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
 
 
 //-----------------------------------------------------------------------------]
@@ -90,13 +92,14 @@ private:
 public:
 	virtual int		isFirstLineValid(int fd) { (void)fd; return 0; }
 	virtual int		parseHeadersForValidity() { return 0; }
+	virtual int		readBody(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) { return streamingBody(buff, sizeofbuff, fd, reader); }
 
 //-----------------------------------------------------------------------------]
 	/***  TOOLS  ***/
 public:
 	void	concatenateIntoHead();
 	int		parse_head_for_headers();
-	int		findDelimInLeftovers(const std::string& delim, bool remove_delim, Sink& to_append_to);
+	int		findDelimInLeftovers(const std::string& delim, int remove_delim, Sink& to_append_to);
 
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -160,7 +163,6 @@ public:
 };
 ///////////////////////////////////////////////////////////////////////////////]
 
-
-
+ssize_t recv0(int fd, void* buf, size_t n);
 
 #endif

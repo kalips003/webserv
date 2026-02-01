@@ -69,7 +69,7 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 * @return CONNECTION_STATUS		---*/
 Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
 
-	int rtrn = _request.receive_request(buff, sizeofbuff, _data._client_fd);
+	int rtrn = _request.receive(buff, sizeofbuff, _data._client_fd, recv0);
 
 	if (rtrn >= 100) {
 		_answer.createError(rtrn);
@@ -111,7 +111,7 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 	if (_status == DOING_CGI) {
 		rtrn = _body_task->exec_cgi();
 		if (rtrn != DOING_CGI)
-			epollChangeFlags(_data._epoll_fd, _data._client_fd, EPOLLIN, EPOLL_CTL_ADD);
+			epollChangeFlags(_data._epoll_fd, _data._client_fd, this, EPOLLOUT, EPOLL_CTL_ADD);
 	}
 	else
 		rtrn = _body_task->normal_doing();

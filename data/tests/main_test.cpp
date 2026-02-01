@@ -45,7 +45,7 @@ int main(int ac, char** av)
 
 //////////////////////////////
 //////////////////////////////
-	_request.getFile().resetFileFd();
+	_request.getFile().resetFileFdBegining();
 	_request.getFile().updateStat();
 	HttpMultipart onePartMan(delim, "");
 	onePartMan.setBytesTotal(_request.getFile()._info.st_size);
@@ -98,7 +98,7 @@ int main(int ac, char** av)
 		std::string sanitized = file_path_abs;		
 
 		method.setlocationBlock(&b);
-		int rtrn = method.handleFile(file_path_abs, query, sanitized);
+		int rtrn = method.handleRessource(file_path_abs, query, sanitized);
 		// rename(onePartMan.getFilename().empty());
 	}
 

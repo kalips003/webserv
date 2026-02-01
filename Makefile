@@ -23,6 +23,7 @@ CONF_FILE = data/config_file.conf
 # RUN SERVER
 a:	$(NAME)
 	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )
+	@rm -f www/web_cat/donations/*
 	-./$(NAME) $(CONF_FILE)
 
 # RUN SERVER + CLIENT (client is child process of parent)
@@ -237,8 +238,8 @@ test2: $(OBJ) $(TEST_MAIN) $(HEAD)
 VALGRIND = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s --track-fds=yes --trace-children=yes $(V_FLAG)
 # VALGRIND = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s --trace-children=yes --track-fds=yes
 # VALGRIND_OTHER = valgrind --vgdb=yes
-# V_FLAG = --gen-suppressions=all 
-V_FLAG = --suppressions=data/ignore_valgrind
+# V_FLAG = --gen-suppressions=all --suppressions=data/ignore_valgrind
+V_FLAG = 
 # HELLGRIND = valgrind --tool=helgrind ?-g3?
 
 # ↑さ↓ぎょう  を  ↓ほ↑ぞん
@@ -280,6 +281,7 @@ clean:
 	@rm -f $(TEST_FOLDER)/a.out
 	@rm -rf log
 	@rm -f www/web_cat/donations/*
+	@rm -f www/tmp/*
 	@rm -f $(CLIENT)
 	@rm -rf $(OBJ_FOLDER)
 	@$(call print_cat, $(CLEAR), $(C_225), $(C_320), $(C_450), $(call pad_word, 10, "Objects"), $(call pad_word, 12, "Exterminated"));

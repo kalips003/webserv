@@ -1,9 +1,8 @@
 #include <signal.h>
-#include <iostream>
-#include "_colors.h"
+
+#include "Log.hpp"
 #include "Server.hpp"
 
-#include <stdlib.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /** @brief Signal handler for SIGINT (Ctrl+C)
  *
@@ -22,7 +21,7 @@ static void handle_sigint(int signum, siginfo_t *info, void *context)
 	(void)signum;
 
 	g_ServerEnd = true;
-	write( 1, RED "\nSay goodbye to your cats buddy\n" RESET, 44);
+	LOG_WARNING(RED "CTRL-C recieved - Termination...");
 	// exit(1);
 }
 

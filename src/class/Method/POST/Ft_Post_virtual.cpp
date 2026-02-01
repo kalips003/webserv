@@ -77,7 +77,7 @@ int		Ft_Post::howToHandleFileNotExist(const std::string& ressource, int rtrn_ope
 		return Connection::SENDING;
 	}
 	else {// if (rtrn_open == 403)
-		LOG_WARNING("Post request File already exist: permission error");
+		LOG_WARNING("Post request File already exist (" << ressource << "): permission error");
 		return 403;
 	}
 }

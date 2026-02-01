@@ -63,12 +63,12 @@
 // 		read body into _tmp_file
 //
 * @return READING_STATUS or errCode on error		---*/
-int		HttpObj::receive_request(char *buff, size_t sizeofbuff, int fd) {
+int		HttpObj::receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 	int rtrn;
 
-	if (_status == HttpObj::READING_FIRST) { LOG_DEBUG("receive_request(): READING_FIRST");
+	if (_status == HttpObj::READING_FIRST) { LOG_DEBUG("receive(): READING_FIRST");
 		
-		rtrn = readingFirstLine(buff, sizeofbuff, fd);
+		rtrn = readingFirstLine(buff, sizeofbuff, fd, reader);
 		if (rtrn >= 100)
 			return rtrn;
 		_status = static_cast<HttpBodyStatus>(rtrn);
@@ -79,9 +79,9 @@ int		HttpObj::receive_request(char *buff, size_t sizeofbuff, int fd) {
 		}
 	}
 
-	if (_status == READING_HEADER) { LOG_DEBUG("receive_request(): READING_HEADER");
+	if (_status == READING_HEADER) { LOG_DEBUG("receive(): READING_HEADER");
 		
-		rtrn = readingHeaders(buff, sizeofbuff, fd);
+		rtrn = readingHeaders(buff, sizeofbuff, fd, reader);
 		if (rtrn >= 100)
 			return rtrn;
 		
@@ -98,16 +98,16 @@ int		HttpObj::receive_request(char *buff, size_t sizeofbuff, int fd) {
 		}
 	}
 
-	if (_status == READING_BODY) { LOG_DEBUG("receive_request(): READING_BODY");
+	if (_status == READING_BODY) { LOG_DEBUG("receive(): READING_BODY");
 
-		rtrn = streamingBody(buff, sizeofbuff, fd);
+		rtrn = this->readBody(buff, sizeofbuff, fd, reader);
 		if (rtrn >= 100)
 			return rtrn;
 		_status = static_cast<HttpBodyStatus>(rtrn);
 	}
 
 	if (_status == CLOSED) {
-		LOG_DEBUG("receive(): CLOSED")
+		LOG_INFO(printFd(fd) << "→ " RED "RECV closed (EOF | Connection Closed)" RESET);
 	}
 	
 	return _status;
@@ -125,12 +125,12 @@ int		HttpObj::receive_request(char *buff, size_t sizeofbuff, int fd) {
 // @param sizeofbuff Buffer size
 // @param fd         File descriptor
 // @return READING_STATUS or errCode on error	---*/
-int		HttpObj::readingFirstLine(char *buff, size_t sizeofbuff, int fd) {
+int		HttpObj::readingFirstLine(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 
 	const std::string	delim = "\r\n";
 	StringSink			to_store_to(_first);
 
-	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, delim, false, to_store_to); // << put back in false, propagate from above
+	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, delim, 0b11, to_store_to, reader);
 	if(read_rtrn == -2) {
 		if (_bytes_written > MAX_LIMIT_FOR_HEAD) {
 			LOG_ERROR("Max Limit (" RED << MAX_LIMIT_FOR_HEAD << RESET ") reached before finding CRLF");
@@ -151,12 +151,12 @@ int		HttpObj::readingFirstLine(char *buff, size_t sizeofbuff, int fd) {
 }
 
 //-----------------------------------------------------------------------------]
-int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd) {
+int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 
 	const std::string	delim = "\r\n\r\n";
 	StringSink			to_store_to(_head);
 
-	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, delim, true, to_store_to);
+	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, delim, 0b11, to_store_to, reader);
 	if(read_rtrn == -2) {
 		if (_bytes_written > MAX_LIMIT_FOR_HEADERS) {
 			LOG_ERROR("Max Limit (" RED << MAX_LIMIT_FOR_HEADERS << RESET ") reached before finding '\\r\\n\\r\\n'");
@@ -180,6 +180,59 @@ int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd) {
 /***  								TOOLS									***/
 ///////////////////////////////////////////////////////////////////////////////]
 
+///////////////////////////////////////////////////////////////////////////////]
+/** Read from fd until `delim` is found, streaming data into the given Sink.
+ *
+ * - If delim is found:
+ *     - write up to (and optionally excluding) delim to `to_store_to`
+ *     - remaining bytes go into _leftovers
+ *     - _buffer is cleared
+ *
+ * - If delim is not found:
+ *     - new data is appended to _buffer
+ *
+ * - _bytes_written is incremented by bytes read from fd
+ *
+ * @param buff        temporary buffer for recv()
+ * @param sizeofbuff  size of buff
+ * @param fd          file descriptor to read from
+ * @param delim       delimiter string
+ * @param remove_delim 0b10 remove delim in to_store_to; 0b01 remove delim in _leftovers
+ * @param to_store_to Sink to store consumed bytes (string or file)
+ * @return 1 if delim found, 0/-1 on recv() EOF/error, or ssize_t placeholder if not found yet (-2)
+ *
+ * @note careful: if remove_delim is false, decide whether delim stays in _leftovers ---*/
+ssize_t		HttpObj::readForDelim(char *buff, size_t sizeofbuff, int fd, const std::string& delim, int remove_delim, Sink& to_store_to, ReadFunc reader) {
+
+// first check _leftovers
+	int rtrn;
+	if((rtrn = findDelimInLeftovers(delim, remove_delim, to_store_to)) != 0)
+		return rtrn;
+
+// add the last bytes of _buffer for delim split over recv()
+	size_t n = _buffer.size() >= delim.size() ?  _buffer.size() - delim.size() + 1 : 0;
+
+// append the return of recv() to _buffer
+	ssize_t bytes_recv = readBuffer(buff, sizeofbuff, fd, _buffer, reader);
+	if (bytes_recv <= 0)
+		return bytes_recv; // 0 = EOF / close connection; -1 = error or EAGAIN
+	_bytes_written += bytes_recv;
+
+	size_t pos = _buffer.find(delim, n);
+	if (pos == std::string::npos)
+		return -2;
+	
+// if found, does the splitting
+	if (!to_store_to.write(_buffer.c_str(), pos + delim.size() * !(remove_delim & 0b10))) {
+		LOG_ERROR_SYS(printFd(fd) << "→ readForDelim(): partial write() detected");
+		return 500;
+	}
+	_leftovers = _buffer.substr(pos + delim.size() * (remove_delim & 0b01));
+	_buffer.clear();
+	
+	return 1;
+}
+
 //-----------------------------------------------------------------------------]
 /**	Scan _leftovers for `delim` and move data to the provided Sink.
  *
@@ -191,12 +244,12 @@ int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd) {
  *     - clear _leftovers
  *
  * @param delim        delimiter to search for
- * @param remove_delim if true, delimiter is erased
+ * @param remove_delim 0b10 remove delim in to_store_to; 0b01 remove delim in _leftovers
  * @param to_store_to  destination Sink for consumed bytes (string | fd_file)
  * @return 1 if delimiter found, 0 if not found, 500 on write error
  *
  * @note after succesfull call: (_leftovers can be empty if delim was found at npos) ---*/
-int		HttpObj::findDelimInLeftovers(const std::string& delim, bool remove_delim, Sink& to_store_to) {
+int		HttpObj::findDelimInLeftovers(const std::string& delim, int remove_delim, Sink& to_store_to) {
 
 	if (_leftovers.empty())
 		return 0;
@@ -209,12 +262,11 @@ int		HttpObj::findDelimInLeftovers(const std::string& delim, bool remove_delim, 
 			return 0;
 	}
 	else {
-		if (!to_store_to.write(_leftovers.c_str(), pos + (remove_delim ? delim.size() : 0))) {
-				LOG_ERROR_SYS("findDelimInLeftovers(): partial write() detected");
+		if (!to_store_to.write(_leftovers.c_str(), pos + delim.size() * !(remove_delim & 0b10))) {
+				LOG_ERROR_SYS("→ findDelimInLeftovers(): partial write() detected");
 			return 500;
 		}
-		size_t pos_cut = remove_delim ? pos + delim.size() : pos;
-		_leftovers.erase(0, pos_cut);
+		_leftovers.erase(0, pos + delim.size() * (remove_delim & 0b01));
 		return 1;
 	}
 }

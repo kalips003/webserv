@@ -35,7 +35,7 @@ int Method::normal_doing() {
 		path = _request.getPath().substr(0, pos);
 		query = _request.getPath().substr(pos + 1);
 	}
-	
+
 // sanitize given_path for %XX;
 	std::string sanitized;
 	if (SettingsServer::sanitizePath(sanitized, path))
@@ -48,14 +48,32 @@ int Method::normal_doing() {
 // add root to path (- location_path)
 	std::string ressource; // ressource asked with absolute path: 'root/ressource - query'
 	SettingsServer::getFullPath(ressource, sanitized); // validity checked in request.validateLocationBlock()
-	LOG_LOG("Full path of the asked ressource: " << ressource);
+	LOG_LOG(_request.getMethod() << " ) Full path of the asked ressource: " << ressource);
+
+// if no trailing / in directory path, redirect
+	struct stat ressource_info;
+	stat(ressource.c_str(), &ressource_info);
+	if (S_ISDIR(ressource_info.st_mode) && sanitized[sanitized.size() - 1] != '/') {
+		_answer.setFirstLine(301);
+		_answer.addToHeaders("Location", sanitized + "/");
+		return Connection::SENDING;
+	}
+	
+// check "Content-Type" = "multipart/form-data";
+	int rtrn = this->treatContentType(ressource, query);
+	if (rtrn != -1)
+		return rtrn;
 
 // HANDLE FILE
-	return handleFile(ressource, query, sanitized);
+	return handleRessource(ressource, query);
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-int Method::handleFile(std::string& ressource, std::string& query, std::string& sanitized) {
+/**	handle either
+// 	file not exist
+// 	file exist
+//		directory ---*/
+int Method::handleRessource(std::string& ressource, std::string& query) {
 
 // DOESNT EXIST
 	int rtrn;
@@ -76,11 +94,6 @@ int Method::handleFile(std::string& ressource, std::string& query, std::string& 
 // is DIRECTORY 
 	else if (S_ISDIR(ressource_info.st_mode)) {
 		LOG_LOG("is DIRECTORY");
-		if (sanitized[sanitized.size() - 1] != '/') { // if no trailing / in directory path, redirect
-			_answer.setFirstLine(301);
-			_answer.addToHeaders("Location", sanitized + "/");
-			return Connection::SENDING;
-		}
 		return this->handleDir(ressource);
 	}
 	else

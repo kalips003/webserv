@@ -24,139 +24,133 @@
 	hello world\n
 	\r\n
 */
-// int		Ft_Post::treatMultipart(std::string& ressource) {
 
-// // IS Content-Type = multipart/form-data?
-// // 		if yes, extract boundary 
-// 	const std::string* c_type = _request.find_in_headers("Content-Type");
-// 	if (!c_type)
-// 		return ; // some http error content type missing
 
-// // Content-Type: multipart/form-data; boundary=abc; charset=UTF-8
-// // Content-Type: multipart/form-data; boundary=----geckoformboundaryeb47a963ac0d54a6202a6abec127252
-// 	size_t pos = (*c_type).find("multipart/form-data");
-// 	if (pos == std::string::npos)
-// 		return ; // not multipart
+/* other "Content-Type":
+application/x-www-form-urlencoded
+	username=kali&age=42&debug=true
+
+application/json
+	{"user":"kali","admin":true}
+
+text/plain
+	hello server
+
+application/octet-stream
+	binary
+ */
+int		Ft_Post::treatContentType(std::string& ressource, std::string& query) {
+
+// IS Content-Type = multipart/form-data?
+// 		if yes, extract boundary 
+	const std::string* c_type = _request.find_in_headers("Content-Type");
+	if (!c_type)
+		return -1; // treat as raw bytes
+
+// Content-Type: multipart/form-data; boundary=abc; charset=UTF-8
+	size_t pos = (*c_type).find("multipart/form-data");
+	if (pos == std::string::npos)
+		return -1; // not multipart / others not handled
 	
-// 	std::string delim;
-// 	std::vector<std::string> v = splitOnDelimitor(*c_type, ";");
-// 	const std::string b("boundary=");
-// 	for (std::vector<std::string>::const_iterator it = v.begin(); it != v.end(); ++it) {
+	std::string delim;
+	std::vector<std::string> v = splitOnDelimitor(*c_type, ";");
+	const std::string b("boundary=");
+	for (std::vector<std::string>::const_iterator it = v.begin(); it != v.end(); ++it) {
 
-// 		size_t pos;
-// 		if ((pos = (*it).find(b)) != std::string::npos) {
-// 			delim = "--" + trim_any((*it).substr(pos + b.size()), " \"\'");
-// 			break;
-// 		}
-// 	}
-// 	if (delim.empty())
-// 		return ; // error
+		size_t pos;
+		if ((pos = (*it).find(b)) != std::string::npos) {
+			delim = "--" + trim_any((*it).substr(pos + b.size()), " \"\'");
+			break;
+		}
+	}
+	if (delim.empty())
+		return 400; // error
 
+	return treatMultipart(delim, ressource, query);
+}
 
+#include <iostream>
+///////////////////////////////////////////////////////////////////////////////]
+/**		--BOUNDARY\r\n
+		<part headers>\r\n
+		\r\n
+		<part body>
+		\r\n
+		--BOUNDARY-- 		*/
+///////////////////////////////////////////////////////////////////////////////]
+/** Parses a multipart/form-data request body, splits it into individual parts,
+ * and processes each part (file or metadata) against the target resource.
+ *
+ * Returns 0 on success, or an HTTP error code on malformed input or failure
+ * while receiving or handling multipart sections. 	---*/
+int		Ft_Post::treatMultipart(std::string& delim, std::string& ressource, std::string& query) {
 
+// Setup Vector
+	_request.getFile().resetFileFdBegining();
+	int fd_original = _request.getFile()._fd;
 
+	std::vector<HttpMultipart> body_parts;
+	body_parts.reserve(10);
+	body_parts.push_back(HttpMultipart(delim));
 
+	HttpMultipart* current = &body_parts.back();
+	current->setBytesTotal(_request.getFile().getBodySize());
 
-// 	_request.getFile().resetFileFd();
-// 	_request.getFile().updateStat();
-// 	HttpMultipart onePartMan(delim, "");
-// 	onePartMan.setBytesTotal(_request.getFile()._info.st_size);
+// loop fills vector
+	HttpObj::HttpBodyStatus status = body_parts.back().getStatus();
+	while (status != HttpObj::DOING) {
+		LOG_ERROR("about to receive: " << current)
+		int rtrn = current->receive(_data._buffer, _data._sizeofbuff, fd_original, ::read);
+		if (rtrn >= 100)
+			return rtrn;
 
-// 	int fd = _request.getFile()._fd;
-// 	HttpObj::HttpBodyStatus status;
-// 	while ((status = onePartMan.getStatus()) != HttpObj::DOING) {
+		status = static_cast<HttpObj::HttpBodyStatus>(rtrn);
+		if (status == HttpObj::CLOSED) // eof found
+			return 400;
 
-// 		int rtrn = onePartMan.parse_multifile(_data._buffer, _data._sizeofbuff, fd);
+		if (status == HttpObj::DOING) {
 
-// 		if (status == HttpObj::CLOSED) // eof found
-// 			return 400;
-// 		if (status >= 100)
-// 			return status;
-		
-// 	}
+			// check that that part is correct: first line = delim?
+			if (current->getFirst() != delim)
+				return 400;
 
-// /*
-// 	--BOUNDARY\r\n
-// 	<part headers>\r\n
-// 	\r\n
-// 	<part body>
-// 	\r\n
-// 	--BOUNDARY--
-//  */
-// 	std::string& leftover = onePartMan.getLeftovers();
-// 	// check _first == delim
-// 	if (onePartMan.getFirst() != delim)
-// 		return 400;
-// 	// next 2 char == "--"
-// 	if (leftover.size() < delim.size() + 2)
-// 		return 400;
-// 	if (leftover[delim.size()] != '-' && leftover[delim.size() + 1] != '-')
-// 		return 400;
-// 	// check headers for filename?
-// 	if (!onePartMan.getFilename().empty()) {
-// 		size_t pos = ressource.find_last_of("/");
+			// check next 2 char // [\r\n + DELIM + ".."]
+			rtrn = current->tool_check_next_two_char(fd_original);
+			if (rtrn >= 100)
+				return rtrn;
+	
+			if (rtrn == HttpObj::DOING) {
+				body_parts.push_back(HttpMultipart(*current));
+				current = &body_parts.back();
+				status = current->getStatus();
+				LOG_ERROR("about to continue in first loop: " << rtrn << "size vector: " << body_parts.size())
+				continue;
+			}
+			LOG_ERROR("about to break from first loop: " << rtrn)
+			// rtrn == HttpObj::CLOSED
+			break;
+		}
+	}
+	temp_file& this_file = _request.getFile();
 
-// 		// /root_path/web_cat/donations/image.ico
-// 		std::string file_to_upload = ressource.substr(0, pos + 1) + onePartMan.getFilename();
-		
+// treat each in vector
+	for (std::vector<HttpMultipart>::iterator it = body_parts.begin(); it != body_parts.end(); ++it) {
+		// truncate name for '/../../user/psswrd'
+		this_file <= it->getFile();
+		size_t pos = it->getFilename().find_last_of("/\\");
+		it->setFileNName(it->getFilename().substr((pos == std::string::npos) ? 0 : pos + 1));
 
-// 		int rtrn = Method::handleFile();
-// 		// rename(onePartMan.getFilename().empty());
-// 	} else {
-// 		// ignored metadata
-// 	}
-// 	// content type?
-
-
-
-
-// // /web_cat/donations/file2
-// // > /root_path//web_cat/donations/file2
-// // > /root_path//web_cat/donations/icon052.ico
-
-
-// ////////
-// 	std::vector<HttpMultipart> body_parts;
-// 	body_parts.push_back(HttpMultipart(delim, ""));
-// 	body_parts.back().getFile().updateStat();
-// 	body_parts.back().setBytesTotal(_request.getFile()._info.st_size);
-
-// 	bool finished = false;
-// 	while (!finished) {
-// 		int rtrn = body_parts.back().parse_multifile(_data._buffer, _data._sizeofbuff, _request.getFile()._fd);
-// 		if (rtrn >= 100)
-// 			return rtrn;
-// 		if (rtrn == HttpObj::CLOSED) // EOF found before delim
-// 			return 400;
-// 		if (rtrn ==  HttpObj::DOING) { // this instance found (--BOUNDARY) _buffer the last read, _leftovers the rest
-
-// 			std::string& leftover = body_parts.back().getLeftovers();
-// 			if (leftover.size() >= boundary.size() + 4) {
-// 				if (leftover[boundary.size() + 3] == '\r' && leftover[boundary.size() + 3] == '\n')
-// 					; // write _buffer into file = file is finished
-// 					; // remove \r\n from _leftover
-// 					; // push_back new Multipart(body_parts.back())
-// 				else if (leftover[boundary.size() + 3] == '-' && leftover[boundary.size() + 3] == '-')
-// 					if (stuff after, is it malformed?)
-// 					; // write _buffer into file = file is finished
-// 					; // finished
+		if (!it->getFilename().empty()) {
+			size_t pos = ressource.find_last_of("/");
+			std::string file_to_upload = ressource.substr(0, pos + 1) + it->getFilename();
 			
-			
-// 			} else {
-// 				read(_request.getFile()._fd, _data._buffer, 2);
-			
-// 			}
-		
-
-
-
-// 		}
-// 	// }
-
-// 	// after reading headers and such
-// 	// obj.setBytesWritten(0);
-// 	// obj.getFile().createTempFile(&g_settings.getTempRoot());
-// 	return 0;
-// }
-
-// int helper()
+			int rtrn = Method::handleRessource(file_to_upload, query);
+			if (rtrn >= 100)
+				return rtrn;
+		}
+		// else: treat metadata (ignored now)
+	}
+	body_parts.back().getFile().closeTemp(true);
+	_answer.setFirstLine(201);
+	return Connection::SENDING;
+}

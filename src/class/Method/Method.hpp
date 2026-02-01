@@ -74,12 +74,12 @@ public:
 				_location_block(NULL) {}
 
 	virtual	~Method();
-int handleFile(std::string& ressource, std::string& query, std::string& sanitized);
 
 
 //-----------------------------------------------------------------------------]
 public:
 	int 		normal_doing();
+	int			handleRessource(std::string& ressource, std::string& query);
 	int			iniCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path);
 
 
@@ -94,9 +94,6 @@ public:
 public:
 	static int			isFileNOK(std::string path, struct stat& ressource_info);
 	const std::string*	isCGI(const std::string& path) const;
-	int 				getFullPath(std::string& path_to_fill, const std::string& given_path) const;
-	int 				sanitizePath(std::string& path_to_fill, const std::string& given_path) const;
-	const block*		isLocationKnown(const std::string& given_path) const;
 
 ///////////////////////////////////////////////////////////////////////////////]
 /***							VIRTUAL FUNCTIONS							***/
@@ -137,8 +134,10 @@ public:
 * @return	Must return directly the correct ft_do return 
 *	(0 on success, or errCode)	---*/
 	virtual void	prepareChild(const std::string& ressource, const std::string& query) = 0;
-///////////////////////////////////////////////////////////////////////////////]
 
+///////////////////////////////////////////////////////////////////////////////]
+/**	handle either: file not exist | file exist | directory ---*/
+	virtual int		treatContentType(std::string& ressource, std::string& query) { (void)ressource; (void)query; return -1; }
 
 ///////////////////////////////////////////////////////////////////////////////]
 	/***  GETTERS  ***/
