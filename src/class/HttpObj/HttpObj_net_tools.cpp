@@ -17,7 +17,7 @@
  * @return The return of recv()		---*/
 ssize_t HttpObj::readBuffer(char *buff, size_t sizeofbuff, int fd, std::string& to_append_to, ReadFunc reader) {
 
-	ssize_t bytes_recv = reader(fd, buff, sizeofbuff - 1);
+	ssize_t bytes_recv = reader(fd, buff, sizeofbuff);
 
 	if (bytes_recv <= 0)
 		return bytes_recv;
@@ -50,7 +50,7 @@ int    HttpObj::streamingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc re
 		return 500;
 	}
 	_bytes_written += bytes_recv;
-
+	LOG_DEBUG("streamingBody(): _bytes_total= " << _bytes_total << " _bytes_written = " << _bytes_written)
 	if (_bytes_written >= static_cast<size_t>(_bytes_total))
 		return HttpObj::DOING;
 	return HttpObj::READING_BODY;

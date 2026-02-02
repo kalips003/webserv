@@ -106,15 +106,16 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 	}
 
 // exec Method
-	_body_task->printHello();
 	int rtrn;
 	if (_status == DOING_CGI) {
 		rtrn = _body_task->exec_cgi();
 		if (rtrn != DOING_CGI)
 			epollChangeFlags(_data._epoll_fd, _data._client_fd, this, EPOLLOUT, EPOLL_CTL_ADD);
 	}
-	else
+	else {
+		_body_task->printHello();
 		rtrn = _body_task->normal_doing();
+	}
 
 // check return
 	if (rtrn >= 100) {

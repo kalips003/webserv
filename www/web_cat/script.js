@@ -94,13 +94,14 @@ async function storeValue() {
     else {
         document.getElementById('loginInput').placeholder = `Welcome ${storedLogin}!`;
         document.getElementById('header1').textContent = `Let's talk a bit, ${logUser.firstName}.`;
-
     }
 }
 
 async function checkStatus() {
+	// fetch_url = `http://localhost:8081/proxy/profile/${storedLogin}`;
+	fetch_url = `http://localhost:9999/web_cat/login_script.php?login=${encodeURIComponent(storedLogin)}`;
     try {
-        const response = await fetch(`http://localhost:8081/proxy/profile/${storedLogin}`);
+        const response = await fetch(fetch_url);
         const statusCode = response.status;
         if (response.status !== 200) {
             throw new Error('Unvalid User');

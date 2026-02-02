@@ -60,7 +60,7 @@ protected:
 
 
 public:
-	HttpObj() : _tmp_file(), _bytes_total(0), _bytes_written(0), _status(CLOSED) {}
+	HttpObj() : _tmp_file(), _bytes_total(-1), _bytes_written(0), _status(CLOSED) {}
 	~HttpObj() {}
 
 
