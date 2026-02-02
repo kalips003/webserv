@@ -217,7 +217,7 @@ int		Method::exec_cgi() {
 			if (WIFEXITED(status))
 				LOG_LOG("CGI child (pid=" C_431 << _cgi_data._child_pid << RESET ") ended with status: " << WEXITSTATUS(status))
 			else
-				LOG_LOG("CGI child (" C_431 << _cgi_data._child_pid << RESET ") ended in a bloodbath (signal?)")
+				LOG_LOG("CGI child (pid=" C_431 << _cgi_data._child_pid << RESET ") ended in a bloodbath (signal?)")
 		}
 		_cgi_data._child_pid = -1;
 
