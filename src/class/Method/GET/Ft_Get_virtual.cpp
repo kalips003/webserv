@@ -10,40 +10,6 @@ void Ft_Get::printHello() {
 	LOG_DEBUG("GET method called");
 }
 
-/**	Funciton called on second loop, once _cgi_status == CGI_DOING, 
-* child is set-up and so on 
-* @return -1 if cgi still going 
-* @return Connection::SENDING if cgi finished (and handled)
-* @return ErrCode in the case of any error
-*/
-int		Ft_Get::exec_cgi() {
-	LOG_ERROR("--> you have to do this part GET (execcgi)");
-
-
-	//
-	// Implementation
-	// return -1;
-//
-
-
-
-// if implementation finished:
-	// setCGIStatus() = CGI_NONE;
-
-	// int code_rtrn_child;
-	// waitpid(_cgi_data._child_pid, &code_rtrn_child, 0);
-	// _cgi_data._child_pid = -1;
-
-	// close(_cgi_data._child_pipe_fd);
-	// _cgi_data._child_pipe_fd = -1;
-
-// epollChangeFlags(_data._epoll_fd, _data._client_fd, _data._this_ptr, EPOLL_CTL_ADD);
-	// return errCode;
-
-	return Connection::SENDING;
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////]
 /**	rtrn_open == 404 / 403 
 * In Get, reject file non existance  */
@@ -62,12 +28,12 @@ int		Ft_Get::handleFileExist(std::string& path) {
 		return 403;
 	}
 
-	if (!getAnswer().getTempFile().openFile(path, O_RDONLY, false)) {
-		LOG_DEBUG("getAnswer().getTempFile().openFile(): 500");
+	if (!_answer.getTempFile().openFile(path, O_RDONLY, false)) {
+		LOG_DEBUG("_answer.getTempFile().openFile(): 500");
 		return 500;
 	}
 
-	getAnswer().setMIMEtype(path);
+	_answer.setMIMEtype(path);
 	return Connection::SENDING;
 }
 
@@ -83,7 +49,7 @@ int		Ft_Get::handleDir(std::string& ressource) {
 	int rtrn = 404;
 	std::string default_file;
 	struct stat stat_default;
-	std::vector<std::string> allowed_index = getLocationBlock()->data.index;
+	std::vector<std::string> allowed_index = _location_block->data.index;
 	for (std::vector<std::string>::const_iterator it = allowed_index.begin(); it != allowed_index.end(); ++it) {
 		default_file = ressource + "/" + *it; // /folder/index.html
 
@@ -101,7 +67,7 @@ int		Ft_Get::handleDir(std::string& ressource) {
 	}
 
 // only 404, try autoindexing
-	if (getLocationBlock()->data.autoindex == true)
+	if (_location_block->data.autoindex == true)
 		return serveAutoIndexing(ressource);
 	else {
 		LOG_WARNING("Requested folder (" << ressource << ") exist, but Autoindexing is off");
@@ -113,7 +79,13 @@ int		Ft_Get::handleDir(std::string& ressource) {
 ///////////////////////////////////////////////////////////////////////////////]
 /** */
 void	Ft_Get::prepareChild(const std::string& ressource, const std::string& query) {
-
+ 
+ // replace stdin with /dev/null
+	int fd_null = open("/dev/null", O_RDONLY);
+	if (fd_null >= 0) {
+		dup2(fd_null, STDIN_FILENO);  
+		close(fd_null);
+	}
 	setenv("REQUEST_METHOD", "GET", 1);
 	setenv("QUERY_STRING", query.c_str(), 1);
 	setenv("SCRIPT_FILENAME", ressource.c_str(), 1);

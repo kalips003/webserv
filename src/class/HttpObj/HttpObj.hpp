@@ -74,6 +74,7 @@ public:
 		int			readingFirstLine(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
 		int			readingHeaders(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
 		int			streamingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
+	int				receive_cgi(char *buff, size_t sizeofbuff, int fd);
 
 
 //-----------------------------------------------------------------------------]
@@ -129,6 +130,7 @@ public:
 	void				closeTemp(bool del);
 	void				setBytesTotal(ssize_t b) { _bytes_total = b; }
 	void				setBytesWritten(size_t b) { _bytes_written = b; }
+	void				setStatus(HttpBodyStatus s) { _status = s; }
 //-----------------------------------------------------------------------------]
 private:
 ///////////////////////////////////////////////////////////////////////////////]

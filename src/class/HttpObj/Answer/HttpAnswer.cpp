@@ -25,7 +25,7 @@ void	HttpAnswer::createError(int errCode) {
 		"</body></html>";
 
 	if (_tmp_file._fd >= 0)
-		_tmp_file.~temp_file();
+		_tmp_file.closeTemp(true);
 	
 	initializationBeforeSend();
 }

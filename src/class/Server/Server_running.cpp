@@ -30,8 +30,6 @@ void    Server::run_better( void ) {
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run( void ) {
 
-	g_ServerEnd = false;
-	init_signals();
 	char buffer[BUFFER_SIZE];
 
 	while (!g_ServerEnd) {

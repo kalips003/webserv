@@ -121,11 +121,9 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 		_answer.createError(rtrn);
 		return SENDING;
 	}
-	if (rtrn == CLOSED)
-		return CLOSED;
 	if (rtrn == SENDING)
 		_answer.initializationBeforeSend();
-
+	LOG_HERE("exiting ft_doing, rtrn = " << rtrn)
 	return static_cast<Connection::ConnectionStatus>(rtrn);
 }
 
@@ -181,15 +179,15 @@ void	 Connection::resetConnection() {
 ///////////////////////////////////////////////////////////////////////////////]
 std::ostream& operator<<(std::ostream& os, const Connection& c) {
 
-    // os << C_431 " - Client fd: " RESET << c.getClientFd() << "; ";
-    // os << C_152 "STATUS: " RESET << c.getStatus() << std::endl;
+	// os << C_431 " - Client fd: " RESET << c.getClientFd() << "; ";
+	// os << C_152 "STATUS: " RESET << c.getStatus() << std::endl;
 
 	struct sockaddr_in  client_addr = c.getClientAddr();
 
-    os << C_250 << inet_ntoa(client_addr.sin_addr) << RESET ":" << C_431 << ntohs(client_addr.sin_port) << RESET;
-    // os << C_434 "addr: " RESET << client_addr.sin_addr.s_addr << std::endl;
-    // os << C_434 "sin_family: " RESET << client_addr.sin_family << std::endl;
-    // os << C_525 "sin_port: " RESET << ntohs(client_addr.sin_port) << std::endl;
+	os << C_250 << inet_ntoa(client_addr.sin_addr) << RESET ":" << C_431 << ntohs(client_addr.sin_port) << RESET;
+	// os << C_434 "addr: " RESET << client_addr.sin_addr.s_addr << std::endl;
+	// os << C_434 "sin_family: " RESET << client_addr.sin_family << std::endl;
+	// os << C_525 "sin_port: " RESET << ntohs(client_addr.sin_port) << std::endl;
     return os;
 }
 

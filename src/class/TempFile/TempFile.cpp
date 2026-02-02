@@ -171,6 +171,17 @@ void	temp_file::resetFileFdBegining() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
+bool	temp_file::write(const std::string& s) {
+
+	ssize_t rtrn_write;
+	if ((rtrn_write = ::write(_fd, s.c_str(), s.size())) < static_cast<ssize_t>(s.size())) {
+		LOG_ERROR_SYS("temp_file::write(): partial write");
+		return false;
+	}
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 std::ostream& operator<<(std::ostream& os, const temp_file& r) {
 

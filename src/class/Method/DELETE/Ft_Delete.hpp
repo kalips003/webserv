@@ -33,7 +33,6 @@ public:
 
 // parent virtual funcitons:
 	virtual void	printHello();
-	virtual int		exec_cgi();
 	virtual int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
 	virtual int		handleFileExist(std::string& ressource);
 	virtual int		handleDir(std::string& ressource);

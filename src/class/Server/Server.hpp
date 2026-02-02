@@ -82,7 +82,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////]
 };
 
-int	init_signals(void);
+bool	init_signals(void);
 
 std::ostream&	operator<<(std::ostream& oss, Server& s);
 

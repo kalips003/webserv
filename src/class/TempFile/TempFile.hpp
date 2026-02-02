@@ -26,6 +26,7 @@ class temp_file {
 	ssize_t	getBodySize();
 	void	closeTemp(bool _delete);
 	void	resetFileFdBegining();
+	bool	write(const std::string& s);
 
 	/***  FRIENDS  ***/
 	friend std::ostream& operator<<(std::ostream& os, const temp_file& r);

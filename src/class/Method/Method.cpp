@@ -142,12 +142,13 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 //-----------------------------------------------------------------------------]
 // ---- child ----
 		dup2(pipefd[1], STDOUT_FILENO); // redirect stdout to pipe
+		sleep(1);
 
 		//	close all unused fd by the child (including pipefd[0] + pipefd[1])
 		int max_fd = sysconf(_SC_OPEN_MAX);
 		int fd_body_tmp = _request.getBodyFd();
 		for (int i = 0; i < max_fd; ++i) {
-			if (i == STDIN_FILENO || i == STDOUT_FILENO || i == fd_body_tmp)
+			if (i == STDIN_FILENO || i == STDOUT_FILENO || i == STDERR_FILENO || i == fd_body_tmp)
 				continue;
 			close(i);
 		}
@@ -156,10 +157,10 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 
 		char* argv[] = {
 			const_cast<char*>((*CGI_interpreter_path).c_str()),  // argv[0] = program name
+			const_cast<char*>("-u"),                               // unbuffered
 			const_cast<char*>(ressource.c_str()), // argv[1] = script path
 			NULL
 		};
-
 		execve((*CGI_interpreter_path).c_str(), argv, environ);
 		LOG_ERROR_SYS(RED "Method::iniCGI( CHILD ): execve()" RESET);
 		_exit(1);
@@ -169,21 +170,21 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 	close(pipefd[1]); // close write end — parent only reads
 	fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
 
-	cgi_data&	cgi_data = getCGIData();
-	cgi_data._child_pipe_fd = pipefd[0];
-	cgi_data._child_pid = pid;
+	_cgi_data._child_pipe_fd = pipefd[0];
+	_cgi_data._child_pid = pid;
 
-	if (epollChangeFlags(getData()._epoll_fd, getData()._client_fd, 0, EPOLL_CTL_DEL))
+	if (!epollChangeFlags(_data._epoll_fd, _data._client_fd, 0, EPOLL_CTL_DEL))
 		return 500;
-	if (epollChangeFlags(getData()._epoll_fd, pipefd[0], getData()._this_ptr, EPOLLIN | EPOLLRDHUP, EPOLL_CTL_ADD))
+	if (!epollChangeFlags(_data._epoll_fd, pipefd[0], _data._this_ptr, EPOLLIN | EPOLLRDHUP, EPOLL_CTL_ADD))
 		return 500;
 
-	if (!cgi_data._tmp_file.createTempFile(&g_settings.getTempRoot())) {
-		kill(cgi_data._child_pid, SIGKILL);
-		close(cgi_data._child_pipe_fd);
+	if (!_answer.getFile().createTempFile(&g_settings.getTempRoot())) {
+		kill(_cgi_data._child_pid, SIGKILL);
+		close(_cgi_data._child_pipe_fd);
 		return 500;
 	}
-
+	_answer.setStatus(HttpObj::READING_HEADER);
+	LOG_HERE("iniCGI finished")
 	return Connection::DOING_CGI;
 
 	// later: 
@@ -199,4 +200,182 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 		perror("waitpid");
 	}
 */
+}
+
+#include <sys/wait.h>
+///////////////////////////////////////////////////////////////////////////////]
+/**	Funciton called on second loop, once _cgi_status == CGI_DOING, 
+* child is set-up and so on 
+* @return -1 if cgi still going 
+* @return Connection::SENDING if cgi finished (and handled)
+* @return ErrCode in the case of any error
+*/
+int		Method::exec_cgi() {
+	LOG_LOG("Inside exec CGI");
+
+	int rtrn = _answer.receive_cgi(_data._buffer, _data._sizeofbuff, _cgi_data._child_pipe_fd);
+
+	if (rtrn >= 100 || static_cast<HttpObj::HttpBodyStatus>(rtrn) == HttpObj::CLOSED) {
+
+	// remove pipe from epoll and close it
+		epollChangeFlags(_data._epoll_fd, _cgi_data._child_pipe_fd, 0, EPOLL_CTL_DEL);
+		close(_cgi_data._child_pipe_fd);
+		_cgi_data._child_pipe_fd = -1;
+
+	// wait child
+		if (rtrn >= 100) { // error quit
+			kill(_cgi_data._child_pid, SIGKILL); // force stop
+			waitpid(_cgi_data._child_pid, NULL, 0); // reap fully, blocking ok
+			_answer.createError(rtrn);
+		} else { // EOF
+			int status;
+			waitpid(_cgi_data._child_pid, &status, WNOHANG); // non blocking
+			if (WIFEXITED(status))
+				LOG_LOG("CGI child (" << _cgi_data._child_pid << ") ended with status: " << WEXITSTATUS(status))
+			else
+				LOG_LOG("CGI child (" << _cgi_data._child_pid << ") ended in a bloodbath (signal?)")
+		}
+		_cgi_data._child_pid = -1;
+
+	// reset Answer & Connection to Sending
+		_answer.setStatus(HttpObj::SENDING_HEAD);
+		return Connection::SENDING;
+	}
+	int status;
+	int waitpid_status = waitpid(_cgi_data._child_pid, &status, WNOHANG); // non blocking
+	if (waitpid_status == -1) {
+		LOG_ERROR_SYS("Error waiting for child")
+		return 500;
+	} else if (waitpid_status > 0) {
+	LOG_HERE(3)
+	// do one last call to flush
+		rtrn = _answer.receive_cgi(_data._buffer, _data._sizeofbuff, _cgi_data._child_pipe_fd);
+		LOG_DEBUG("after SECOND call to receive_cgi(), rtrn = " << rtrn)
+	// remove pipe from epoll and close it
+		epollChangeFlags(_data._epoll_fd, _cgi_data._child_pipe_fd, 0, EPOLL_CTL_DEL);
+		close(_cgi_data._child_pipe_fd);
+		_cgi_data._child_pipe_fd = -1;
+	// reset pid
+		if (WIFEXITED(status))
+			LOG_LOG("CGI child (" << _cgi_data._child_pid << ") ended with status: " << WEXITSTATUS(status))
+		else
+			LOG_LOG("CGI child (" << _cgi_data._child_pid << ") ended in a bloodbath (signal?)")
+		_cgi_data._child_pid = -1;
+	// reset Answer & Connection to Sending
+		_answer.setStatus(HttpObj::SENDING_HEAD);
+		return Connection::SENDING;
+	}
+	return Connection::DOING_CGI;
+}
+
+// int		Method::exec_cgi() {
+// 	LOG_LOG("Inside exec CGI");
+
+// 	int rtrn = _answer.receive_cgi(_data._buffer, _data._sizeofbuff, _cgi_data._child_pipe_fd);
+
+// // handle errors
+// 	if (rtrn >= 100) {
+
+// 	// remove pipe from epoll and close it
+// 		epollChangeFlags(_data._epoll_fd, _cgi_data._child_pipe_fd, 0, EPOLL_CTL_DEL);
+// 		close(_cgi_data._child_pipe_fd);
+// 		_cgi_data._child_pipe_fd = -1;
+// 	// kill child
+// 		kill(_cgi_data._child_pid, SIGKILL); // force stop
+// 		waitpid(_cgi_data._child_pid, NULL, 0); // reap fully, blocking ok
+// 		_answer.createError(rtrn);
+// 		LOG_LOG("CGI child (" << _cgi_data._child_pid << ") got killed after bad rtrn (" << rtrn << ")")
+
+// 		_cgi_data._child_pid = -1;
+// 	// reset Answer & Connection to Sending
+// 		_answer.setStatus(HttpObj::SENDING_HEAD);
+// 		return Connection::SENDING;
+// 	}
+// 	usleep(5000);
+// 	LOG_HERE(1)
+// // wait child
+// 	int status;
+// 	int waitpid_status;
+// 	while ((waitpid_status = waitpid(_cgi_data._child_pid, &status, WNOHANG)) == 0) {
+// 		rtrn = _answer.receive_cgi(_data._buffer, _data._sizeofbuff, _cgi_data._child_pipe_fd);
+// 		LOG_DEBUG("its not working bitch: " << rtrn)
+// 	}
+// 	LOG_HERE(2 << "waitpid_status: " << waitpid_status)
+// 	if (waitpid_status == -1) {
+// 		LOG_ERROR_SYS("Error waiting for child")
+// 		return 500;
+// 	} else if (waitpid_status > 0) {
+// 	LOG_HERE(3)
+// 	// do one last call to flush
+// 		rtrn = _answer.receive_cgi(_data._buffer, _data._sizeofbuff, _cgi_data._child_pipe_fd);
+// 		LOG_DEBUG("after SECOND call to receive_cgi(), rtrn = " << rtrn)
+// 	// remove pipe from epoll and close it
+// 		epollChangeFlags(_data._epoll_fd, _cgi_data._child_pipe_fd, 0, EPOLL_CTL_DEL);
+// 		close(_cgi_data._child_pipe_fd);
+// 		_cgi_data._child_pipe_fd = -1;
+// 	// reset pid
+// 		if (WIFEXITED(status))
+// 			LOG_LOG("CGI child (" << _cgi_data._child_pid << ") ended with status: " << WEXITSTATUS(status))
+// 		else
+// 			LOG_LOG("CGI child (" << _cgi_data._child_pid << ") ended in a bloodbath (signal?)")
+// 		_cgi_data._child_pid = -1;
+// 	// reset Answer & Connection to Sending
+// 		_answer.setStatus(HttpObj::SENDING_HEAD);
+// 		return Connection::SENDING;
+// 	}
+
+// // child still running
+// 	return Connection::DOING_CGI;
+// }
+
+
+
+int		Method::exec_cgi() {
+
+	// function to read from pipe and fill answer
+	int rtrn = _answer.receive_cgi(_data._buffer, _data._sizeofbuff, _cgi_data._child_pipe_fd);
+	// should return 0 on eof (but eof never read because Method::exec_cgi() is only 
+	// 		called when epoll wake me up (valid data in pipe))
+
+	if (rtrn >= 100) {
+		// handle errors
+	}
+
+
+
+// give time to kernel to end the child 
+	usleep(5000);
+
+	int status;
+	int waitpid_status;
+	waitpid_status = waitpid(_cgi_data._child_pid, &status, WNOHANG) {
+		rtrn = _answer.receive_cgi(_data._buffer, _data._sizeofbuff, _cgi_data._child_pipe_fd);
+		LOG_DEBUG("its not working bitch: " << rtrn)
+	}
+	LOG_HERE(2 << "waitpid_status: " << waitpid_status)
+	if (waitpid_status == -1) {
+		LOG_ERROR_SYS("Error waiting for child")
+		return 500;
+	if (waitpid_status > 0) {
+
+	// do one last call to flush and detect correctly EOF
+		rtrn = _answer.receive_cgi(_data._buffer, _data._sizeofbuff, _cgi_data._child_pipe_fd);
+		LOG_DEBUG("after SECOND call to receive_cgi(), rtrn = " << rtrn)
+	// remove pipe from epoll and close it
+		epollChangeFlags(_data._epoll_fd, _cgi_data._child_pipe_fd, 0, EPOLL_CTL_DEL);
+		close(_cgi_data._child_pipe_fd);
+		_cgi_data._child_pipe_fd = -1;
+	// reset pid
+		if (WIFEXITED(status))
+			LOG_LOG("CGI child (" << _cgi_data._child_pid << ") ended with status: " << WEXITSTATUS(status))
+		else
+			LOG_LOG("CGI child (" << _cgi_data._child_pid << ") ended in a bloodbath (signal?)")
+		_cgi_data._child_pid = -1;
+	// reset Answer & Connection to Sending
+		_answer.setStatus(HttpObj::SENDING_HEAD);
+		return Connection::SENDING;
+	}
+
+// child still running
+	return Connection::DOING_CGI;
 }

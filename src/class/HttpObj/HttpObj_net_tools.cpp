@@ -22,7 +22,7 @@ ssize_t HttpObj::readBuffer(char *buff, size_t sizeofbuff, int fd, std::string& 
 	if (bytes_recv <= 0)
 		return bytes_recv;
 
-	LOG_INFO(printFd(fd) << C_134 " packet received (" RESET << bytes_recv << C_134 " bytes)" RESET);
+	LOG_INFO(printFd(fd) << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes)" RESET);
 	to_append_to.append(buff, bytes_recv);
 
 	return bytes_recv;
@@ -36,13 +36,13 @@ ssize_t HttpObj::readBuffer(char *buff, size_t sizeofbuff, int fd, std::string& 
 int    HttpObj::streamingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 
 	ssize_t bytes_recv = reader(fd, buff, sizeofbuff);
-
+	LOG_DEBUG("-> streamingBody, bytes_recv = " << bytes_recv)
 	if (!bytes_recv)
 		return HttpObj::CLOSED;
 	else if (bytes_recv < 0)
 		return HttpObj::READING_BODY;
 
-	LOG_INFO(printFd(fd) << C_134 " packet received (" RESET << bytes_recv << C_134 " bytes)" RESET);
+	LOG_INFO(printFd(fd) << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes)" RESET);
 	
 	ssize_t rtrn_write;
 	if ((rtrn_write = write(_tmp_file._fd, buff, bytes_recv)) < bytes_recv) {
@@ -56,6 +56,7 @@ int    HttpObj::streamingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc re
 	return HttpObj::READING_BODY;
 }
 
+//-----------------------------------------------------------------------------]
 ssize_t recv0(int fd, void* buf, size_t n) {
 	return recv(fd, buf, n, 0);
 }

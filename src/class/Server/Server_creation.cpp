@@ -39,8 +39,13 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
 	if (!_server_status)
 		return ;
 
+	
+	_server_status = init_signals();
+	if (!_server_status)
+		return ;
+
 	_server_status = true;
-	std::cout << C_151 "Server up and running on port: " RESET << g_settings.getPortNum() << std::endl;
+	LOG_INFO(C_151 "Server up and running on port: " RESET << g_settings.getPortNum())
 }
 
 // #include <unistd.h>

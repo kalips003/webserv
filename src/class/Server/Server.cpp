@@ -89,6 +89,8 @@ Server::ConnectionAcceptResult	Server::accept_one_client(char *buff, size_t size
 
 	if (!epollChangeFlags(_epoll_fd, client_fd, &_clients[client_fd], EPOLLIN, EPOLL_CTL_ADD))
 		return ACCEPT_RETRY;
+	LOG_HERE("client fd regiestered in epoll: " << client_fd)
+	LOG_HERE("epoll fd: " << _epoll_fd)
 
 	LOG_INFO("New client Accepted: " << printFd(client_fd) << _clients[client_fd]);
 	return ACCEPT_OK;

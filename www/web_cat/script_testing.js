@@ -72,3 +72,20 @@ function deleteFile() {
     .then(data => alert('Server response: ' + data))
     .catch(err => console.error(err));
 }
+
+//////////////////////////////////////////////////////////////////////
+function callCgi() {
+	fetch("script/test.py?hello=world", {
+		method: "GET"
+	})
+	.then(res => res.text())
+	.then(text => {
+		console.log("CGI response:");
+		console.log(text);
+		alert(text);
+	})
+	.catch(err => {
+		console.error("CGI error:", err);
+		alert("CGI failed");
+	});
+}

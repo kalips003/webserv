@@ -177,6 +177,48 @@ int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd, ReadFunc rea
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
+int		HttpObj::receive_cgi(char *buff, size_t sizeofbuff, int fd) {
+	int rtrn;
+
+	if (_status == READING_HEADER) { LOG_DEBUG("receive_cgi(): READING_HEADER");
+		
+		rtrn = readingHeaders(buff, sizeofbuff, fd, ::read);
+		if (rtrn == 400 || !rtrn) { // MAX_LIMIT_FOR_HEADERS reached || EOF => no headers
+			if (!_tmp_file.write(_head))
+				return 500;
+			_status = rtrn ? READING_BODY : CLOSED;
+		}
+		else if (rtrn >= 100)
+			return rtrn;
+		
+		_status = static_cast<HttpBodyStatus>(rtrn);
+		if (_status == HttpObj::READING_BODY) {
+			rtrn = parse_head_for_headers(); // check syntax
+			if (rtrn)
+				return rtrn;
+			if (!_leftovers.empty()) {
+				if (!_tmp_file.write(_leftovers))
+					return 500;
+				_leftovers.clear();
+			}
+		}
+	}
+
+	if (_status == READING_BODY) { LOG_DEBUG("receive_cgi(): READING_BODY");
+		rtrn = this->readBody(buff, sizeofbuff, fd, ::read);
+		if (rtrn >= 100)
+			return rtrn;
+		_status = static_cast<HttpBodyStatus>(rtrn);
+	}
+
+	if (_status == CLOSED) {
+		LOG_INFO("PIPE: " << printFd(fd) << "→ " RED "CGI finished, connection closed (EOF)" RESET);
+	}
+	LOG_HERE("status before exit receive_cgi(): " << _status)
+	return _status;
+}
+
+///////////////////////////////////////////////////////////////////////////////]
 /***  								TOOLS									***/
 ///////////////////////////////////////////////////////////////////////////////]
 

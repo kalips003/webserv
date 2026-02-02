@@ -33,16 +33,18 @@ static void handle_sigint(int signum, siginfo_t *info, void *context)
  * terminating immediately when an interrupt signal is received.
  *
  * Returns:
- *  0 on success
- *  1 on failure */
-int init_signals(void)
+ *  true on success
+ *  false on failure */
+bool init_signals(void)
 {
 	struct sigaction sig;
+
+	g_ServerEnd = false;
 
 	sigemptyset(&sig.sa_mask);
 	sig.sa_sigaction = handle_sigint;
 	sig.sa_flags = SA_SIGINFO;
 	if (sigaction(SIGINT, &sig, NULL) == -1)
-		return (1);
-	return (0);
+		return (false);
+	return (true);
 }

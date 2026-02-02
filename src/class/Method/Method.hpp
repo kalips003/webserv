@@ -5,6 +5,7 @@
 
 class Connection;
 class Server;
+class HttpObj;
 class HttpRequest;
 class HttpAnswer;
 class SettingsServer;
@@ -40,11 +41,11 @@ class Method {
 
 public:
 	struct cgi_data {
-		temp_file		_tmp_file;
 		int				_child_pipe_fd;
 		pid_t			_child_pid;
 
-		cgi_data() : _tmp_file(), _child_pipe_fd(-1), _child_pid(-1) {}
+		cgi_data() : 	_child_pipe_fd(-1), 
+						_child_pid(-1) {}
 	};
 
 	enum Ft_Type {
@@ -106,7 +107,7 @@ public:
 * @return -1 if cgi still going 
 * @return 0 if cgi finished (and handled)
 * @return ErrCode in the case of any error		---*/
-	virtual int		exec_cgi() = 0;
+	virtual int		exec_cgi();
 //-----------------------------------------------------------------------------]
 /** If the requested path doesnt exist, how should the Method handle it?
 * @param ressource: the cleaned absolute path of the request

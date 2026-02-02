@@ -12,37 +12,6 @@ void Ft_Post::printHello() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-/**	Funciton called on second loop, once _cgi_status == CGI_DOING, 
-* child is set-up and so on 
-* @return -1 if cgi still going 
-* @return Connection::SENDING if cgi finished (and handled)
-* @return ErrCode in the case of any error	---*/
-int		Ft_Post::exec_cgi() {
-	LOG_ERROR("--> you have to do this part (execcgi)");
-
-//
-	// Implementation
-	// return -1;
-//
-
-
-
-// if implementation finished:
-	// setCGIStatus() = CGI_NONE;
-
-	// int code_rtrn_child;
-	// waitpid(_cgi_data._child_pid, &code_rtrn_child, 0);
-	// _cgi_data._child_pid = -1;
-
-	// close(_cgi_data._child_pipe_fd);
-	// _cgi_data._child_pipe_fd = -1;
-
-	// epollChangeFlags(_data._epoll_fd, _data._client_fd, _data._this_ptr, EPOLL_CTL_ADD);
-	// return errCode;
-	return Connection::SENDING;
-}
-
-///////////////////////////////////////////////////////////////////////////////]
 /**	rtrn_open == 404 / 403
 * In Post, reject file existance?  */
 // POST /images/file
