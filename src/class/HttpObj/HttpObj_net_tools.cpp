@@ -81,6 +81,7 @@ ssize_t	HttpObj::sendBufferString(char *buff, size_t sizeofbuff, int fd, std::st
 		return bytesSent;
 
 	LOG_INFO(printFd(fd) << C_134 "packet sent (" RESET << bytesSent << C_134 " bytes)" RESET);
+	LOG_DEBUG(printFd(fd) << C_134 "packet sent (from string) (" RESET << bytesSent << C_134 " bytes): {" RESET << std::string(buff, bytesSent));
 	to_send_from.erase(0, bytesSent);
 
 	return bytesSent;
@@ -109,8 +110,10 @@ ssize_t	HttpObj::sendBufferFile(char *buff, size_t sizeofbuff, int fd, int fd_fi
 		_leftovers.append(buff, bytesSent);
 		LOG_INFO(printFd(fd) << C_134 "partial packet sent (loaded: " RESET << bytesLoaded << C_134 ", sent: " RESET << bytesSent << C_134 " bytes)" RESET);
 	}
-	else
+	else {
 		LOG_INFO(printFd(fd) << C_134 "packet sent (" RESET << bytesSent << C_134 " bytes)" RESET);
+		LOG_DEBUG(printFd(fd) << C_134 "packet sent (from tmp_file) (" RESET << bytesSent << C_134 " bytes): {" RESET << std::string(buff, bytesSent));
+	}
 
 	LOG_DEBUG(C_134 "Packet: [" RESET << std::string(buff, bytesSent) << C_134 "]" RESET);
 

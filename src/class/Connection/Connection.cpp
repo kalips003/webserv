@@ -123,7 +123,6 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 	}
 	if (rtrn == SENDING)
 		_answer.initializationBeforeSend();
-	LOG_HERE("exiting ft_doing, rtrn = " << rtrn)
 	return static_cast<Connection::ConnectionStatus>(rtrn);
 }
 

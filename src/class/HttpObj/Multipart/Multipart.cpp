@@ -93,14 +93,12 @@ int		HttpMultipart::tool_check_next_two_char(int fd) {
 
 	char end[3] = "..";
 	ssize_t stuff_after_delim = _leftovers.size() - (_delim.size() + 2);
-// LOG_HERE(RED "0.3: _leftovers: {" RESET << _leftovers <<RED "}\n" RESET "stuff_after_delim: " << stuff_after_delim)
 	if (stuff_after_delim >= 2) {// [\r\n + DELIM + ".."]
 		end[0] = _leftovers[_delim.size() + 2];
 		end[1] = _leftovers[_delim.size() + 3];
 	}
 	else {
 		ssize_t read_rtrn = read(fd, end + stuff_after_delim, 2 - stuff_after_delim);
-// LOG_HERE(RED "0.3: _leftovers: {" RESET << _leftovers <<RED "}\n" RESET "stuff_after_delim: " << stuff_after_delim)
 		if (read_rtrn < 2 - stuff_after_delim)
 			return 400;
 		if (stuff_after_delim == 1)

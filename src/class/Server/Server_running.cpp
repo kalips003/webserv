@@ -50,12 +50,13 @@ void    Server::run( void ) {
 				continue;
 			}
 
+			// if (_events[i].events & EPOLLERR || _events[i].events & (EPOLLRDHUP | EPOLLHUP)) {
 			if (_events[i].events & EPOLLERR || _events[i].events & EPOLLRDHUP) {
-				LOG_INFO(static_cast<Connection*>(_events[i].data.ptr)->getClientFd() << RED "connection closed (FIN received)" RESET);
+				LOG_INFO(printFd(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()) << RED "(Server) connection closed (FIN received)" RESET);
 				pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
 			}
 
-			if (_events[i].events & EPOLLIN) {
+			if (_events[i].events & (EPOLLIN | EPOLLHUP)) {
 				if (!static_cast<Connection*>(_events[i].data.ptr)->ft_update(buffer, sizeof(buffer)))
 					pop_connec(_clients.find(static_cast<Connection*>(_events[i].data.ptr)->getClientFd()));
 			}

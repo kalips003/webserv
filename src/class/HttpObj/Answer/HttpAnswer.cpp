@@ -44,7 +44,7 @@ void	HttpAnswer::setFirstLine(int code) {
 
 
 ///////////////////////////////////////////////////////////////////////////////]
-/**	 Concactenate answer + headers into _head	---*/
+/**	 Concactenate firstline + headers into _head	---*/
 void HttpAnswer::initializationBeforeSend() {
 
 	oss first; first << _version << " " << _status_num << " " << _status_msg;

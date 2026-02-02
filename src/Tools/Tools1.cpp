@@ -124,7 +124,9 @@ std::string itostr(int n) {
 ///////////////////////////////////////////////////////////////////////////////]
 std::string printFd(int fd) {
 	oss colored_fd;
-	int color = 16 + ((fd + 32) % 240);
+	unsigned int h = static_cast<unsigned int>(fd) * 2654435761u;
+	int color = 16 + (h % 240);
+	// int color = 16 + ((fd + 32) % 240);
 	colored_fd << "["<< "\e[38;5;" << color << "m#" << fd << RESET << "] ";
 	return colored_fd.str();
 }

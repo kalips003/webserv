@@ -9,7 +9,6 @@
 /**	Try to send from correct source, update _bytes_written
 * @return HttpBodyStatus after the send (SENDING_XXX | CLOSED)---*/
 HttpObj::HttpBodyStatus	HttpObj::send(char *buff, size_t sizeofbuff, int fd) {
-
 	ssize_t bytesSent;
 
 // send from correct source
@@ -28,10 +27,10 @@ HttpObj::HttpBodyStatus	HttpObj::send(char *buff, size_t sizeofbuff, int fd) {
 
 // handle errors
 	if (bytesSent == 0) {
-		LOG_INFO("[#" << printFd(fd) << "] → " RED "Connection closed (FIN received)" RESET);
+		LOG_INFO(printFd(fd) << "→ " RED "Connection closed (FIN received)" RESET);
 		return (_status = CLOSED);
 	}
-	else if (bytesSent < 0)
+	if (bytesSent < 0)
 		return _status;
 
 // update post sent

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import os
 import sys
-print("hello from Child", file=sys.stderr)
+print(" > hello from Child", file=sys.stderr)
 
 print("Content-Type: text/plain\r")
 print("Status: 200 OK\r")
 print("\r")  # end of headers
 sys.stdout.flush()  # <--- flush headers
-print("Child did somethign", file=sys.stderr)
+print(" > Child did something", file=sys.stderr)
 
 print("Hello from CGI 👋")
 print()
@@ -23,6 +23,6 @@ if body:
     print("\n--- BODY ---")
     print(body)
 sys.stdout.flush()  # <--- flush headers
-print("Child is done", file=sys.stderr)
+print(" > Child is done", file=sys.stderr)
 sys.stdout.flush()  # <--- flush headers
 sys.exit(0)

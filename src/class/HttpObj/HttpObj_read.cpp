@@ -186,6 +186,7 @@ int		HttpObj::receive_cgi(char *buff, size_t sizeofbuff, int fd) {
 		if (rtrn == 400 || !rtrn) { // MAX_LIMIT_FOR_HEADERS reached || EOF => no headers
 			if (!_tmp_file.write(_head))
 				return 500;
+			_head.clear();
 			_status = rtrn ? READING_BODY : CLOSED;
 		}
 		else if (rtrn >= 100)
@@ -214,7 +215,6 @@ int		HttpObj::receive_cgi(char *buff, size_t sizeofbuff, int fd) {
 	if (_status == CLOSED) {
 		LOG_INFO("PIPE: " << printFd(fd) << "→ " RED "CGI finished, connection closed (EOF)" RESET);
 	}
-	LOG_HERE("status before exit receive_cgi(): " << _status)
 	return _status;
 }
 
