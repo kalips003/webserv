@@ -20,9 +20,6 @@ all: $(NAME)
 # clear && curl -v localhost:9999 |& bat -A
 CONF_FILE = data/config_file.conf
 
-t:
-	www/web_cat/login_script.php login=john_doe
-
 # RUN SERVER
 a:	$(NAME)
 	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )

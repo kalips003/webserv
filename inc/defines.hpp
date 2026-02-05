@@ -74,7 +74,7 @@ typedef std::ostringstream oss;
 typedef std::pair<std::string, std::string> kv;
 typedef std::map<std::string, std::string> map_strstr;
 typedef std::map<std::string, std::string> map_istr;
-
+typedef std::vector<std::string> v_str;
 
 
 

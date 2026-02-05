@@ -130,3 +130,13 @@ std::string printFd(int fd) {
 	colored_fd << "["<< "\e[38;5;" << color << "m#" << fd << RESET << "] ";
 	return colored_fd.str();
 }
+
+///////////////////////////////////////////////////////////////////////////////]
+ssize_t wii(char c, const std::string& dico) {
+
+	for (ssize_t i = 0; static_cast<size_t>(i) < dico.size(); ++i) {
+		if (dico[i] == c)
+			return i;
+	}
+	return -1;
+}

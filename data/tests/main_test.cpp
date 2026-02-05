@@ -15,112 +15,22 @@
 #include "Ft_Post.hpp"
 #include <unistd.h>
 #include <fcntl.h>
+
+#include "Settings.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 int main(int ac, char** av)
 {
-	std::string file_path = "www/web_cat/donations/file2";
-	std::string file_path_abs = "/home/agallon/Documents/webserv/www/web_cat/donations/file2";
-
-	char buffer[4096];
-	Connection c(buffer, sizeof(buffer));
-	if(c.getRequest().getFile().openFile(file_path_abs.c_str(), O_RDWR, true)) {
-		std::cout << "filename: " << c.getRequest().getFile()._path << std::endl;
-	}
-
-	Ft_Post	method(c.getTransferData());
 	
-	std::string delim = "------geckoformboundary36fbe25c27c93e88337fb3cd92fcb5f9";
+	if (ac != 2)
+		return 0;
 
+	Settings s;
+	s.parse_config_file(av[1]);
 
-	HttpRequest& _request = c.getRequest();
-	block b;
-	b.data.root = "/home/agallon/Documents/webserv/www/web_cat/donations";
-	b.data.autoindex = false;
-	b.data.post_policy = "replace";
-
-
-
-//////////////////////////////
-//////////////////////////////
-	_request.getFile().resetFileFdBegining();
-	_request.getFile().updateStat();
-	HttpMultipart onePartMan(delim, "");
-	onePartMan.setBytesTotal(_request.getFile()._info.st_size);
-
-	int fd = _request.getFile()._fd;
-	HttpObj::HttpBodyStatus status;
-	int i = 0;
-	while ((status = onePartMan.getStatus()) != HttpObj::DOING) {
-		// std::cout << "loop n." << i << std::endl;
-		// i++;
-		sleep(1);
-		int rtrn = onePartMan.parse_multifile(c.getTransferData()._buffer, c.getTransferData()._sizeofbuff, fd);
-
-		if (status == HttpObj::CLOSED) {// eof found
-			std::cout << "CLOSED EOF" << std::endl;
-			return 400;
-		}
-		if (status >= 100) {
-			std::cout << "bad status: " << status << std::endl;
-			return status;
-		
-		}
-		
-	}
-//////////////////////////////
-	std::string& leftover = onePartMan.getLeftovers();
-	// check _first == delim
-	if (onePartMan.getFirst() != delim) {
-		std::cout << "error getFirst" << std::endl;
-		return 400;
-	}
-	// next 2 char == "--"
-	if (leftover.size() < delim.size() + 2) {
-		std::cout << "error end delim too short" << std::endl;
-		return 400;
-	}
-	if (leftover[delim.size()] != '-' && leftover[delim.size() + 1] != '-') {
-		std::cout << "error end delim" << std::endl;
-		return 400;
-	}
-	// check headers for filename?
-	if (!onePartMan.getFilename().empty()) {
-		size_t pos = file_path_abs.find_last_of("/");
-
-		// /root_path/web_cat/donations/image.ico
-		std::string file_to_upload = file_path_abs.substr(0, pos + 1) + onePartMan.getFilename();
-		
-		std::string file_path_abs;	
-		std::string query;
-		std::string sanitized = file_path_abs;		
-
-		method.setlocationBlock(&b);
-		int rtrn = method.handleRessource(file_path_abs, query, sanitized);
-		// rename(onePartMan.getFilename().empty());
-	}
-
-	std::cout << "hello, finished\n";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	std::cout << s;
 
 
 
