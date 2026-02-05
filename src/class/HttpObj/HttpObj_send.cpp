@@ -37,8 +37,10 @@ HttpObj::HttpBodyStatus	HttpObj::send(char *buff, size_t sizeofbuff, int fd) {
 	if (_status != SENDING_HEAD)
 		_bytes_written += bytesSent;
 
-	if (_bytes_written >= static_cast<size_t>(_bytes_total))
+	if (_bytes_written >= static_cast<size_t>(_bytes_total)) {
+		LOG_INFO(printFd(fd) << C_404 "Finished sending, answer status: " RESET << _first);
 		return (_status = CLOSED);
+	}
 
 	return (_status = whatToSend());
 }

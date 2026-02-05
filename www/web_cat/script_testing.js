@@ -1,13 +1,19 @@
 //////////////////////////////////////////////////////////////////////
 function sendHello() {
-	const path_to_upload = 'donations/file1'; // path to upload to relative to website root
+	const storedLogin = localStorage.getItem('storedLogin');
+	let path_to_upload = 'donations/filehello'; // path to upload to relative to website root
+	let body_to_upload = 'anonymous Hello\n';
+	if (storedLogin) {
+		path_to_upload = 'donations/hello/donations_hello'; // path to upload if logged
+		body_to_upload = `${storedLogin} donated a Hello\n`;
+	}
 
 	fetch(path_to_upload, {  // hardcoded location on your server
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded'
 		},
-		body: 'message=hello'
+		body: body_to_upload
 	})
 	.then(response => response.text())
 	.then(data => alert('Server response: ' + data))

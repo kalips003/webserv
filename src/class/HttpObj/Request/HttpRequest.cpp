@@ -44,7 +44,7 @@ int HttpRequest::isFirstLineValid(int fd) {
 		return 400;
 	}
 
-	LOG_LOG(printFd(fd) << "→ " << _method << " " << _path);
+	LOG_LOG(printFd(fd) << "→ " C_541 << _method << RESET " " << _path);
 	return 0;
 }
 

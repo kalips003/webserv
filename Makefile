@@ -26,7 +26,7 @@ t:
 # RUN SERVER
 a:	$(NAME)
 	@$(call random_shmol_cat, "cREAting servor", "does it work?", $(CLS), )
-	@rm -f www/web_cat/donations/*
+	@find www/web_cat/donations/ -maxdepth 1 -type f -exec rm -f {} \;
 	-./$(NAME) $(CONF_FILE)
 
 # RUN SERVER + CLIENT (client is child process of parent)
@@ -283,7 +283,7 @@ git3: fclean
 clean:
 	@rm -f $(TEST_FOLDER)/a.out
 	@rm -rf log
-	@rm -f www/web_cat/donations/*
+	@find www/web_cat/donations/ -maxdepth 1 -type f -exec rm -f {} \;
 	@rm -f www/tmp/*
 	@rm -f $(CLIENT)
 	@rm -rf $(OBJ_FOLDER)
