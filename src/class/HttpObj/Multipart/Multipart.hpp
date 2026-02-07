@@ -17,8 +17,8 @@ private:
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	HttpMultipart(const std::string& delim) : 
-		HttpObj(),
+	HttpMultipart(const Settings::server_setting* settings, const std::string& delim) : 
+		HttpObj(settings),
 		_delim(delim) { _status = READING_FIRST; }
 
 	HttpMultipart(const HttpMultipart& other);
@@ -52,9 +52,9 @@ private:
 ///////////////////////////////////////////////////////////////////////////////]
 
 	/***  FRIENDS  ***/
-	friend std::ostream& operator<<(std::ostream& os, const HttpMultipart& r);
+	// friend std::ostream& operator<<(std::ostream& os, const HttpMultipart& r);
 };
 
-std::ostream& operator<<(std::ostream& os, const HttpMultipart& r);
+// std::ostream& operator<<(std::ostream& os, const HttpMultipart& r);
 
 #endif

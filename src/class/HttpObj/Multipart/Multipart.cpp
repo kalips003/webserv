@@ -5,7 +5,7 @@
 
 #include "Tools1.hpp"
 // #include "HttpMethods.hpp"
-#include "SettingsServer.hpp"
+#include "Settings.hpp"
 #include <cstddef>
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -29,7 +29,7 @@
 // _bytes_written get incremented, never reset */
 int		HttpMultipart::readingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 
-	StringSink			to_store_to(_buffer);
+	StringSink			to_store_to(_body);
 
 	ssize_t read_rtrn = readForDelim(buff, sizeofbuff, fd, "\r\n" + _delim, 0b10, to_store_to, reader); // << keep boundary in _leftovers
 	if (read_rtrn == 500)
@@ -39,30 +39,32 @@ int		HttpMultipart::readingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc 
 	if (read_rtrn == -1)
 		return HttpObj::READING_BODY;
 	
-	size_t to_write_to_file;
+	size_t 			to_write_to_file;
+	std::string*	write_from_where;
 	if (read_rtrn == -2) { // not found yet
 		if (_bytes_written > static_cast<size_t>(_bytes_total)) {
 			LOG_WARNING("Tempfile size (" RED << _bytes_total << RESET ") reached before finding: " << _delim)
 			return 400;
 		}
 		to_write_to_file = _buffer.size() >= _delim.size() + 2 ? _buffer.size() - _delim.size() - 1 : 0;
+		write_from_where = &_buffer;
 	}
-	else // found
-		to_write_to_file = _buffer.size();
+	else {// found
+		write_from_where = &_body;
+		to_write_to_file = _body.size();
+	}
 
 	ssize_t rtrn_write;
-	if (static_cast<size_t>(rtrn_write = write(_tmp_file._fd, _buffer.c_str(), to_write_to_file)) < to_write_to_file) {
+	if (static_cast<size_t>(rtrn_write = write(_tmp_file._fd, (*write_from_where).c_str(), to_write_to_file)) < to_write_to_file) {
 		LOG_ERROR_SYS("readingBody(): write(): partial write");
 		return 500;
 	}
-	// LOG_DEBUG("readingBody() is found: _buffer before: " << _buffer);
-	_buffer.erase(0, to_write_to_file);
 
-	if (read_rtrn == -2)
+	if (read_rtrn == -2) {
+		_buffer.erase(0, to_write_to_file);
 		return HttpObj::READING_BODY;
+	}
 //	read_rtrn == 1 (r\n--BOUNDARY was found) written to to_store_to, _leftovers the rest (boundary included)
-	// LOG_DEBUG("readingBody() is found: _buffer: " << _buffer);
-	// LOG_DEBUG("readingBody() is found: _leftovers: " << _leftovers);
 	return HttpObj::DOING;
 }
 
@@ -124,6 +126,8 @@ int		HttpMultipart::tool_check_next_two_char(int fd) {
 ///////////////////////////////////////////////////////////////////////////////]
 int		HttpMultipart::isFirstLineValid(int fd) { 
 	(void)fd;
+	if (_first != _delim)
+		LOG_ERROR("HttpMultipart::isFirstLineValid(): " << _first << " != " << _delim)
 	return _first == _delim ? 0 : 400;
 }
 
@@ -131,8 +135,10 @@ int		HttpMultipart::isFirstLineValid(int fd) {
 int		HttpMultipart::parseHeadersForValidity() {
 
 	std::string* content_disposition = find_in_headers("Content-Disposition");
-	if (!content_disposition)
-		return 400;
+	if (!content_disposition) {
+		LOG_ERROR("HttpMultipart::parseHeadersForValidity(): cant find: Content-Disposition")
+		return 400;	
+	}
 
 // Content-Disposition: form-data; name="foo"; filename="bar.txt"
 	std::vector<std::string> v = splitOnDelimitor(*content_disposition, ";");
@@ -145,8 +151,15 @@ int		HttpMultipart::parseHeadersForValidity() {
 		else if (param.find("filename=") == 0)
 			_filename = trim_any(param.substr(9), " \"\'"); // optional
 	}
-	if (v.empty() || v[0] != "form-data" || _name.empty())
+	if (v.empty() || v[0] != "form-data" || _name.empty()) {
+		if (v.empty())
+			LOG_ERROR("HttpMultipart::parseHeadersForValidity(): v.empty()")
+		else if (v[0] != "form-data")
+			LOG_ERROR("HttpMultipart::parseHeadersForValidity(): v[0]: " << v[0] << " != form-data")
+		else if (_name.empty())
+			LOG_ERROR("HttpMultipart::parseHeadersForValidity(): _name.empty()")
 		return 400;
+	}
 
 	if (!_tmp_file.createTempFile(&g_settings.getTempRoot()))
 		return 500;
@@ -155,7 +168,7 @@ int		HttpMultipart::parseHeadersForValidity() {
 
 // #include "SettingsServer.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
-HttpMultipart::HttpMultipart(const HttpMultipart& other) : HttpObj(), _delim(other._delim) {
+HttpMultipart::HttpMultipart(const HttpMultipart& other) : HttpObj(other._settings), _delim(other._delim) {
 	_leftovers = other._leftovers;
 	_bytes_total = other._bytes_total;
 	_bytes_written = other._bytes_written;

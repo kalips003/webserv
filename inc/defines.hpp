@@ -7,7 +7,8 @@
 
 
 // #define BUFFER_SIZE 4096
-#define BUFFER_SIZE 8192
+// #define BUFFER_SIZE 8192
+#define BUFFER_SIZE 512
 
 #define HOW_MANY_REQUEST_PER_LISTEN 2000
 

@@ -51,8 +51,7 @@ void HttpAnswer::initializationBeforeSend() {
 	_first = first.str();
 
 	_bytes_total = isThereBody();
-	if (_bytes_total)
-		_headers["content-length"] = itostr(_bytes_total);
+	_headers["content-length"] = itostr(_bytes_total);
 
 	setDefaultHeaders();
 	concatenateIntoHead();

@@ -3,6 +3,8 @@
 #include "Log.hpp"
 #include "Server.hpp"
 
+bool	g_ServerEnd;
+
 ///////////////////////////////////////////////////////////////////////////////]
 /** @brief Signal handler for SIGINT (Ctrl+C)
  *

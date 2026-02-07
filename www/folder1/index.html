@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<script src="script.js"></script>
     <meta charset="UTF-8">
     <title>webserv GET test</title>
 </head>
@@ -8,5 +9,16 @@
     <h1>GET works 🎉</h1>
     <p>If you see the image below, static file serving + MIME types work.</p>
     <img src="/folder1/folder2/images.jpeg" alt="test image">
+    <h1>Donate Page</h1>
+    <button onclick="sendHello()">Send Hello</button>
+	<br><br>
+	<input type="file" id="fileInput" multiple>
+	<button onclick="uploadFile()">Donate File</button>
+	<br><br>
+	<button onclick="uploadFiles()">Donate Lots of Files</button>
+	<br><br>
+	<button onclick="deleteFile()">Delete Test File</button>
+	<br><br>
+	<button onclick="callCgi()">Call CGI test</button>
 </body>
 </html>

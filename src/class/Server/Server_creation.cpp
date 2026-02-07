@@ -21,17 +21,13 @@
  *
  * @param confi_file   Path of config file.
  * @return         _server_status true if parsing succeeded, false otherwise.		---*/
-Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_status(false), _epoll_fd(-1) {
+Server::Server( const char* confi_file ) : _epoll_fd(-1), _server_status(false) {
 
 	_server_status = g_settings.parse_config_file(confi_file);
 	if (!_server_status)
 		return ;
 
-	_server_status = g_settings.check_settings();
-	if (!_server_status)
-		return ;
-
-	_server_status = create_listening_socket();
+	_server_status = create_all_listening_socket();
 	if (!_server_status)
 		return ;
 
@@ -39,13 +35,12 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
 	if (!_server_status)
 		return ;
 
-	
 	_server_status = init_signals();
 	if (!_server_status)
 		return ;
 
 	_server_status = true;
-	LOG_INFO(C_151 "Server up and running on port: " RESET << g_settings.getPortNum())
+	LOG_INFO(C_151 "Server fully set up, serving " RESET << _sockets.size() << C_151 " domains")
 }
 
 // #include <unistd.h>
@@ -53,9 +48,38 @@ Server::Server( const char* confi_file ) : _addr(), _socket_fd(-1), _server_stat
 Server::~Server( void ) {
 
 	for (map_clients::iterator it = _clients.begin(); it != _clients.end(); )
-		it = pop_connec(it);
+		it = pop_connec(it, false);
 	if (_epoll_fd >= 0) close(_epoll_fd);
-	if (_socket_fd >= 0) close(_socket_fd);
+	for (std::map<int, server_listen>::iterator it = _sockets.begin(); it != _sockets.end(); ++it)
+		if (it->second._socket_fd >= 0) close(it->second._socket_fd);
+}
+
+///////////////////////////////////////////////////////////////////////////////]
+bool	Server::create_all_listening_socket() {
+
+// std::map<int, server_listen>	_sockets;
+	for (std::map<std::string, Settings::server_setting>::iterator it = g_settings._global_blocks.begin();
+		it != g_settings._global_blocks.end(); ++it) {
+		
+		if (it->second._server_block_name == "server" && it->second._port > 0) {
+			if (_sockets.find(it->second._port) != _sockets.end()) {
+				LOG_WARNING("create_all_listening_socket(): listening port " C_154 << it->second._port << "already in use")
+				continue;
+			}
+
+			Server::server_listen new_socket(it->second);
+			new_socket._listen_port = it->second._port;
+
+			if (!Server::create_listening_socket(new_socket)) {
+				LOG_WARNING("create_all_listening_socket(): creation socket for port " C_154 << it->second._port << "failed")
+				continue;
+			}
+			LOG_INFO(C_151 "Server " RESET << new_socket._settings._server_name << C_151 " up and running on port: " RESET << it->second._port)
+			_sockets.insert(std::pair<int, server_listen>(new_socket._listen_port, new_socket));
+		}	
+	}
+
+	return _sockets.size();
 }
 
 #include <fcntl.h>
@@ -69,42 +93,45 @@ Server::~Server( void ) {
  * If return True, the socket is listening and ready to accept
  *
  * @return         FALSE on any error (and print the err msg), TRUE otherwise	---*/
-bool	Server::create_listening_socket() {
+bool	Server::create_listening_socket(Server::server_listen& new_socket) {
 
-	_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (_socket_fd < 0) {
-		LOG_ERROR(RED "socket() failed" RESET);
+	new_socket._socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (new_socket._socket_fd < 0) {
+		LOG_ERROR_SYS(RED "create_listening_socket(" RESET << new_socket._listen_port << RED "): socket() failed" RESET)
 		return false;
 	}
-	_addr.sin_port = htons(g_settings.getPortNum());
-	_addr.sin_family = AF_INET;
-	_addr.sin_addr.s_addr = INADDR_ANY;
+	new_socket._addr.sin_port = htons(new_socket._listen_port);
+	new_socket._addr.sin_family = AF_INET;
+	new_socket._addr.sin_addr.s_addr = INADDR_ANY;
 
 // in case of rapid on/off of the server (TIME_WAIT state), avoid the EADDRINUSE bind error
 	int opt = 1;
-	setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+	setsockopt(new_socket._socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-	int bind_status = bind(_socket_fd, (struct sockaddr *)&_addr, sizeof(_addr));
+	int bind_status = bind(new_socket._socket_fd, (struct sockaddr *)&new_socket._addr, sizeof(new_socket._addr));
 	if (bind_status) {
 	// most common because port already in use: EADDRINUSE
 	// or wrong IPaddr, or permission issue: EACCES (port < 1024 = privileged port)
-		LOG_ERROR(RED "bind() failed" RESET);
+		LOG_ERROR_SYS(RED "create_listening_socket(" RESET << new_socket._listen_port << RED "): bind() failed" RESET)
+		close(new_socket._socket_fd);
 		return false;
 	}
 
 // listen() marks the socket as ready to recieve
 // connect() marks the socket as ready to send/initiate
 	// how many client can tried to connect to this socket while i call accept()
-	int listen_status = listen(_socket_fd, HOW_MANY_REQUEST_PER_LISTEN);
+	int listen_status = listen(new_socket._socket_fd, HOW_MANY_REQUEST_PER_LISTEN);
 	// 3 step handshake: SYN > SYN-ACK > ACK
-	if (!!listen_status)
-	{
-		LOG_ERROR(RED "listen() failed" RESET);
+	if (listen_status) {
+		LOG_ERROR_SYS(RED "create_listening_socket(" RESET << new_socket._listen_port << RED "): listen() failed" RESET)
+		close(new_socket._socket_fd);
 		return false;
 	}
 
-	if (!set_flags(_socket_fd, O_NONBLOCK))
+	if (!set_flags(new_socket._socket_fd, O_NONBLOCK)) {
+		close(new_socket._socket_fd);
 		return false;
+	}
 	return true;
 }
 
@@ -116,16 +143,19 @@ bool	Server::create_epoll() {
 
 	// EPOLL_CLOEXEC = Set the close-on-exec (FD_CLOEXEC) flag on the new fd. Prevents FD from leaking to child processes after exec()
 	if (_epoll_fd == -1) {
-		LOG_ERROR("epoll_create1()");
+		LOG_ERROR_SYS(RED "epoll_create1()" RESET);
 		return false;
 	}
 
-	struct epoll_event ev;
-	ev.events = EPOLLIN;
-	ev.data.ptr = this;
-	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, _socket_fd, &ev)) {
-		LOG_ERROR("epoll_ctl()");
-		return false;
+	for (std::map<int, server_listen>::iterator it = _sockets.begin(); it != _sockets.end(); ++it) {
+	
+		struct epoll_event ev;
+		ev.events = EPOLLIN;
+		ev.data.ptr = &it->second;
+		if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, it->second._socket_fd, &ev)) {
+			LOG_ERROR_SYS(RED "create_epoll(): epoll_ctl(" RESET << it->second._socket_fd << RED ")" RESET);
+			return false;
+		}
 	}
 
 	return true;

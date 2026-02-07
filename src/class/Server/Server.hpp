@@ -9,7 +9,7 @@
 
 #include "defines.hpp"
 #include "Connection.hpp"
-#include "SettingsServer.hpp"
+#include "Settings.hpp"
 
 extern bool g_ServerEnd;
 
@@ -32,54 +32,68 @@ public:
 		ACCEPT_FATAL = -2     // EMFILE / ENFILE / etc.
 	};
 
+	struct server_listen {
+		int								_socket_fd;
+		int								_listen_port;
+		struct sockaddr_in				_addr;
+		const Settings::server_setting&	_settings;
+
+		server_listen(const Settings::server_setting& settings) : _settings(settings) {}
+	};
+
 private:
 ///////////////////////////////////////////////////////////////////////////////]
-    struct sockaddr_in      _addr;
+    // struct sockaddr_in      _addr;
     // struct SettingsServer   _settings;
 
-    int                     _socket_fd;
-    bool                    _server_status;
+    // int                     _socket_fd;
 
-    map_clients				_clients;
 //-----------------------------------------------------------------------------]
+	int						_epoll_fd;
+	struct epoll_event		_events[MAX_EVENTS];
 
-    int                     _epoll_fd;
-    struct epoll_event      _events[MAX_EVENTS];
+	std::map<int, server_listen>	_sockets;
+
+	map_clients				_clients;
+	bool					_server_status;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-    Server( const char* confi_file );
+	Server( const char* confi_file );
 	~Server( void );
 
 //-----------------------------------------------------------------------------]
 private:
-	bool					create_listening_socket( void );
+	bool					create_all_listening_socket( void );	
+	static bool				create_listening_socket(Server::server_listen& new_socket);
 	bool					create_epoll( void );
-	void					accept_clients(char *buff, size_t sizeofbuff);
-    ConnectionAcceptResult	accept_one_client(char *buff, size_t sizeofbuff);
+	bool					accept_new_clients(void* ptr, char *buff, size_t sizeofbuff);
+	void					accept_clients(char *buff, size_t sizeofbuff, server_listen* this_domain);
+    ConnectionAcceptResult	accept_one_client(char *buff, size_t sizeofbuff, server_listen* this_domain);
 //-----------------------------------------------------------------------------]
 public:
 	void	run( void );
-	void	run_better( void );
-
-	bool	reset( void );
+private:
+	void	handle_EPOLLERR(Connection* client);
+	void	handle_EPOLLRDHUP(Connection* client);
+	void	handle_EPOLLHUP(Connection* client, char* buffer, size_t sizeofbuff);
+public:
 	void	reboot( void );
 //-----------------------------------------------------------------------------]
 public:
-	c_it	pop_connec(c_it it);
+	c_it	pop_connec(c_it it, bool timeout);
 
 public:
 //-----------------------------------------------------------------------------] 
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
-    bool					getAddr() { return _server_status; }
-    int						getfd() { return _socket_fd; }
-    bool					getStatus() { return _server_status; }
-    const map_clients&		getClients() const { return _clients; }
-
+	bool	getStatus() { return _server_status; }
 /***  SETTERS  ***/
 
 ///////////////////////////////////////////////////////////////////////////////]
+
+	friend std::ostream&	operator<<(std::ostream& oss, Server& s);
+
 };
 
 bool	init_signals(void);

@@ -1,7 +1,10 @@
-#include <fcntl.h>
 #include "Log.hpp"
+
+#include <fcntl.h>
+#include <algorithm>
+
 #include "Tools1.hpp"
-#include "_colors.h"
+#include "Settings.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 //	int     fcntl(int fd, int cmd, ... /* arg */ );
@@ -26,11 +29,11 @@ bool	set_flags(int fd_to_set, int flag_to_add) {
 
 	int flags = fcntl(fd_to_set, F_GETFL, 0);
 	if (flags < 0){
-		LOG_ERROR(RED "fcntl()" RESET);
+		LOG_ERROR_SYS(RED "set_flags(" RESET << fd_to_set << RED ") fcntl()" RESET);
 		return false;
 	}
 	if (fcntl(fd_to_set, F_SETFL, flags | flag_to_add) < 0){
-		LOG_ERROR(RED "accept()" RESET);
+		LOG_ERROR_SYS(RED "set_flags(" RESET << fd_to_set << RED ") fcntl()" RESET);
 		return false;
 	}
 	return true;
@@ -51,7 +54,7 @@ bool	epollChangeFlags(int epoll_fd, int client_fd, uint32_t new_flag, int mode) 
 	ev.data.fd = client_fd;
 
 	if (epoll_ctl(epoll_fd, mode, client_fd, &ev)) {
-		LOG_ERROR_SYS("epoll_ctl() <!> WARNING _clients");
+		LOG_ERROR_SYS(RED "epollChangeFlags(" RESET << client_fd << RED "): epoll_ctl()");
 		return false;
 	}
 	return true;
@@ -71,7 +74,7 @@ bool	epollChangeFlags(int epoll_fd, int client_fd, void* ptr, uint32_t new_flag,
 	ev.data.ptr = ptr;
 
 	if (epoll_ctl(epoll_fd, mode, client_fd, &ev)) {
-		LOG_ERROR_SYS("epoll_ctl() <!> WARNING _clients");
+		LOG_ERROR_SYS(RED "epollChangeFlags(" RESET << client_fd << RED "): epoll_ctl()");
 		return false;
 	}
 	return true;
@@ -145,7 +148,8 @@ int	createTempFile(std::string& to_store_path_name, const std::string* root_path
 	return fd;
 }
 
-#include "SettingsServer.hpp"
+// #include "SettingsServer.hpp"
+// #include <algorithm>
 ///////////////////////////////////////////////////////////////////////////////]
 /**	return MIME type of the file "Content-Type" == text/html 
 *
@@ -158,10 +162,17 @@ std::string find_MIME_type(const std::string& path) {
 	if (pos == std::string::npos)
 		return "application/octet-stream";
 
-	const std::string* rtrn = g_settings.find_setting_in_blocks("mime_types", "", path.substr(pos + 1));
-	if (!rtrn) {
-		LOG_DEBUG(RED "unknown MIME type: " RESET << path.substr(pos + 1));
+	const Settings::server_setting* mime = g_settings.find_global_block("mime_types");
+	if (!mime) {
+		LOG_ERROR(RED "Cannot locate the MIME type block" RESET);
 		return "application/octet-stream";
 	}
-	return *rtrn;
+	std::string mime_name = path.substr(pos + 1);
+	std::transform(mime_name.begin(), mime_name.end(), mime_name.begin(), ::tolower);
+	for (map_strstr::const_iterator it = mime->_settings.begin(); it != mime->_settings.end(); ++it) {
+		if (it->first == mime_name)
+			return it->second;
+	}
+	LOG_DEBUG(RED "unknown MIME type: " RESET << mime_name);
+	return "application/octet-stream";
 }

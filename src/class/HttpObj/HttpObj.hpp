@@ -2,18 +2,19 @@
 #define HTTPOBJ_HPP
 
 #include "Log.hpp"
+#include "defines.hpp"
+#include "Settings.hpp"
+
 #include <string>
 #include <map>
 #include <sys/types.h>
-
-#include "_colors.h"
-#include "defines.hpp"
 #include <sys/stat.h>
 
 #include "TempFile.hpp"
 
-
 class Sink;
+class Settings;
+
 ///////////////////////////////////////////////////////////////////////////////]
 typedef ssize_t (*ReadFunc)(int, void*, size_t);
 /*
@@ -35,7 +36,8 @@ public:
 		DOING,
 		SENDING_HEAD,
 		SENDING_BODY,
-		SENDING_BODY_FD
+		SENDING_BODY_FD,
+		FINISHED
 	};
 
 protected:
@@ -56,11 +58,12 @@ protected:
 	size_t			_bytes_written; // size in bytes already sent / received
 
 	HttpBodyStatus	_status;
+	const Settings::server_setting*	_settings;
 ///////////////////////////////////////////////////////////////////////////////]
 
 
 public:
-	HttpObj() : _tmp_file(), _bytes_total(-1), _bytes_written(0), _status(CLOSED) {}
+	HttpObj(const Settings::server_setting* settings) : _tmp_file(), _bytes_total(-1), _bytes_written(0), _status(CLOSED), _settings(settings) {}
 	~HttpObj() {}
 
 

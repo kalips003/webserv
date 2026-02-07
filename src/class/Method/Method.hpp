@@ -13,7 +13,6 @@ class SettingsServer;
 #include <string>
 #include <sys/stat.h>
 
-#include "SettingsServer.hpp"
 #include "Connection.hpp"
 #include "TempFile.hpp"
 
@@ -63,7 +62,7 @@ protected:
 
 	const t_connec_data&	_data;
 	cgi_data				_cgi_data;
-	const block*			_location_block;
+	const Settings::block*	_location_block;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
@@ -94,7 +93,6 @@ public:
 	/***  TOOLS  ***/
 public:
 	static int			isFileNOK(std::string path, struct stat& ressource_info);
-	const std::string*	isCGI(const std::string& path) const;
 
 ///////////////////////////////////////////////////////////////////////////////]
 /***							VIRTUAL FUNCTIONS							***/
@@ -147,7 +145,7 @@ public:
 	HttpAnswer&				getAnswer() { return _answer; }
 	const t_connec_data&	getData() { return _data; }
 	cgi_data&				getCGIData() { return _cgi_data; }
-	const block*			getLocationBlock() const { return _location_block; }
+	const Settings::block*	getLocationBlock() const { return _location_block; }
 
 ///////////////////////////////////////////////////////////////////////////////]
 	/***  SETTERS  ***/

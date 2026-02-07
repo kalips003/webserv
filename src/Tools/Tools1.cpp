@@ -28,10 +28,13 @@ bool	atoi_v2(const std::string& input, int& rtrn) {
 ///////////////////////////////////////////////////////////////////////////////]
 bool	atoi_v2(const std::string& input, ssize_t& rtrn) {
 
+	if (!input.size())
+		return false;
+
 	char* end = NULL;
 	long num = strtol(input.c_str(), &end, 10);
 	if (*end != '\0' || errno == ERANGE || num < -1 || num > SSIZE_MAX) {
-		std::cerr << RED "Input number invalid: " RESET << input << std::endl;
+		std::cerr << RED "Input number invalid: \"" RESET << input << RED "\"" RESET << std::endl;
 		return false;
 	}
 	rtrn = static_cast<ssize_t>(num);

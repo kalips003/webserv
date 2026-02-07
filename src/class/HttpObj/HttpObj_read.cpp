@@ -76,11 +76,12 @@ int		HttpObj::receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 			rtrn = this->isFirstLineValid(fd);
 			if (rtrn)
 				return rtrn;
+			LOG_INFO(printFd(fd) << "← " << _first)
 		}
 	}
 
 	if (_status == READING_HEADER) { LOG_DEBUG("receive(): READING_HEADER");
-		
+
 		rtrn = readingHeaders(buff, sizeofbuff, fd, reader);
 		if (rtrn >= 100)
 			return rtrn;
@@ -107,7 +108,7 @@ int		HttpObj::receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 	}
 
 	if (_status == CLOSED) {
-		LOG_INFO(printFd(fd) << "→ " RED "RECV closed (EOF | Connection Closed)" RESET);
+		LOG_INFO(printFd(fd) << "← " RED "EOF received (closed)" RESET);
 	}
 	
 	return _status;

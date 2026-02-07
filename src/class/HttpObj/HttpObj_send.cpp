@@ -38,7 +38,7 @@ HttpObj::HttpBodyStatus	HttpObj::send(char *buff, size_t sizeofbuff, int fd) {
 		_bytes_written += bytesSent;
 
 	if (_bytes_written >= static_cast<size_t>(_bytes_total))
-		return (_status = CLOSED);
+		return (_status = FINISHED);
 
 	return (_status = whatToSend());
 }

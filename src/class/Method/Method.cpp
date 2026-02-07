@@ -1,5 +1,7 @@
 #include "Method.hpp"
 
+#include "Settings.hpp"
+
 ///////////////////////////////////////////////////////////////////////////////]
 /** Common handling of a request for normal (non-CGI) processing.
  * - Extracts query string from the path (/script.py - ?x=abc&y=42)
@@ -23,16 +25,16 @@ int Method::normal_doing() {
 
 // sanitize given_path for %XX;
 	std::string sanitized;
-	if (SettingsServer::sanitizePath(sanitized, path))
+	if (Settings::sanitizePath(sanitized, path))
 		return 400;
 	LOG_LOG("path (" <<  _request.getPath() << ") after sanitizePath: " << sanitized);
 
 // set Method::_location_data* from all the location /blocks
-	_location_block = SettingsServer::isLocationKnown(sanitized); // validity checked in request.validateLocationBlock()
+	_location_block = Settings::isLocationKnown(sanitized, *_data._settings); // validity checked in request.validateLocationBlock()
 
 // add root to path (- location_path)
 	std::string ressource; // ressource asked with absolute path: 'root/ressource - query'
-	SettingsServer::getFullPath(ressource, sanitized); // validity checked in request.validateLocationBlock()
+	Settings::getFullPath(ressource, sanitized, *_data._settings); // validity checked in request.validateLocationBlock()
 	LOG_LOG(_request.getMethod() << " ) Full path of the asked ressource: " << ressource);
 
 // if no trailing / in directory path, redirect
@@ -70,7 +72,7 @@ int Method::handleRessource(std::string& ressource, std::string& query) {
 // is FILE
 	if (S_ISREG(ressource_info.st_mode)) {
 		LOG_DEBUG("is FILE");
-		const std::string* CGI_interpreter_path = isCGI(ressource); // ptr to /usr/bin/python3;
+		const std::string* CGI_interpreter_path = g_settings.isCGI(ressource); // ptr to /usr/bin/python3;
 		if (CGI_interpreter_path)
 			return iniCGI(ressource, query, CGI_interpreter_path);
 		else

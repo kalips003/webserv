@@ -162,7 +162,7 @@ void	HttpObj::setDefaultHeaders() {
 	if (set)
 		std::replace(set->begin(), set->end(), '|', ';');
 	else
-		_headers["content-type"] = "text/html| charset=utf-8";
+		_headers["content-type"] = "text/html; charset=utf-8";
 	
 	if (!find_in_headers("Connection"))
 		_headers["connection"] = "close";
@@ -205,6 +205,7 @@ void	HttpObj::closeTemp(bool del) {
 std::ostream& operator<<(std::ostream& os, const HttpObj& r) {
 
 	os << C_542 "-----------HTTP OBJECT---------------------\n" RESET;
+	os << C_341 "_bytes_written: " RESET << r._bytes_written << C_341 "; _bytes_total: " RESET << r._bytes_total << std::endl;
 	os << C_542 "\t_first: {\n" RESET << r._first << C_542 "}" RESET << std::endl;
 	os << C_542 "\t_head: {\n" RESET << r._head << C_542 "}" RESET << std::endl;
 

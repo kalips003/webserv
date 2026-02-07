@@ -16,7 +16,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	HttpRequest() : HttpObj() { _status = READING_FIRST; }
+	HttpRequest(const Settings::server_setting* settings) : HttpObj(settings) { _status = READING_FIRST; }
 
 
 //-----------------------------------------------------------------------------]

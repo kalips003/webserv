@@ -112,10 +112,8 @@ ssize_t	HttpObj::sendBufferFile(char *buff, size_t sizeofbuff, int fd, int fd_fi
 	}
 	else {
 		LOG_INFO(printFd(fd) << C_134 "packet sent (" RESET << bytesSent << C_134 " bytes)" RESET);
-		LOG_DEBUG(printFd(fd) << C_134 "packet sent (from tmp_file) (" RESET << bytesSent << C_134 " bytes): {" RESET << std::string(buff, bytesSent));
+		LOG_DEBUG(printFd(fd) << C_134 "packet sent (from tmp_file) (" RESET << bytesSent << C_134 " bytes): [" RESET << std::string(buff, bytesSent) << "]");
 	}
-
-	LOG_DEBUG(C_134 "Packet: [" RESET << std::string(buff, bytesSent) << C_134 "]" RESET);
 
 	return bytesSent;
 }

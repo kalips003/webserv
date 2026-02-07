@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <iostream>
+#include <sys/time.h>
 
 #include "HttpStatusCode.hpp"
 #include "HttpObj.hpp"
@@ -29,6 +30,7 @@ void	Connection::closeFd() {
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Use internal _status do decide what to do with the given buffer */
 bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
+	updateTimeout();
 
 	if (_status == READING) {
 		if (_request.getStatus() != HttpObj::READING_FIRST)
@@ -43,8 +45,10 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 		LOG_DEBUG(printFd(_data._client_fd) << "--- DOING --- ");
 		
 		_status = ft_doing();
-		if (_status == SENDING)
+		if (_status == SENDING) {
+			LOG_INFO(printFd(_data._client_fd) << "→ " << _answer.getFirst())
 			epollChangeFlags(_data._epoll_fd, _data._client_fd, this, EPOLLOUT, EPOLL_CTL_MOD);
+		}
 	}
 
 	if (_status == SENDING) {
@@ -52,7 +56,7 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 		_status = ft_send(buff, sizeofbuff);
 	}
 
-	if (_status == CLOSED) {
+	if (_status == CLOSED || _status == FINISHED) {
 		LOG_DEBUG(printFd(_data._client_fd) << "--- CLOSING --- ");
 		return false;
 	}
@@ -122,8 +126,13 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 		_answer.createError(rtrn);
 		return SENDING;
 	}
-	if (rtrn == SENDING)
+	if (rtrn == SENDING) {
+		std::string* connection = _request.find_in_headers("Connection");
+		if (connection)
+			_answer.addToHeaders("connection", *connection);
 		_answer.initializationBeforeSend();
+	}
+
 	return static_cast<Connection::ConnectionStatus>(rtrn);
 }
 
@@ -135,6 +144,8 @@ Connection::ConnectionStatus 	Connection::ft_send(char *buff, size_t sizeofbuff)
 	HttpObj::HttpBodyStatus r = _answer.send(buff, sizeofbuff, _data._client_fd);
 	if (r == HttpObj::CLOSED)
 		return Connection::CLOSED;
+	else if (r == HttpObj::FINISHED)
+		return Connection::FINISHED;
 	return Connection::SENDING;
 }
 
@@ -161,16 +172,53 @@ std::string		Connection::findAnswertHeader(const std::string& header) {
 	return rtrn ? *rtrn : "";
 }
 
+// #include <sys/time.h>
+//-----------------------------------------------------------------------------]
+bool	Connection::checkTimeout(const timeval& now) {
+	double time_elapsed = (now.tv_sec - _last_active.tv_sec) + (now.tv_usec - _last_active.tv_usec) / 1e6;
+
+	if (_status == Connection::DOING_CGI && time_elapsed >= CONNECTION_TIMEOUT) {
+
+		LOG_WARNING(printFd(_data._client_fd) << "CGI timeout, sending 504 response");
+		if (_body_task) {
+			delete _body_task;
+			_body_task = NULL;
+		}
+		resetAnswer();
+		_answer.createError(504);
+		epollChangeFlags(_data._epoll_fd, _data._client_fd, this, EPOLLOUT, EPOLL_CTL_MOD);
+		updateTimeout();
+		_status = Connection::SENDING;
+		return false;
+	}
+
+	return time_elapsed >= CONNECTION_TIMEOUT;
+}
 ///////////////////////////////////////////////////////////////////////////////]
 /***  								SETTERS									***/
 ///////////////////////////////////////////////////////////////////////////////]
 
 //-----------------------------------------------------------------------------]
 void	 Connection::resetConnection() {
+// LOG_HERE("resetConnection(): request: \n" << _request << "answer:\n" << _answer)
+
 	resetAnswer();
 	resetRequest();
 	delete _body_task;
 	_body_task = NULL;
+// 
+	_request.addToHeaders("connection", "keep-alive");
+// 
+	_status = Connection::READING;
+	epollChangeFlags(_data._epoll_fd, _data._client_fd, this, EPOLLIN, EPOLL_CTL_MOD);
+	updateTimeout();
+}
+
+
+// #include <sys/time.h>
+//-----------------------------------------------------------------------------]
+void	Connection::updateTimeout() {
+	gettimeofday(&_last_active, NULL);
 }
 
 #include <arpa/inet.h>

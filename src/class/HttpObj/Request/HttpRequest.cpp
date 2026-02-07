@@ -8,7 +8,7 @@
 
 #include "Tools1.hpp"
 #include "HttpMethods.hpp"
-#include "SettingsServer.hpp"
+#include "Settings.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 // #include "HttpMethods.hpp"
@@ -48,7 +48,7 @@ int HttpRequest::isFirstLineValid(int fd) {
 	return 0;
 }
 
-// #include "SettingsServer.hpp"
+// #include "Settings.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 int		HttpRequest::parseHeadersForValidity() {
 
@@ -99,16 +99,16 @@ int		HttpRequest::validateLocationBlock(ssize_t body_size) {
 	
 // sanitize given_path for %XX;
 	std::string sanitized;
-	if (SettingsServer::sanitizePath(sanitized, path))
+	if (Settings::sanitizePath(sanitized, path))
 		return 400;
 	LOG_DEBUG("validateLocationBlock(): path after sanitizePath: " << sanitized);
 // find location block from all the location /blocks
-	const block* location;
-	if (!(location = SettingsServer::isLocationKnown(sanitized))) {
+	const Settings::block* location;
+	if (!(location = Settings::isLocationKnown(sanitized, *_settings))) {
 		LOG_ERROR("CAN'T FIND LOCATION BLOCK: " << _path)
 		return 500; // could also be 404;
 	}
-	if (SettingsServer::getFullPath(sanitized, sanitized)) // check for escaping root
+	if (Settings::getFullPath(sanitized, sanitized, *_settings)) // check for escaping root
 		return 403;
 // Once Location block is known, check if method is allowed
 	if (std::find(location->data.allowed_methods.begin(), location->data.allowed_methods.end(), _method) == location->data.allowed_methods.end()) {

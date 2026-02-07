@@ -2,17 +2,21 @@
 #define SETTING_HPP
 
 #include "Log.hpp"
+#include "defines.hpp"
+
 #include <map>
 #include <vector>
 #include <string>
 #include <unistd.h>
 
-#include "defines.hpp"
 #include "_colors.h"
 
 class Settings;
 class Server;
-// extern Settings g_settings;
+extern Settings g_settings;
+
+///////////////////////////////////////////////////////////////////////////////]
+
 
 ///////////////////////////////////////////////////////////////////////////////]
 
@@ -58,7 +62,8 @@ public:
 		std::string					cgi_interpreter;
 		std::vector<std::string>	allowed_methods;
 		ssize_t						client_max_body_size;
-
+		
+		location_data() : autoindex(false), client_max_body_size(-1) {}
 	};
 
 	// name arg { set1 a; set2 b }
@@ -77,9 +82,10 @@ public:
 
 	// Struct for one Server listen
 	struct server_setting {
-		std::string				_server_name;
-		std::string				_root;
-		int						_port;
+		std::string				_server_block_name; //	server {...
+		std::string				_server_name; //		webcat.com
+		std::string				_root; // 				www/webcat.com
+		int						_port; // 				9999
 		ssize_t					_client_max_body_size;
 		location_data*			_root_location_data; // ptr to the location_data struct of root
 	
@@ -93,7 +99,7 @@ public:
 private:
 ///////////////////////////////////////////////////////////////////////////////]
 	map_strstr											_global_settings;
-	std::map<std::string, Settings::server_setting>		_global_blocks;
+	std::map<std::string, server_setting>		_global_blocks;
 
 	std::string				_root; // path to the executable
 	std::string				_temp_root; // path to the folder temp files
@@ -115,16 +121,24 @@ public:
 
 //-----------------------------------------------------------------------------]
 
-private:
 public:
-	bool	parse_config_file(const char* confi_file);
+
+	bool		parse_config_file(const char* confi_file);
+private:
+	bool 		setRoot();
+	bool 		setTemp();
+public:
+	static bool	blockSetup(server_setting& a_global_block, std::string& root);
 
 
+	static int					sanitizePath(std::string& path_to_fill, const std::string& given_path);
+	static const block*			isLocationKnown(const std::string& given_path, const server_setting& a_global_block);
+	static int 					getFullPath(std::string& path_to_fill, const std::string& sanitized, const Settings::server_setting& a_global_block);
+	static const std::vector<const block*>
+								rtrnMapOfMatches(Settings::block& for_this_block, Settings::server_setting& a_global_block);
 // 	bool	check_settings( void );
 // //
 // 	void	default_settings_setup( void );
-// 	bool 	setRoot();
-// 	bool 	setTemp();
 // 	void 	setAllBlockLocations();
 // 	bool 	checkAnyRoot(std::string& some_root);
 // //
@@ -132,22 +146,29 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////]
 	/***  FIND IN THE BLOCKS  ***/
+
+private:
+	static std::string*						find_setting(const std::string& setting, server_setting& server_block);
+	static std::vector<block*> 				find_arg_blocks(const std::string& block_name, server_setting& a_global_block);
+
 public:
-	// const std::string*				find_setting(const std::string& setting) const;
-	// const block*					find_global_block(const std::string& block_name) const;
-	// const std::vector<const block*>	find_arg_blocks(const std::string& block_name) const;
-	// const block*					find_arg_block_from_vector(const std::vector<const block*>& v, const std::string& arg_name) const;
-	// const std::string*				find_setting_in_block(const block* b, const std::string& setting) const;
-	// const std::string*				find_setting_in_blocks(const std::string& block_name, const std::string& arg, const std::string& setting) const;
+	static const std::vector<const block*>	find_arg_blocks(const std::string& block_name, const server_setting& a_global_block);
+	const server_setting*					find_global_block(const std::string& block_name);
+	// static const block*						find_global_block(const std::string& block_name);
+	// static const std::vector<const block*>	find_arg_blocks(const std::string& block_name);
+	// static const block*						find_arg_block_from_vector(const std::vector<const block*>& v, const std::string& arg_name);
+	// static const std::string*				find_setting_in_block(const block* b, const std::string& setting);
+	// static const std::string*				find_setting_in_blocks(const std::string& block_name, const std::string& arg, const std::string& setting);
 private:
 	// block* 							find_root_block();
 
 ///////////////////////////////////////////////////////////////////////////////]
 	/***  GETTERS  ***/
 public:
+	const std::string*		isCGI(const std::string& path);
 	// int						getPortNum( void ) const { return _port_num; }
-	// const std::string&		getRoot( void ) const { return _root; }
-	// const std::string&		getTempRoot() const { return _temp_root; }
+	const std::string&		getRoot( void ) const { return _root; }
+	const std::string&		getTempRoot() const { return _temp_root; }
 	// const location_data*	getRootLocationBlock() const { return _root_location_data; }
 	// const Settings&	getConstSettings() const { return *this; }
 	// ssize_t					getMaxBodySize() const { return _client_max_body_size; }
@@ -165,7 +186,8 @@ private:
 
 	/***  FRIENDS  ***/
 	friend class Server;
-	friend std::ostream& operator<<(std::ostream& os, const Settings& setting);
+	friend std::ostream&	operator<<(std::ostream& os, const Settings& setting);
+	friend  bool			default_settings_setup(Settings::server_setting& global_block);
 
 };
 

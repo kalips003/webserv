@@ -52,7 +52,7 @@ private:
 	int			treatMultipart(std::string& delim, std::string& ressource, std::string& query);
 
 /**	SETTERS */
-	void 	setlocationBlock(block* b) { _location_block = b; }
+	// void 	setlocationBlock(Settings::block* b) { _location_block = b; }
 
 };
 

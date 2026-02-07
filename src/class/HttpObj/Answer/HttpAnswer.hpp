@@ -16,7 +16,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	HttpAnswer() : HttpObj(), _version("HTTP/1.1"), _status_num(200), _status_msg("OK") { _status = SENDING_HEAD; }
+	HttpAnswer(const Settings::server_setting* settings) : HttpObj(settings), _version("HTTP/1.1"), _status_num(200), _status_msg("OK") { _status = SENDING_HEAD; }
 
 //-----------------------------------------------------------------------------]
 	/***  VIRTUALS  ***/

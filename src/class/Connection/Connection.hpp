@@ -2,20 +2,21 @@
 #define CONNECTION_HPP
 
 #include "Log.hpp"
+#include "defines.hpp"
+
 #include <string>
 #include <netinet/in.h>
-
-#include "defines.hpp"
+#include <ctime>
 
 #include "HttpAnswer.hpp"
 #include "HttpRequest.hpp"
-
-// #include "Method.hpp"
+#include "Settings.hpp"
 
 class Method;
 class SettingsServer;
 class Connection;
 
+#define CONNECTION_TIMEOUT 20.0
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
@@ -23,25 +24,28 @@ class Connection {
 
 public:
 	struct transfer_data {
-		int			_client_fd; // fd associated with this client connection
-		int			_epoll_fd;
-		Connection*	_this_ptr; // ptr to this client connection
-		char*		_buffer; // Shared Server buffer
-		size_t		_sizeofbuff;
+		int								_client_fd; // fd associated with this client connection
+		int								_epoll_fd;
+		Connection*						_this_ptr; // ptr to this client connection
+		char*							_buffer; // Shared Server buffer
+		size_t							_sizeofbuff;
+		const Settings::server_setting*	_settings;
 
 		transfer_data() : 
 			_client_fd(-1), 
 			_epoll_fd(-1), 
 			_this_ptr(NULL),
 			_buffer(NULL),
-			_sizeofbuff(0) {}
+			_sizeofbuff(0),
+			_settings(NULL) {}
 
-		transfer_data(int fd, int e, Connection* c, char* buffer, size_t size) : 
+		transfer_data(int fd, int e, Connection* c, char* buffer, size_t size, const Settings::server_setting* settings) : 
 			_client_fd(fd), 
 			_epoll_fd(e), 
 			_this_ptr(c), 
 			_buffer(buffer),
-			_sizeofbuff(size) {}
+			_sizeofbuff(size),
+			_settings(settings) {}
 
 		friend std::ostream& operator<<(std::ostream& os, const transfer_data& t);
 	};
@@ -52,6 +56,7 @@ public:
 		DOING,
 		DOING_CGI,
 		SENDING,
+		FINISHED,
 		CLOSED
 	};
 
@@ -60,6 +65,7 @@ private:
 	struct sockaddr_in  	_client_addr; // struct with informations about the client
 	socklen_t				_addr_len; // ?
 
+	const Settings::server_setting*	_settings;
 	HttpRequest				_request;
 	HttpAnswer				_answer;
 
@@ -67,37 +73,53 @@ private:
 
 	ConnectionStatus		_status;
 	transfer_data			_data;
+	timeval 				_last_active;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
 	Connection() :
 		_client_addr(), 
 		_addr_len(sizeof(_client_addr)),
+		_settings(NULL),
+		_request(_settings),
+		_answer(_settings),
 		_body_task(NULL), 
 		_status(READING), 
-		_data() { _data._this_ptr = this; }
+		_data() { _data._this_ptr = this; updateTimeout(); }
 
-	Connection(char* buffer, size_t size) :
+	Connection(char* buffer, size_t size, const Settings::server_setting* settings) :
 		_client_addr(), 
 		_addr_len(sizeof(_client_addr)),
+		_settings(settings),
+		_request(_settings),
+		_answer(_settings),
 		_body_task(NULL), 
 		_status(READING), 
 		_data() { _data._this_ptr = this; 
-					_data._buffer = buffer; _data._sizeofbuff = size; }
+							_data._buffer = buffer; 
+							_data._sizeofbuff = size; 
+							_data._settings = _settings;
+							updateTimeout(); }
 
-	Connection(int fd, int epoll, struct sockaddr_in c, socklen_t al, char* buffer, size_t size) :
+	Connection(int fd, int epoll, struct sockaddr_in c, socklen_t al, char* buffer, size_t size, const Settings::server_setting* settings) :
 		_client_addr(c), 
 		_addr_len(al), 
+		_settings(settings),
+		_request(_settings),
+		_answer(_settings),
 		_body_task(NULL), 
 		_status(READING), 
-		_data(fd, epoll, this, buffer, size) {}
+		_data(fd, epoll, this, buffer, size, settings) { updateTimeout(); }
 
 	Connection(const Connection& other) :
 		_client_addr(other._client_addr), 
 		_addr_len(other._addr_len), 
+		_settings(other._settings),
+		_request(_settings),
+		_answer(_settings),
 		_body_task(NULL), 
 		_status(READING), 
-		_data(other._data) { _data._this_ptr = this; }
+		_data(other._data) { _data._this_ptr = this; updateTimeout(); }
 
 	~Connection();
 
@@ -127,6 +149,9 @@ public:
 	Method*						getBodyTask() const { return _body_task; }
 	ConnectionStatus			getStatus() const { return _status; }
 	const transfer_data&		getTransferData() { return _data; }
+
+	bool						checkTimeout(const timeval& now);
+	void						updateTimeout();
 //-----------------------------------------------------------------------------]
 public:
 	std::string					findRequestHeader(const std::string& header);
@@ -135,8 +160,8 @@ public:
 	/***  SETTERS  ***/
 public:
 	void	resetConnection();
-	void	resetRequest( void ) { _request = HttpRequest(); }
-	void	resetAnswer( void ) { _answer = HttpAnswer(); }
+	void	resetRequest( void ) { _request.~HttpRequest(); new (&_request) HttpRequest(_settings); }
+	void	resetAnswer( void ) { _answer.~HttpAnswer(); new (&_answer) HttpAnswer(_settings); }
 	void	setStatus(ConnectionStatus s) { _status = s; }
 	void	closeFd();
 //-----------------------------------------------------------------------------]
