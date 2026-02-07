@@ -191,7 +191,7 @@ bool	Connection::checkTimeout(const timeval& now) {
 		_status = Connection::SENDING;
 		return false;
 	}
-
+	
 	return time_elapsed >= CONNECTION_TIMEOUT;
 }
 ///////////////////////////////////////////////////////////////////////////////]
