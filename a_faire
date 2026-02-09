@@ -1,6 +1,10 @@
 version http/1.0
-parsgin conf: 
-if name == server, name in map == server name;
-else name == name of blobal block
 
-extra ; in global settings
+parsgin conf: 
+	trim the 'webcat.com' in request path?
+
+INFO
+
+cookies
+
+chunked

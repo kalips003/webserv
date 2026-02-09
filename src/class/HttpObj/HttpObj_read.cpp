@@ -3,6 +3,7 @@
 #include "Tools1.hpp"
 
 #include <string.h>
+#include <Server.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////]
 /***  								READ									***/
@@ -54,7 +55,7 @@
  * - Responsibility of parsing ends at filling _headers and _tmp_file
  * - Semantic interpretation (file vs regular field, CGI handling) is left to
  *   higher-level logic, e.g., Ft_Post or application layer	---*/
-
+#include <iostream>
 ///////////////////////////////////////////////////////////////////////////////]
 /** @brief Reads from fd.
 // internally update status
@@ -66,7 +67,7 @@
 int		HttpObj::receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 	int rtrn;
 
-	if (_status == HttpObj::READING_FIRST) { LOG_DEBUG("receive(): READING_FIRST");
+	if (_status == HttpObj::READING_FIRST) { LOG_DEBUG("receive(): READING_FIRST")
 		
 		rtrn = readingFirstLine(buff, sizeofbuff, fd, reader);
 		if (rtrn >= 100)
@@ -80,7 +81,7 @@ int		HttpObj::receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 		}
 	}
 
-	if (_status == READING_HEADER) { LOG_DEBUG("receive(): READING_HEADER");
+	if (_status == READING_HEADER) { LOG_DEBUG("receive(): READING_HEADER")
 
 		rtrn = readingHeaders(buff, sizeofbuff, fd, reader);
 		if (rtrn >= 100)
@@ -99,9 +100,44 @@ int		HttpObj::receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 		}
 	}
 
-	if (_status == READING_BODY) { LOG_DEBUG("receive(): READING_BODY");
+	// if (_status == READING_BODY_CHUNKED) { LOG_DEBUG("receive(): READING_BODY_CHUNKED")
 
-		rtrn = this->readBody(buff, sizeofbuff, fd, reader);
+	// 	while (!_leftovers.empty()) {
+	// 		rtrn = this->readBodyChunk(buff, sizeofbuff, fd, reader);
+	// 		if (rtrn >= 100)
+	// 			return rtrn;
+	// 		if (rtrn == HttpObj::FINISHED)
+	// 			break;
+	// 	}
+	// 	LOG_HERE("receive: READING_BODY_CHUNKED = " << rtrn)
+	// 	if (rtrn == HttpObj::FINISHED) {
+	// 		LOG_HERE("receive: FINISHED received")
+		
+	// 		_status = HttpObj::DOING;
+	// 	}
+	// 	else
+	// 		_status = static_cast<HttpBodyStatus>(rtrn);
+	// 	LOG_HERE("_leftovers after: {" << _leftovers << "}")
+	// }
+
+	// if (_status == READING_BODY) { LOG_DEBUG("receive(): READING_BODY")
+
+	// 	rtrn = this->readBody(buff, sizeofbuff, fd, reader);
+	// 	if (rtrn >= 100)
+	// 		return rtrn;
+	// 	_status = static_cast<HttpBodyStatus>(rtrn);
+	// }
+
+	if (_status == READING_BODY || _status == READING_BODY_CHUNKED) {
+		if (_status == READING_BODY_CHUNKED) {
+			LOG_DEBUG("receive(): READING_BODY_CHUNKED")
+			rtrn = this->readBodyChunk(buff, sizeofbuff, fd, reader);
+		}
+		else if (_status == READING_BODY) {
+			LOG_DEBUG("receive(): READING_BODY")
+			rtrn = this->readBody(buff, sizeofbuff, fd, reader);
+		}
+		// int x; std::cin >> x;
 		if (rtrn >= 100)
 			return rtrn;
 		_status = static_cast<HttpBodyStatus>(rtrn);
@@ -306,7 +342,7 @@ int		HttpObj::findDelimInLeftovers(const std::string& delim, int remove_delim, S
 	}
 	else {
 		if (!to_store_to.write(_leftovers.c_str(), pos + delim.size() * !(remove_delim & 0b10))) {
-				LOG_ERROR_SYS("→ findDelimInLeftovers(): partial write() detected");
+			LOG_ERROR_SYS("→ findDelimInLeftovers(): partial write() detected");
 			return 500;
 		}
 		_leftovers.erase(0, pos + delim.size() * (remove_delim & 0b01));

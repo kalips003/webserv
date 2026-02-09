@@ -90,3 +90,31 @@ function callCgi() {
 	});
 }
 
+//////////////////////////////////////////////////////////////////////
+function sendChunked() {
+	const encoder = new TextEncoder();
+
+	const stream = new ReadableStream({
+		start(controller) {
+			controller.enqueue(encoder.encode("5\r\nHello\r\n"));
+			controller.enqueue(encoder.encode("6\r\n World\r\n"));
+			controller.enqueue(encoder.encode("1\r\n!\r\n"));
+			controller.enqueue(encoder.encode("0\r\n\r\n")); // last chunk
+			controller.close();
+		}
+	});
+
+	fetch("chunked-test", {
+		method: "POST",
+		duplex: "half",
+		headers: {
+			// DO NOT set Content-Length
+			// Browser will auto-set Transfer-Encoding: chunked
+			"Content-Type": "text/plain"
+		},
+		body: stream
+	})
+	.then(res => res.text())
+	.then(txt => console.log("Server replied:", txt))
+	.catch(err => console.error("Chunked error:", err));
+}

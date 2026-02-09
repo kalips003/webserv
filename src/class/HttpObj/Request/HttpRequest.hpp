@@ -29,7 +29,10 @@ public:
 public:
 	int				validateLocationBlock(ssize_t body_size);
 
-
+int			readBodyChunk(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
+int			streamingBodyWrapper(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
+int			detectChunkedEncoding();
+int			readBodyChunk_delimHelper(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
 public:

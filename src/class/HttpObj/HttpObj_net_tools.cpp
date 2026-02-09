@@ -44,15 +44,19 @@ int    HttpObj::streamingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc re
 
 	LOG_INFO(printFd(fd) << C_134 "packet received (" RESET << bytes_recv << C_134 " bytes)" RESET);
 	
-	ssize_t rtrn_write;
-	if ((rtrn_write = write(_tmp_file._fd, buff, bytes_recv)) < bytes_recv) {
+	size_t to_write = std::min(static_cast<size_t>(bytes_recv), static_cast<size_t>(_bytes_total) - _bytes_written);
+	ssize_t write_rtrn = write(_tmp_file._fd, buff, to_write);
+	if (write_rtrn < 0 || static_cast<size_t>(write_rtrn) < to_write) {
 		LOG_ERROR_SYS("streamingBody(): write(): partial write");
 		return 500;
 	}
 	_bytes_written += bytes_recv;
 	LOG_DEBUG("streamingBody(): _bytes_total= " << _bytes_total << " _bytes_written = " << _bytes_written)
-	if (_bytes_written >= static_cast<size_t>(_bytes_total))
+	if (_bytes_written >= static_cast<size_t>(_bytes_total)) {
+		if (to_write < static_cast<size_t>(bytes_recv))
+			_leftovers = std::string(buff + to_write, bytes_recv - to_write);
 		return HttpObj::DOING;
+	}
 	return HttpObj::READING_BODY;
 }
 
@@ -97,7 +101,7 @@ ssize_t	HttpObj::sendBufferFile(char *buff, size_t sizeofbuff, int fd, int fd_fi
 
 	ssize_t bytesLoaded = read(fd_file, buff, sizeofbuff);
 	if (bytesLoaded < 0) {
-		printErr("sendBufferFile(): read()");
+		LOG_ERROR_SYS("sendBufferFile(): read()")
 		return bytesLoaded;
 	}
 

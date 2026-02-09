@@ -19,8 +19,9 @@ class Settings;
 typedef ssize_t (*ReadFunc)(int, void*, size_t);
 /*
 	start-line
-	headers
 	CRLF
+	headers
+	<CRLF><CRLF>
 	body
 */
 ///////////////////////////////////////////////////////////////////////////////]
@@ -32,6 +33,7 @@ public:
 		CLOSED = 0,
 		READING_FIRST,
 		READING_HEADER,
+		READING_BODY_CHUNKED,
 		READING_BODY,
 		DOING,
 		SENDING_HEAD,
@@ -78,6 +80,7 @@ public:
 		int			readingHeaders(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
 		int			streamingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
 	int				receive_cgi(char *buff, size_t sizeofbuff, int fd);
+	virtual int		readBodyChunk(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) { (void)buff; (void)sizeofbuff; (void)fd; (void)reader; LOG_HERE("wft?") return READING_BODY; }
 
 
 //-----------------------------------------------------------------------------]

@@ -126,6 +126,10 @@ ssize_t      HttpObj::isThereBodyinHeaders() const {
 	const std::string* size = find_in_headers("Content-Length");
 	if (!size)
 		return 0;
+	const std::string* chunk = find_in_headers("Transfer-Encoding");
+	if (chunk && *chunk == "chunked")
+		return 0;
+
 	int r;
 	if (!atoi_v2(*size, r) || r < 0)
 		return -1;

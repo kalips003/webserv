@@ -30,11 +30,12 @@ void	Connection::closeFd() {
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Use internal _status do decide what to do with the given buffer */
 bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
+LOG_LOG("ft_update(): " << printFd(_data._client_fd))
 	updateTimeout();
 
 	if (_status == READING) {
 		if (_request.getStatus() != HttpObj::READING_FIRST)
-			LOG_DEBUG(printFd(_data._client_fd) << "--- READING --- ");
+			LOG_LOG(printFd(_data._client_fd) << "--- READING --- ");
 
 		_status = ft_read(buff, sizeofbuff);
 		if (_status == SENDING)
@@ -42,7 +43,7 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 	}
 
 	if (_status == DOING || _status == DOING_CGI) {
-		LOG_DEBUG(printFd(_data._client_fd) << "--- DOING --- ");
+		LOG_LOG(printFd(_data._client_fd) << "--- DOING --- " << (_status == DOING_CGI ? "CGI ---" : ""));
 		
 		_status = ft_doing();
 		if (_status == SENDING) {
@@ -52,12 +53,12 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 	}
 
 	if (_status == SENDING) {
-		LOG_DEBUG(printFd(_data._client_fd) << "--- SENDING --- ");
+		LOG_LOG(printFd(_data._client_fd) << "--- SENDING --- ");
 		_status = ft_send(buff, sizeofbuff);
 	}
 
 	if (_status == CLOSED || _status == FINISHED) {
-		LOG_DEBUG(printFd(_data._client_fd) << "--- CLOSING --- ");
+		LOG_LOG(printFd(_data._client_fd) << "--- CLOSING --- ");
 		return false;
 	}
 
@@ -72,6 +73,7 @@ bool	Connection::ft_update(char *buff, size_t sizeofbuff) {
 // if error from _request, fills _answer for the error
 * @return CONNECTION_STATUS		---*/
 Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) {
+// LOG_LOG("ft_read()")
 
 	int rtrn = _request.receive(buff, sizeofbuff, _data._client_fd, recv0);
 
@@ -79,9 +81,8 @@ Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) 
 		_answer.createError(rtrn);
 		return SENDING;
 	}
-	HttpObj::HttpBodyStatus r = static_cast<HttpObj::HttpBodyStatus>(rtrn);
 
-	if (r == HttpObj::CLOSED) {
+	if (rtrn == HttpObj::CLOSED) {
 		LOG_DEBUG("ft_read(): CLOSED after receive()")
 		return CLOSED;
 	}
@@ -99,6 +100,7 @@ Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) 
 /**	execute the Method class, depending on status DOING or DOING_CGI
 // @return ConnectionStatus */
 Connection::ConnectionStatus	Connection::ft_doing( void ) {
+// LOG_LOG("ft_doing()")
 
 // if first time, create Method
 	if (!_body_task)

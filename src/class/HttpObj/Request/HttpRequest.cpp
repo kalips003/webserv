@@ -61,7 +61,7 @@ int		HttpRequest::parseHeadersForValidity() {
 	if (rtrn)
 		return rtrn;
 	if (!_bytes_total)
-		return HttpObj::DOING;
+		return detectChunkedEncoding();
 
 	if (_bytes_total != 0 && !(_method == "POST" || _method == "PUT" || _method == "PATCH"))
 		return HttpObj::DOING;
@@ -116,7 +116,7 @@ int		HttpRequest::validateLocationBlock(ssize_t body_size) {
 		return 405;
 	}
 // check is method require a body
-	if ((_method == "POST" || _method == "PUT" || _method == "PATCH") && !body_size) {
+	if ((_method == "POST" || _method == "PUT" || _method == "PATCH") && !body_size && !find_in_headers("Transfer-Encoding")) {
 		LOG_WARNING("Method " << _method << " require a body");
 		return 411; // 411 Length Required
 	}
