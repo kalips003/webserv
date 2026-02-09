@@ -58,6 +58,13 @@ const Settings::block* Settings::isLocationKnown(const std::string& given_path, 
 
 	const std::vector<const block *> locations = Settings::find_arg_blocks("location", a_global_block);
 
+// remove "/webcat.com"
+	std::string given_path_no_prefix = given_path;
+	if (given_path_no_prefix.compare(0, a_global_block._server_name.size() + 1, "/" + a_global_block._server_name) == 0)
+		given_path_no_prefix = given_path_no_prefix.substr(a_global_block._server_name.size() + 1);
+	if (given_path_no_prefix.empty())
+		given_path_no_prefix = "/";
+
 	const block*	best_match = NULL;
 	size_t			best_len   = 0;
 	for (size_t i = 0; i < locations.size(); ++i) {
@@ -65,11 +72,11 @@ const Settings::block* Settings::isLocationKnown(const std::string& given_path, 
 		const std::string& loc = b->path; // e.g. "/images"
 
 		// must be a prefix
-		if (given_path.compare(0, loc.size(), loc) != 0) // compare: given_path[0 .. loc.size()-1]  vs  loc
+		if (given_path_no_prefix.compare(0, loc.size(), loc) != 0) // compare: given_path_no_prefix[0 .. loc.size()-1]  vs  loc
 			continue;
 
 		// boundary check: "/img" must not match "/images"
-		if (loc != "/" && given_path.size() > loc.size() && given_path[loc.size()] != '/')
+		if (loc != "/" && given_path_no_prefix.size() > loc.size() && given_path_no_prefix[loc.size()] != '/')
 			continue;
 
 		// longest match wins
@@ -92,17 +99,24 @@ const Settings::block* Settings::isLocationKnown(const std::string& given_path, 
  * @return int          0 on success, or 403 if the path attempts to escape the root.	---*/
 int Settings::getFullPath(std::string& path_to_fill, const std::string& sanitized, const Settings::server_setting& a_global_block) {
 
-	const block* location_block = isLocationKnown(sanitized, a_global_block);
+// remove "/webcat.com"
+	std::string sanitized_no_prefix = sanitized;
+	if (sanitized_no_prefix.compare(0, a_global_block._server_name.size() + 1, "/" + a_global_block._server_name) == 0)
+		sanitized_no_prefix = sanitized_no_prefix.substr(a_global_block._server_name.size() + 1);
+	if (sanitized_no_prefix.empty())
+		sanitized_no_prefix = "/";
+
+	const block* location_block = isLocationKnown(sanitized_no_prefix, a_global_block);
 	if (!location_block) {
-		LOG_ERROR("CAN'T FIND LOCATION BLOCK: " << sanitized)
+		LOG_ERROR("CAN'T FIND LOCATION BLOCK: " << sanitized_no_prefix)
 		return 500; // could also be 404;
 	}
 
 	std::vector<std::string> stack;
-	std::vector<std::string> v = splitOnDelimitor(sanitized, "/");
+	std::vector<std::string> v = splitOnDelimitor(sanitized_no_prefix, "/");
 // == ["images", "..", ".", "icons", "file.png"]
 
-// remove /location/path from sanitized
+// remove /location/path from sanitized_no_prefix
 	std::vector<std::string> v_location = splitOnDelimitor(location_block->path, "/");
 	v.erase(v.begin(), v.begin() + v_location.size());
 // == ["..", ".", "icons", "file.png"]
@@ -112,7 +126,7 @@ int Settings::getFullPath(std::string& path_to_fill, const std::string& sanitize
 		if (*it == ".") continue;
 		if (*it == "..") {
 			if (stack.empty()) {
-				LOG_ERROR("Escape attempt from root: " C_431 << sanitized << RESET "]");
+				LOG_ERROR("Escape attempt from root: " C_431 << sanitized_no_prefix << RESET "]");
 				return 403;
 			}
 			stack.pop_back();

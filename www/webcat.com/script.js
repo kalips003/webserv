@@ -99,7 +99,7 @@ async function storeValue() {
 
 async function checkStatus() {
 	// fetch_url = `http://localhost:8081/proxy/profile/${storedLogin}`;
-	fetch_url = `http://localhost:9999/web_cat/login_script.php?login=${encodeURIComponent(storedLogin)}`;
+	fetch_url = `http://localhost:9999/webcat.com/login_script.php?login=${encodeURIComponent(storedLogin)}`;
     try {
         const response = await fetch(fetch_url);
         const statusCode = response.status;
