@@ -7,7 +7,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Fills the answer from the errCode given, initialize it also */
-void	HttpAnswer::createError(int errCode) {
+void	HttpAnswer::createError(int errCode, const std::string& method) {
 
 	std::string s = return_http_from_code(errCode);
 	if (s.empty())
@@ -27,7 +27,7 @@ void	HttpAnswer::createError(int errCode) {
 	if (_tmp_file._fd >= 0)
 		_tmp_file.closeTemp(true);
 	
-	initializationBeforeSend();
+	initializationBeforeSend(method);
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
@@ -45,7 +45,7 @@ void	HttpAnswer::setFirstLine(int code) {
 
 ///////////////////////////////////////////////////////////////////////////////]
 /**	 Concactenate firstline + headers into _head	---*/
-void HttpAnswer::initializationBeforeSend() {
+void HttpAnswer::initializationBeforeSend(const std::string& method) {
 
 	oss first; first << _version << " " << _status_num << " " << _status_msg;
 	_first = first.str();
@@ -54,6 +54,13 @@ void HttpAnswer::initializationBeforeSend() {
 	_headers["content-length"] = itostr(_bytes_total);
 
 	setDefaultHeaders();
+
+	if (method == "HEAD") {
+		_bytes_total = 0;
+		_body.clear();
+		_tmp_file.closeTemp(false);
+	}
+	
 	concatenateIntoHead();
 }
 

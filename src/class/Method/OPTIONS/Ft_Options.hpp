@@ -1,5 +1,5 @@
-#ifndef FT_POST_HPP
-#define FT_POST_HPP
+#ifndef FT_OPTIONS_HPP
+#define FT_OPTIONS_HPP
 
 #include "Method.hpp"
 
@@ -31,13 +31,12 @@
 // Accept: text/html
 // Accept-Encoding: gzip, deflate
 // Connection: keep-alive
-class   Ft_Post : public Method {
+class   Ft_Options : public Method {
 
 private:
-	// temp_file	treated_file;
 
 public:
-	Ft_Post(const t_connec_data& data) : Method(data) {}
+	Ft_Options(const t_connec_data& data) : Method(data) {}
 
 // parent virtual funcitons:
 	virtual void	printHello();
@@ -45,11 +44,8 @@ public:
 	virtual int		handleFileExist(std::string& ressource);
 	virtual int		handleDir(std::string& ressource);
 	virtual void	prepareChild(const std::string& ressource, const std::string& query);
-	virtual int		appendFile(const std::string& path);
-	virtual int		treatContentType(std::string& ressource, std::string& query);
 
 private:
-	int				treatMultipart(std::string& delim, std::string& ressource, std::string& query);
 
 /**	SETTERS */
 

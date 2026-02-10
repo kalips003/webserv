@@ -10,7 +10,10 @@
 
 #include "Ft_Get.hpp"
 #include "Ft_Post.hpp"
+#include "Ft_Put.hpp"
 #include "Ft_Delete.hpp"
+#include "Ft_Head.hpp"
+#include "Ft_Options.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 /*
@@ -65,16 +68,20 @@ Method*		Method::createTask(const std::string& method, const t_connec_data& data
 		case GET:		return new Ft_Get(data);
 		case POST:		return new Ft_Post(data);
 		case DELETE:	return new Ft_Delete(data);
-		// case PUT:		return new Ft_Put(data);
+		case HEAD:		return new Ft_Head(data);
+		case PUT:		return new Ft_Put(data);
+		case OPTIONS:	return new Ft_Options(data);
 		default:		return NULL;  // unknown method → reject (405)
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
 Method::Ft_Type		Method::parseMethod(const std::string& method) {
-    if (method == "GET") return GET;
-    if (method == "POST") return POST;
-    if (method == "DELETE") return DELETE;
-    if (method == "PUT") return PUT;
-    return UNKNOWN;
+	if (method == "GET") return GET;
+	if (method == "POST") return POST;
+	if (method == "DELETE") return DELETE;
+	if (method == "PUT") return PUT;
+	if (method == "HEAD") return HEAD;
+	if (method == "OPTIONS") return OPTIONS;
+	return UNKNOWN;
 }

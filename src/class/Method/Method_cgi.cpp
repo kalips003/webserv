@@ -106,7 +106,7 @@ int		Method::exec_cgi() {
 		if (rtrn >= 100) { // error quit
 			kill(_cgi_data._child_pid, SIGKILL); // force stop
 			waitpid(_cgi_data._child_pid, NULL, 0); // reap fully, blocking ok
-			_answer.createError(rtrn);
+			_answer.createError(rtrn, _request.getMethod());
 		} else { // EOF
 			int status;
 			waitpid(_cgi_data._child_pid, &status, WNOHANG); // non blocking

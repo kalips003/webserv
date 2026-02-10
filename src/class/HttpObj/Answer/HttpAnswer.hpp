@@ -25,9 +25,9 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////]
 public:
-	void	createError(int errCode);
+	void	createError(int errCode, const std::string& method);
 	void	setFirstLine(int errCode);
-	void	initializationBeforeSend();
+	void	initializationBeforeSend(const std::string& method);
 
 
 ///////////////////////////////////////////////////////////////////////////////]

@@ -52,6 +52,8 @@ public:
 		POST,
 		DELETE,
 		PUT,
+		HEAD,
+		OPTIONS,
 		UNKNOWN		
 	};
 

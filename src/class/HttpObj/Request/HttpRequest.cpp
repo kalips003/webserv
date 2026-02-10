@@ -111,7 +111,9 @@ int		HttpRequest::validateLocationBlock(ssize_t body_size) {
 	if (Settings::getFullPath(sanitized, sanitized, *_settings)) // check for escaping root
 		return 403;
 // Once Location block is known, check if method is allowed
-	if (std::find(location->data.allowed_methods.begin(), location->data.allowed_methods.end(), _method) == location->data.allowed_methods.end()) {
+	std::string method_to_check = _method;
+	if (_method == "HEAD") method_to_check = "GET";
+	if (std::find(location->data.allowed_methods.begin(), location->data.allowed_methods.end(), method_to_check) == location->data.allowed_methods.end()) {
 		LOG_WARNING("Method " << _method << " not allowed in: " << location->path);
 		return 405;
 	}

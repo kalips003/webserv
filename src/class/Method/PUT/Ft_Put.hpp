@@ -1,7 +1,7 @@
-#ifndef FT_POST_HPP
-#define FT_POST_HPP
+#ifndef FT_PUT_HPP
+#define FT_PUT_HPP
 
-#include "Method.hpp"
+#include "Ft_Post.hpp"
 
 #include <fstream>
 ///////////////////////////////////////////////////////////////////////////////]
@@ -31,25 +31,19 @@
 // Accept: text/html
 // Accept-Encoding: gzip, deflate
 // Connection: keep-alive
-class   Ft_Post : public Method {
+class   Ft_Put : public Ft_Post {
 
 private:
-	// temp_file	treated_file;
 
 public:
-	Ft_Post(const t_connec_data& data) : Method(data) {}
+	Ft_Put(const t_connec_data& data) : Ft_Post(data) {}
 
 // parent virtual funcitons:
 	virtual void	printHello();
-	virtual int		howToHandleFileNotExist(const std::string& ressource, int rtrn_open);
-	virtual int		handleFileExist(std::string& ressource);
 	virtual int		handleDir(std::string& ressource);
-	virtual void	prepareChild(const std::string& ressource, const std::string& query);
-	virtual int		appendFile(const std::string& path);
 	virtual int		treatContentType(std::string& ressource, std::string& query);
 
 private:
-	int				treatMultipart(std::string& delim, std::string& ressource, std::string& query);
 
 /**	SETTERS */
 

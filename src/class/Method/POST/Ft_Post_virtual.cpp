@@ -75,7 +75,7 @@ int		Ft_Post::handleFileExist(std::string& path) {
 	else if (post_policy == "replace") { // open(O_WRONLY | O_CREAT | O_TRUNC)
 		const std::string& tmp_path = _request.getFile()._path;
 		if (rename(tmp_path.c_str(), path.c_str()) < 0) { // if file already exist, replace it silently
-			LOG_ERROR("rename()");
+			LOG_ERROR_SYS("rename()");
 			return 500;
 		}
 		_request.getTempFile().closeTemp(false);
@@ -94,7 +94,6 @@ int		Ft_Post::handleFileExist(std::string& path) {
 /**	reset _request.fd to pos 0, create a temp fd for dest in append mode, loop on copy.
 // @note after the copy, the _request.temp stays untouched  */
 int		Ft_Post::appendFile(const std::string& path) {// open(O_WRONLY | O_CREAT | O_APPEND)
-
 
 	int src_fd = _request.getFile()._fd;
 	if (src_fd < 0)
@@ -131,8 +130,11 @@ int		Ft_Post::appendFile(const std::string& path) {// open(O_WRONLY | O_CREAT | 
 ///////////////////////////////////////////////////////////////////////////////]
 /** */
 int		Ft_Post::handleDir(std::string& ressource) {
-	(void)ressource;
-	return 403; // or 405 with header {Allow: GET, HEAD}
+
+	std::string tmp_path = _request.getFile()._path; // full path
+	int endinslash = !ressource.empty() && ressource[ressource.size() - 1] != '/';
+	tmp_path = ressource + tmp_path.substr(tmp_path.find_last_of("/") + endinslash);
+	return howToHandleFileNotExist(tmp_path, 404);
 }
 
 #include <cstdlib> 

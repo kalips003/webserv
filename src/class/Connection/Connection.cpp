@@ -78,7 +78,7 @@ Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) 
 	int rtrn = _request.receive(buff, sizeofbuff, _data._client_fd, recv0);
 
 	if (rtrn >= 100) {
-		_answer.createError(rtrn);
+		_answer.createError(rtrn, _request.getMethod());
 		return SENDING;
 	}
 
@@ -107,7 +107,7 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 		_body_task = Method::createTask(_request.getMethod(), _data);
 	if (!_body_task) {
 		LOG_ERROR(RED "_body task NULL" RESET);
-		_answer.createError(500);
+		_answer.createError(500, _request.getMethod());
 		return SENDING;
 	}
 
@@ -125,14 +125,14 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 
 // check return
 	if (rtrn >= 100) {
-		_answer.createError(rtrn);
+		_answer.createError(rtrn, _request.getMethod());
 		return SENDING;
 	}
 	if (rtrn == SENDING) {
 		std::string* connection = _request.find_in_headers("Connection");
 		if (connection)
 			_answer.addToHeaders("connection", *connection);
-		_answer.initializationBeforeSend();
+		_answer.initializationBeforeSend(_request.getMethod());
 	}
 
 	return static_cast<Connection::ConnectionStatus>(rtrn);
@@ -187,7 +187,7 @@ bool	Connection::checkTimeout(const timeval& now) {
 			_body_task = NULL;
 		}
 		resetAnswer();
-		_answer.createError(504);
+		_answer.createError(504, _request.getMethod());
 		epollChangeFlags(_data._epoll_fd, _data._client_fd, this, EPOLLOUT, EPOLL_CTL_MOD);
 		updateTimeout();
 		_status = Connection::SENDING;
