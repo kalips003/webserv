@@ -84,6 +84,7 @@ LOG_HERE("in handle_EPOLLERR")
 	client->getRequest().addToHeaders("connection", "closed");
 	pop_connec(_clients.find(client->getClientFd()), false);
 }
+
 ///////////////////////////////////////////////////////////////////////////////]
 void	Server::handle_EPOLLRDHUP(Connection* client) {
 LOG_HERE("in handle_EPOLLRDHUP")
@@ -93,6 +94,7 @@ LOG_HERE("in handle_EPOLLRDHUP")
 	client->getRequest().addToHeaders("Connection", "closed");
 	pop_connec(_clients.find(client->getClientFd()), false);
 }
+
 ///////////////////////////////////////////////////////////////////////////////]
 void	Server::handle_EPOLLHUP(Connection* client, char* buffer, size_t sizeofbuff) {
 LOG_HERE("in handle_EPOLLHUP")

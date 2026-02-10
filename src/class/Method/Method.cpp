@@ -12,7 +12,7 @@
  * @return Connection::SENDING on success, or HTTP error code on failure	---*/
 int Method::normal_doing() {
 
-// is there query in the path? > /script.py?x=abc&y=42
+// is there query in the path? > /script.py?x=abc&y=42&login=agallon
 	std::string path;
 	std::string query;
 	size_t pos = _request.getPath().find_first_of('?');

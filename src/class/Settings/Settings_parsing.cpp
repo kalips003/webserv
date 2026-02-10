@@ -106,6 +106,10 @@ static bool	parse_global_block(std::ifstream& file, std::string& line, std::map<
 		v_str new_tokens = split_line_in_tokens(line);
 		tokens.insert(tokens.end(), new_tokens.begin(), new_tokens.end());
 	}
+
+	// for (v_str::iterator it = tokens.begin(); it != tokens.end(); ++it) {
+	// 	std::cout << *it << RED " | " RESET;
+	// } 
 	if (brace_depth)
 		return false; // non matching brackets, fatal
 
@@ -185,15 +189,15 @@ static bool	parse_tokens(v_str& tokens, Settings::server_setting& server_block, 
 		for ( ; it != tokens.end() && *it != ";" && *it != "{" && *it != "}"; ++it)
 			temp.push_back(*it);
 
-		if (it == tokens.end()) // < if temp not empty, there is tuff after the last '}'
+		if (it == tokens.end()) // < if temp not empty, there is stuff after the last '}'
 			break;
 		
-	// temp contain a directive: "name arg1 arg2 arg3 ...;"
+	// temp contains a directive: "name arg1 arg2 arg3 ...;"
 		if (*it == ";") {
 			push_new_directive(temp, server_block._settings);
 			continue;
 		}
-	// temp contain the start of a block: "name /path {..."
+	// temp contains the start of a block: "name /path {..."
 		else if (*it == "{") {
 			++it;
 			if (!push_new_block(temp, server_block._blocks, tokens, it, i))

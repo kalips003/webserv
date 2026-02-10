@@ -24,6 +24,7 @@ extern char **environ;
  *         HTTP error code (>0) on failure			---*/
 int Method::iniCGI(const std::string& ressource, const std::string& query, const std::string* CGI_interpreter_path) {
 
+	// std::string new_query = query + "&user=" + user.name;
 	int pipefd[2];
 	if (pipe(pipefd) < 0) {
 		LOG_ERROR_SYS("Method::iniCGI(): pipe()");

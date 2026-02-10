@@ -3,11 +3,6 @@
 
 #include "_colors.h"
 
-#define DEBUG_MODE true
-
-
-// #define BUFFER_SIZE 4096
-// #define BUFFER_SIZE 8192
 #define BUFFER_SIZE 512
 
 #define HOW_MANY_REQUEST_PER_LISTEN 2000
@@ -23,39 +18,6 @@
 
 #include <map>
 #include <vector>
-
-#define INFO "[" C_150 " INFO  " RESET "] "
-#define ERROR "[" C_510 " ERROR " RESET "] "
-#define WARNING "[" C_441 "WARNING" RESET "] "
-#define DEBUG "[" C_124 " DEBUG " RESET "] "
-#define LOG "[" C_035 "  L0G  " RESET "] "
-
-
-// enum    ConnectionStatus {
-
-//     FIRST = 0,
-//     READING_HEADER,
-//     READING_BODY,
-//     DOING,
-//     SENDING,
-//     CLOSED
-// };
-
-enum    AnswerStatus {
-
-    SENDING_HEAD = 0,
-    SENDING_BODY,
-    SENDING_BODY_FD,
-    ENDED
-};
-
-enum BodyMode {
-
-	BODY_NONE, // → GET/HEAD, nothing to read
-	BODY_CONTENT_LENGTH, // → read fixed size
-	BODY_CHUNKED, // → chunked transfer
-	BODY_MULTIPART // → form/file uploads
-};
 
 enum HttpMethod {
     GET = 0,

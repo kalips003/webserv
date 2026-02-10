@@ -32,7 +32,26 @@ int main(int ac, char** av)
 
 	std::cout << s;
 
+    // static bool seeded = false;
+    // if (!seeded) {
+    //     // seed with time XOR pid for some entropy
+    //     srand(static_cast<unsigned int>(time(NULL) ^ getpid()));
+    //     seeded = true;
+    // }
 
+    // std::ostringstream os;
+	// oss time1; time1 << std::hex << time(NULL);
+	// oss rand1; rand1 << std::hex << rand();
+	// oss rand2; rand2 << std::hex << rand();
+
+    // os << std::hex
+    //     << time(NULL)        // current time
+    //     << rand()            // first random number
+    //     << rand()            // second random number
+    //     << reinterpret_cast<unsigned long>(&os); // pointer for extra entropy
+
+	// LOG_HERE("HELLO: " << time1.str() << " , " << rand1.str() << " , " << rand2.str())
+    // std::cout << os.str() << std::endl;
 
 
 

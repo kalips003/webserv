@@ -94,6 +94,8 @@ async function storeValue() {
     else {
         document.getElementById('loginInput').placeholder = `Welcome ${storedLogin}!`;
         document.getElementById('header1').textContent = `Let's talk a bit, ${logUser.firstName}.`;
+
+        localStorage.setItem('storedLogin', storedLogin);
     }
 }
 

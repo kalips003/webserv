@@ -182,7 +182,7 @@ src/$(OBJ_FOLDER0)/%.o: src/%.cpp src/class/Log/Log.hpp
 # │                  	 	       MAKE TEST                   	         │
 # ╰──────────────────────────────────────────────────────────────────────╯
 
-TEST_FOLDER = data/tests
+TEST_FOLDER = data
 TEST_MAIN = $(TEST_FOLDER)/main_test.cpp
 TEST_PATH_FILE = src/class/HTTP_request/
 FILES_TEST = $(TEST_PATH_FILE)HttpRequest.cpp \
