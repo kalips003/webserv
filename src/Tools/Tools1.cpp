@@ -42,28 +42,6 @@ bool	atoi_v2(const std::string& input, ssize_t& rtrn) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-bool printErr(const char* errmsg) {
-
-	std::cerr << ERROR << RED "System error - " RESET;
-	perror(errmsg);
-	// std::cerr << C_412 "; [errno]: " RESET << errno << std::endl;
-	return false;
-}
-
-
-void printLog(const std::string& lvl, const std::string& s, bool newline) {
-
-	if (lvl == DEBUG && !DEBUG_MODE)
-		return;
-	if (lvl == ERROR)
-		std::cerr << lvl << s;
-	else
-		std::cout << lvl << s;
-	if (newline)
-		std::cout << std::endl;
-}
-
-///////////////////////////////////////////////////////////////////////////////]
 std::string trim_white(const std::string& s) {
 
     size_t start = s.find_first_not_of(" \t\n\r");
