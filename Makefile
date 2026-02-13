@@ -122,6 +122,7 @@ $(CLIENT):	$(CLIENT_PATH)
 
 CC = g++
 FLAGS = -Wextra -Wall -Werror -g -std=c++98
+# FLAGS = -Wextra -Wall -Werror -g -std=c++98 -fno-elide-constructors
 FLAGS_LESS = -g -std=c++98
 
 # beeing cleaned

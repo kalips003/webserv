@@ -65,6 +65,7 @@ protected:
 	const t_connec_data&	_data;
 	cgi_data				_cgi_data;
 	const Settings::block*	_location_block;
+	Cookies*				_this_user;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:

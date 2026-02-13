@@ -101,10 +101,19 @@ Connection::ConnectionStatus Connection::ft_read(char *buff, size_t sizeofbuff) 
 // @return ConnectionStatus */
 Connection::ConnectionStatus	Connection::ft_doing( void ) {
 // LOG_LOG("ft_doing()")
+	int rtrn;
 
 // if first time, create Method
-	if (!_body_task)
+	if (!_body_task) {
+		// first check headers / path for cookies
+		rtrn = handle_cookies();
+		// if (rtrn) {
+		// 	if (rtrn >= 100)
+		// 		_answer.createError(rtrn, _request.getMethod());
+		// 	return SENDING;
+		// }
 		_body_task = Method::createTask(_request.getMethod(), _data);
+	}
 	if (!_body_task) {
 		LOG_ERROR(RED "_body task NULL" RESET);
 		_answer.createError(500, _request.getMethod());
@@ -112,7 +121,6 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 	}
 
 // exec Method
-	int rtrn;
 	if (_status == DOING_CGI) {
 		rtrn = _body_task->exec_cgi();
 		if (rtrn != DOING_CGI)

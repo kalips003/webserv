@@ -11,6 +11,7 @@
 #include "HttpAnswer.hpp"
 #include "HttpRequest.hpp"
 #include "Settings.hpp"
+#include "Cookies.hpp"
 
 class Method;
 class SettingsServer;
@@ -30,6 +31,7 @@ public:
 		char*							_buffer; // Shared Server buffer
 		size_t							_sizeofbuff;
 		const Settings::server_setting*	_settings;
+		Cookies*						_this_user;
 
 		transfer_data() : 
 			_client_fd(-1), 
@@ -37,7 +39,8 @@ public:
 			_this_ptr(NULL),
 			_buffer(NULL),
 			_sizeofbuff(0),
-			_settings(NULL) {}
+			_settings(NULL),
+			_this_user(NULL) {}
 
 		transfer_data(int fd, int e, Connection* c, char* buffer, size_t size, const Settings::server_setting* settings) : 
 			_client_fd(fd), 
@@ -45,7 +48,8 @@ public:
 			_this_ptr(c), 
 			_buffer(buffer),
 			_sizeofbuff(size),
-			_settings(settings) {}
+			_settings(settings),
+			_this_user(NULL) {}
 
 		friend std::ostream& operator<<(std::ostream& os, const transfer_data& t);
 	};
@@ -74,34 +78,39 @@ private:
 	ConnectionStatus		_status;
 	transfer_data			_data;
 	timeval 				_last_active;
+	std::map<std::string, Cookies>& _cookies;
+	Cookies*						_this_user;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	Connection() :
-		_client_addr(), 
-		_addr_len(sizeof(_client_addr)),
-		_settings(NULL),
-		_request(_settings),
-		_answer(_settings),
-		_body_task(NULL), 
-		_status(READING), 
-		_data() { _data._this_ptr = this; updateTimeout(); }
+	// Connection() :
+	// 	_client_addr(), 
+	// 	_addr_len(sizeof(_client_addr)),
+	// 	_settings(NULL),
+	// 	_request(_settings),
+	// 	_answer(_settings),
+	// 	_body_task(NULL), 
+	// 	_status(READING), 
+	// 	_data() { _data._this_ptr = this; updateTimeout(); }
 
-	Connection(char* buffer, size_t size, const Settings::server_setting* settings) :
-		_client_addr(), 
-		_addr_len(sizeof(_client_addr)),
-		_settings(settings),
-		_request(_settings),
-		_answer(_settings),
-		_body_task(NULL), 
-		_status(READING), 
-		_data() { _data._this_ptr = this; 
-							_data._buffer = buffer; 
-							_data._sizeofbuff = size; 
-							_data._settings = _settings;
-							updateTimeout(); }
+	// Connection(char* buffer, size_t size, const Settings::server_setting* settings) :
+	// 	_client_addr(), 
+	// 	_addr_len(sizeof(_client_addr)),
+	// 	_settings(settings),
+	// 	_request(_settings),
+	// 	_answer(_settings),
+	// 	_body_task(NULL), 
+	// 	_status(READING), 
+	// 	_data() { _data._this_ptr = this; 
+	// 						_data._buffer = buffer; 
+	// 						_data._sizeofbuff = size; 
+	// 						_data._settings = _settings;
+	// 						updateTimeout(); }
 
-	Connection(int fd, int epoll, struct sockaddr_in c, socklen_t al, char* buffer, size_t size, const Settings::server_setting* settings) :
+	Connection(int fd, 
+				int epoll, struct sockaddr_in c, socklen_t al, 
+				char* buffer, size_t size, 
+				const Settings::server_setting* settings, std::map<std::string, Cookies>& cookies) :
 		_client_addr(c), 
 		_addr_len(al), 
 		_settings(settings),
@@ -109,7 +118,9 @@ public:
 		_answer(_settings),
 		_body_task(NULL), 
 		_status(READING), 
-		_data(fd, epoll, this, buffer, size, settings) { updateTimeout(); }
+		_data(fd, epoll, this, buffer, size, settings),
+		_cookies(cookies),
+		_this_user(NULL) { updateTimeout(); }
 
 	Connection(const Connection& other) :
 		_client_addr(other._client_addr), 
@@ -119,11 +130,13 @@ public:
 		_answer(_settings),
 		_body_task(NULL), 
 		_status(READING), 
-		_data(other._data) { _data._this_ptr = this; updateTimeout(); }
+		_data(other._data),
+		_cookies(other._cookies),
+		_this_user(other._this_user) { _data._this_ptr = this; updateTimeout(); }
 
 	~Connection();
 
-
+int	handle_cookies();
 //-----------------------------------------------------------------------------]
 public:
 	bool					ft_update(char *buff, size_t sizeofbuff);

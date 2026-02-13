@@ -10,6 +10,7 @@
 #include "defines.hpp"
 #include "Connection.hpp"
 #include "Settings.hpp"
+#include "Cookies.hpp"
 
 extern bool g_ServerEnd;
 
@@ -17,14 +18,10 @@ extern bool g_ServerEnd;
 typedef std::map<int, Connection> map_clients;
 typedef std::map<int, Connection>::iterator c_it;
 ///////////////////////////////////////////////////////////////////////////////]
-/**
- * Represents a full Server
- *
- * Owns a map of Clients
- */
 class Server {
 
 public:
+//-----------------------------------------------------------------------------]
 	enum ConnectionAcceptResult {
 		ACCEPT_OK = 1,        // one client accepted
 		ACCEPT_EMPTY = 0,     // no more clients (EAGAIN)
@@ -32,6 +29,8 @@ public:
 		ACCEPT_FATAL = -2     // EMFILE / ENFILE / etc.
 	};
 
+public:
+///////////////////////////////////////////////////////////////////////////////]
 	struct server_listen {
 		int								_socket_fd;
 		int								_listen_port;
@@ -43,19 +42,13 @@ public:
 
 private:
 ///////////////////////////////////////////////////////////////////////////////]
-    // struct sockaddr_in      _addr;
-    // struct SettingsServer   _settings;
-
-    // int                     _socket_fd;
-
-//-----------------------------------------------------------------------------]
-	int						_epoll_fd;
-	struct epoll_event		_events[MAX_EVENTS];
-
+	int								_epoll_fd;
+	struct epoll_event				_events[MAX_EVENTS];
 	std::map<int, server_listen>	_sockets;
 
-	map_clients				_clients;
-	bool					_server_status;
+	map_clients						_clients;
+	std::map<std::string, Cookies>	_cookies;
+	bool							_server_status;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
