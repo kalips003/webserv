@@ -4,11 +4,10 @@
 #include <cerrno>
 #include <cstdlib>
 #include <sys/time.h>
+#include <cstring>
 
 #include "Tools1.hpp"
 
-// #define EPOLL_TIMEOUT -1
-#define EPOLL_TIMEOUT 1000
 ///////////////////////////////////////////////////////////////////////////////]
 void    Server::run( void ) {
 
@@ -43,15 +42,15 @@ void    Server::run( void ) {
 			if (accept_new_clients(_events[i].data.ptr, buffer, sizeof(buffer))) // new connection
 				continue;
 
-			if (_events[i].events & EPOLLERR) {// An error condition happened on the socket
+			if (_events[i].events & EPOLLERR) { // An error condition happened on the socket
 				handle_EPOLLERR(static_cast<Connection*>(_events[i].data.ptr));
 				continue;
 			}
-			if (_events[i].events & EPOLLRDHUP) {// Peer closed the connection (FIN received) or half-closed for reading
+			if (_events[i].events & EPOLLRDHUP) { // Peer closed the connection (FIN received) or half-closed for reading
 				handle_EPOLLRDHUP(static_cast<Connection*>(_events[i].data.ptr));
 				continue;
 			}
-			if (_events[i].events & EPOLLHUP) {// The socket was hung up
+			if (_events[i].events & EPOLLHUP) { // The socket was hung up
 				handle_EPOLLHUP(static_cast<Connection*>(_events[i].data.ptr), buffer, sizeof(buffer));
 				continue;
 			}
@@ -69,7 +68,6 @@ void    Server::run( void ) {
 	}
 }
 
-#include <cstring>
 ///////////////////////////////////////////////////////////////////////////////]
 void	Server::handle_EPOLLERR(Connection* client) {
 LOG_HERE("in handle_EPOLLERR")

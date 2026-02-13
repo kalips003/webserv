@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
+#include <algorithm>
 
 #include "Tools1.hpp"
 
@@ -69,7 +70,6 @@ bool	Settings::parse_config_file(const char* confi_file) {
 	return true;
 }
 
-#include <algorithm>
 ///////////////////////////////////////////////////////////////////////////////]
 /** parse an entire global block */
 static bool	parse_global_block(std::ifstream& file, std::string& line, std::map<std::string, Settings::server_setting>& global_blocks, int i, std::string& root) {
@@ -107,16 +107,12 @@ static bool	parse_global_block(std::ifstream& file, std::string& line, std::map<
 		tokens.insert(tokens.end(), new_tokens.begin(), new_tokens.end());
 	}
 
-	// for (v_str::iterator it = tokens.begin(); it != tokens.end(); ++it) {
-	// 	std::cout << *it << RED " | " RESET;
-	// } 
 	if (brace_depth)
 		return false; // non matching brackets, fatal
 
-	if (!parse_tokens(tokens, server_block, i))
+	if (!parse_tokens(tokens, server_block, i)) // is there stuff after the last }, ignored
 		return false;
-	// is there stuff after the last }, ignored
-
+	
 	if (!Settings::blockSetup(server_block, root))
 		return true; // bad block discarded
 
@@ -173,7 +169,6 @@ static v_str split_line_in_tokens(std::string& line) {
 	return rtrn;
 }
 
-#include <algorithm>
 ///////////////////////////////////////////////////////////////////////////////]
 static bool	parse_tokens(v_str& tokens, Settings::server_setting& server_block, int i) {
 // LOG_LOG("parse_tokens()")

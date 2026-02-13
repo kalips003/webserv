@@ -17,7 +17,7 @@ static bool 	checkAnyRoot(std::string& some_root, std::string& server_root);
 ///////////////////////////////////////////////////////////////////////////////]
 /** set absolut root of Settings */
 bool 	Settings::setRoot() {
-LOG_LOG("setRoot()");
+// LOG_LOG("setRoot()");
 
 	char buf[PATH_MAX];
 	if (!getcwd(buf, PATH_MAX)) {
@@ -43,7 +43,7 @@ LOG_LOG("setRoot()");
  * Needs parse_config_file first and server _root set up
  * @return      True if temp exist and is setup, False otherwise		---*/
 bool 	Settings::setTemp() {
-	LOG_LOG("setTemp()");
+// LOG_LOG("setTemp()");
 
 	std::string temp_folder = "/tmp";
 
@@ -109,10 +109,9 @@ bool	Settings::blockSetup(Settings::server_setting& a_global_block, std::string&
 	return true;
 }
 
-// #include <algorithm>
 //-----------------------------------------------------------------------------]
 /** Ensure a default "location / {}" block exists and fill missing settings with defaults  ---*/
-bool	default_settings_setup(Settings::server_setting& global_block) {
+bool		default_settings_setup(Settings::server_setting& global_block) {
 
 	map_strstr default_global_settings;
 // default
@@ -160,7 +159,6 @@ bool	default_settings_setup(Settings::server_setting& global_block) {
 	return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////]
 //-----------------------------------------------------------------------------]
 /** Initialize the internal data struct of all blocks that have a path.
  *

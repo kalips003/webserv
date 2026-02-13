@@ -16,10 +16,6 @@ class Server;
 extern Settings g_settings;
 
 ///////////////////////////////////////////////////////////////////////////////]
-
-
-///////////////////////////////////////////////////////////////////////////////]
-
 /*************************************]
 # Global HTTP server
 server {
@@ -48,11 +44,11 @@ mimetype {
 # Global settings
 temp /tmp
 **************************************/
-
 ///////////////////////////////////////////////////////////////////////////////]
 class Settings {										  // SERVER SETTINGS //]
 
 public:
+//-----------------------------------------------------------------------------]
 	// DEFAULT DATA EACH PATHED BLOCK SHOULD HAVE
 	struct location_data {
 		std::string					root;
@@ -66,6 +62,7 @@ public:
 		location_data() : autoindex(false), client_max_body_size(-1) {}
 	};
 
+//-----------------------------------------------------------------------------]
 	// name arg { set1 a; set2 b }
 	struct block {
 		location_data				data;
@@ -80,7 +77,8 @@ public:
 		}
 	};
 
-	// Struct for one Server listen
+//-----------------------------------------------------------------------------]
+	// Struct for one Server listen (listen /path {...})
 	struct server_setting {
 		std::string				_server_block_name; //	server {...
 		std::string				_server_name; //		webcat.com
@@ -98,51 +96,32 @@ public:
 
 private:
 ///////////////////////////////////////////////////////////////////////////////]
-	map_strstr											_global_settings;
-	std::map<std::string, server_setting>		_global_blocks;
+	map_strstr								_global_settings;
+	std::map<std::string, server_setting>	_global_blocks;
 
-	std::string				_root; // path to the executable
-	std::string				_temp_root; // path to the folder temp files
-///////////////////////////////////////////////////////////////////////////////]
-	// std::map<std::string, std::string>	_global_settings;
-	// std::vector<block>					_block_settings;
-	// int									_port_num;
-	// ssize_t								_client_max_body_size;
-	// location_data*						_root_location_data; // ptr to the location_data struct of root
-	// std::string							_root; // root path of the server binary
-	// std::string							_temp_root; // root path for temp files
+	std::string								_root; // path to the executable
+	std::string								_temp_root; // path to the folder temp files
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	Settings() {}
-// static int			sanitizePath(std::string& path_to_fill, const std::string& given_path);
-// static const block*	isLocationKnown(const std::string& given_path);
-// static int 			getFullPath(std::string& path_to_fill, const std::string& sanitized);
+				Settings() {}
 
 //-----------------------------------------------------------------------------]
 
-public:
-
-	bool		parse_config_file(const char* confi_file);
 private:
+	bool		parse_config_file(const char* confi_file);
 	bool 		setRoot();
 	bool 		setTemp();
+
+//-----------------------------------------------------------------------------]
+/** STATICS **/
 public:
-	static bool	blockSetup(server_setting& a_global_block, std::string& root);
-
-
+	static bool					blockSetup(server_setting& a_global_block, std::string& root);
 	static int					sanitizePath(std::string& path_to_fill, const std::string& given_path);
 	static const block*			isLocationKnown(const std::string& given_path, const server_setting& a_global_block);
 	static int 					getFullPath(std::string& path_to_fill, const std::string& sanitized, const Settings::server_setting& a_global_block);
 	static const std::vector<const block*>
 								rtrnMapOfMatches(Settings::block& for_this_block, Settings::server_setting& a_global_block);
-// 	bool	check_settings( void );
-// //
-// 	void	default_settings_setup( void );
-// 	void 	setAllBlockLocations();
-// 	bool 	checkAnyRoot(std::string& some_root);
-// //
-// 	bool	setLocationData(block& b, const std::vector<const block*>& map_of_matches);
 
 ///////////////////////////////////////////////////////////////////////////////]
 	/***  FIND IN THE BLOCKS  ***/
@@ -154,44 +133,25 @@ private:
 public:
 	static const std::vector<const block*>	find_arg_blocks(const std::string& block_name, const server_setting& a_global_block);
 	const server_setting*					find_global_block(const std::string& block_name);
-	// static const block*						find_global_block(const std::string& block_name);
-	// static const std::vector<const block*>	find_arg_blocks(const std::string& block_name);
-	// static const block*						find_arg_block_from_vector(const std::vector<const block*>& v, const std::string& arg_name);
-	// static const std::string*				find_setting_in_block(const block* b, const std::string& setting);
-	// static const std::string*				find_setting_in_blocks(const std::string& block_name, const std::string& arg, const std::string& setting);
-private:
-	// block* 							find_root_block();
 
 ///////////////////////////////////////////////////////////////////////////////]
 	/***  GETTERS  ***/
 public:
 	const std::string*		isCGI(const std::string& path);
-	// int						getPortNum( void ) const { return _port_num; }
 	const std::string&		getRoot( void ) const { return _root; }
 	const std::string&		getTempRoot() const { return _temp_root; }
-	// const location_data*	getRootLocationBlock() const { return _root_location_data; }
-	// const Settings&	getConstSettings() const { return *this; }
-	// ssize_t					getMaxBodySize() const { return _client_max_body_size; }
-private:
-	// Settings& 		getSettings() { return *this; }
 
 ///////////////////////////////////////////////////////////////////////////////]
 	/***  SETTERS  ***/
 public:
-	// void	addSetting(std::string& name, std::string& value) { _global_settings[name] = value; }
-	// void	addBlock(block& b) { _block_settings.push_back(b); }
-private:
 
 ///////////////////////////////////////////////////////////////////////////////]
-
 	/***  FRIENDS  ***/
 	friend class Server;
 	friend std::ostream&	operator<<(std::ostream& os, const Settings& setting);
 	friend  bool			default_settings_setup(Settings::server_setting& global_block);
 
 };
-
-// typedef std::map<std::string, Settings::server_setting> map_global_b;
 
 std::ostream& operator<<(std::ostream& os, const Settings& s);
 std::ostream& operator<<(std::ostream& os, const Settings::server_setting& b);

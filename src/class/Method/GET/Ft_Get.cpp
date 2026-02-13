@@ -26,7 +26,7 @@ int Ft_Get::serveAutoIndexing(const std::string& path) {
 	listing_html += "<ul>";
 	while ((entry = readdir(dir)) != NULL) {
 		std::string name = entry->d_name;
-
+		
 		// skip "." and maybe ".." if you want
 		if (name == ".") continue;
 		if (name == "..") continue;
@@ -43,7 +43,6 @@ int Ft_Get::serveAutoIndexing(const std::string& path) {
 	getAnswer().setMIMEtype(".html");
 
 	closedir(dir);
-	return 0;
+
+	return Connection::SENDING;
 }
-
-

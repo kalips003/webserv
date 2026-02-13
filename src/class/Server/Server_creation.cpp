@@ -9,8 +9,6 @@
 #include "Tools2.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
-///////////////////////////////////////////////////////////////////////////////]
-///////////////////////////////////////////////////////////////////////////////]
 /** Constructor for the Server.
  *
  * Takes as argument a VALID char* with the path of the config file for the server.
@@ -110,18 +108,13 @@ bool	Server::create_listening_socket(Server::server_listen& new_socket) {
 
 	int bind_status = bind(new_socket._socket_fd, (struct sockaddr *)&new_socket._addr, sizeof(new_socket._addr));
 	if (bind_status) {
-	// most common because port already in use: EADDRINUSE
-	// or wrong IPaddr, or permission issue: EACCES (port < 1024 = privileged port)
 		LOG_ERROR_SYS(RED "create_listening_socket(" RESET << new_socket._listen_port << RED "): bind() failed" RESET)
 		close(new_socket._socket_fd);
 		return false;
 	}
 
-// listen() marks the socket as ready to recieve
-// connect() marks the socket as ready to send/initiate
-	// how many client can tried to connect to this socket while i call accept()
 	int listen_status = listen(new_socket._socket_fd, HOW_MANY_REQUEST_PER_LISTEN);
-	// 3 step handshake: SYN > SYN-ACK > ACK
+// 3 step handshake: SYN > SYN-ACK > ACK validated
 	if (listen_status) {
 		LOG_ERROR_SYS(RED "create_listening_socket(" RESET << new_socket._listen_port << RED "): listen() failed" RESET)
 		close(new_socket._socket_fd);
@@ -160,9 +153,9 @@ bool	Server::create_epoll() {
 
 	return true;
 }
+
 ///////////////////////////////////////////////////////////////////////////////]
 /* 		SOCKET()
-
 
 int sockfd = socket(int domain, int type, int protocol)
 
@@ -227,7 +220,6 @@ htons() → Host to Network Short (converts 16-bit port to big-endian)
 		it’s valid, but not what you usually want for a web server, since clients won’t know which port to connect to.
 
 *//////////////////////////////////////////////////////////////////////////////]
-
 
 ///////////////////////////////////////////////////////////////////////////////]
 /* 		SETSOCKOPT

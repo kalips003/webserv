@@ -14,6 +14,8 @@
 
 extern bool g_ServerEnd;
 
+#define EPOLL_TIMEOUT 1000
+
 ///////////////////////////////////////////////////////////////////////////////]
 typedef std::map<int, Connection> map_clients;
 typedef std::map<int, Connection>::iterator c_it;
@@ -47,7 +49,9 @@ private:
 	std::map<int, server_listen>	_sockets;
 
 	map_clients						_clients;
+
 	std::map<std::string, Cookies>	_cookies;
+
 	bool							_server_status;
 ///////////////////////////////////////////////////////////////////////////////]
 
