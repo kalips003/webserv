@@ -1,12 +1,10 @@
 #include "HttpObj.hpp"
 
-#include <string.h>
 #include <ctime>
-#include <string>
 #include <algorithm>
 
-#include "Log.hpp"
 #include "Tools1.hpp"
+#include "Tools2.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 /***  								TOOLS									***/
@@ -37,7 +35,6 @@ void	HttpObj::concatenateIntoHead() {
 	_head += "\r\n";
 }
 
-// #include <algorithm>
 //-----------------------------------------------------------------------------]
 /** @brief Parses _head containing CRLF-delimited HTTP headers into _headers.
  *
@@ -75,8 +72,6 @@ int HttpObj::parse_head_for_headers() {
 ///////////////////////////////////////////////////////////////////////////////]
 /***  								GETTERS									***/
 ///////////////////////////////////////////////////////////////////////////////]
-#include <algorithm>
-#include <ctype.h>
 //-----------------------------------------------------------------------------]
 /** find the given setting in the _headers
 *	@return the string value of the setting
@@ -154,9 +149,6 @@ size_t	HttpObj::isThereBody() {
 ///////////////////////////////////////////////////////////////////////////////]
 /***  								SETTERS									***/
 ///////////////////////////////////////////////////////////////////////////////]
-// #include <ctime>
-// #include <string>
-// #include <algorithm>
 //-----------------------------------------------------------------------------]
 /** Set default headers for an Answer		---*/
 void	HttpObj::setDefaultHeaders() {
@@ -193,7 +185,6 @@ void	HttpObj::setDefaultHeaders() {
 	}
 }
 
-#include "Tools2.hpp"
 //-----------------------------------------------------------------------------]
 void	HttpObj::setMIMEtype(const std::string& path) {
 	_headers["content-type"] = find_MIME_type(path);

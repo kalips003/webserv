@@ -18,12 +18,14 @@ class SettingsServer;
 class Connection;
 
 #define CONNECTION_TIMEOUT 20.0
+
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 ///////////////////////////////////////////////////////////////////////////////]
 class Connection {
 
 public:
+//-----------------------------------------------------------------------------]
 	struct transfer_data {
 		int								_client_fd; // fd associated with this client connection
 		int								_epoll_fd;
@@ -54,6 +56,7 @@ public:
 		friend std::ostream& operator<<(std::ostream& os, const transfer_data& t);
 	};
 
+//-----------------------------------------------------------------------------]
 	enum ConnectionStatus {
 	
 		READING,
@@ -66,47 +69,23 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////]
 private:
-	struct sockaddr_in  	_client_addr; // struct with informations about the client
-	socklen_t				_addr_len; // ?
+	struct sockaddr_in  			_client_addr; // struct with informations about the client
+	socklen_t						_addr_len;
 
 	const Settings::server_setting*	_settings;
-	HttpRequest				_request;
-	HttpAnswer				_answer;
+	HttpRequest						_request;
+	HttpAnswer						_answer;
 
-	Method					*_body_task;
+	Method*							_body_task;
 
-	ConnectionStatus		_status;
-	transfer_data			_data;
-	timeval 				_last_active;
+	ConnectionStatus				_status;
+	transfer_data					_data;
+	timeval 						_last_active;
 	std::map<std::string, Cookies>& _cookies;
 	Cookies*						_this_user;
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	// Connection() :
-	// 	_client_addr(), 
-	// 	_addr_len(sizeof(_client_addr)),
-	// 	_settings(NULL),
-	// 	_request(_settings),
-	// 	_answer(_settings),
-	// 	_body_task(NULL), 
-	// 	_status(READING), 
-	// 	_data() { _data._this_ptr = this; updateTimeout(); }
-
-	// Connection(char* buffer, size_t size, const Settings::server_setting* settings) :
-	// 	_client_addr(), 
-	// 	_addr_len(sizeof(_client_addr)),
-	// 	_settings(settings),
-	// 	_request(_settings),
-	// 	_answer(_settings),
-	// 	_body_task(NULL), 
-	// 	_status(READING), 
-	// 	_data() { _data._this_ptr = this; 
-	// 						_data._buffer = buffer; 
-	// 						_data._sizeofbuff = size; 
-	// 						_data._settings = _settings;
-	// 						updateTimeout(); }
-
 	Connection(int fd, 
 				int epoll, struct sockaddr_in c, socklen_t al, 
 				char* buffer, size_t size, 
@@ -137,6 +116,7 @@ public:
 	~Connection();
 
 int	handle_cookies();
+
 //-----------------------------------------------------------------------------]
 public:
 	bool					ft_update(char *buff, size_t sizeofbuff);
@@ -164,7 +144,6 @@ public:
 	const transfer_data&		getTransferData() { return _data; }
 
 	bool						checkTimeout(const timeval& now);
-	void						updateTimeout();
 //-----------------------------------------------------------------------------]
 public:
 	std::string					findRequestHeader(const std::string& header);
@@ -172,11 +151,12 @@ public:
 ///////////////////////////////////////////////////////////////////////////////]
 	/***  SETTERS  ***/
 public:
-	void	resetConnection();
-	void	resetRequest( void ) { _request.~HttpRequest(); new (&_request) HttpRequest(_settings); }
-	void	resetAnswer( void ) { _answer.~HttpAnswer(); new (&_answer) HttpAnswer(_settings); }
-	void	setStatus(ConnectionStatus s) { _status = s; }
-	void	closeFd();
+	void		updateTimeout();
+	void		resetConnection();
+	void		resetRequest( void ) { _request.~HttpRequest(); new (&_request) HttpRequest(_settings); }
+	void		resetAnswer( void ) { _answer.~HttpAnswer(); new (&_answer) HttpAnswer(_settings); }
+	void		setStatus(ConnectionStatus s) { _status = s; }
+	void		closeFd();
 //-----------------------------------------------------------------------------]
 ///////////////////////////////////////////////////////////////////////////////]
 

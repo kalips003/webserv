@@ -1,17 +1,9 @@
 #include "Ft_Get.hpp"
 
-#include "HttpRequest.hpp"
-#include "HttpAnswer.hpp"
-#include "Log.hpp"
-#include "Tools1.hpp"
-
 #include <dirent.h>
+
 ///////////////////////////////////////////////////////////////////////////////]
-/** Generate a listing of requested directory, into _answer
- *
- * 
- *
- * @return      ---*/
+/** Generate a listing of requested directory, into _answer	---*/
 int Ft_Get::serveAutoIndexing(const std::string& path) {
 
 	DIR* dir = opendir(path.c_str());

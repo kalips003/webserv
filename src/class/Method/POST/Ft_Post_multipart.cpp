@@ -1,8 +1,10 @@
 #include "Ft_Post.hpp"
 
-#include "Tools1.hpp"
+#include <iostream>
 
+#include "Tools1.hpp"
 #include "Multipart.hpp"
+
 ///////////////////////////////////////////////////////////////////////////////]
 /*
 	Content-Disposition: form-data; name="file"; filename="a.txt"\r\n // mandatory
@@ -19,7 +21,7 @@
 	<part body>
 	\r\n
 	--BOUNDARY--\r\n
- */
+*/
 ///////////////////////////////////////////////////////////////////////////////]
 /** Implementation of Method::treatContentType (that return -1)
 * here to treat "Content-Type" (implemented, only multipart/form-data) 
@@ -28,8 +30,7 @@
 * @return -1 if no multipart, errCode on any error, Connection::SENDING if all goes well */
 int		Ft_Post::treatContentType(std::string& ressource, std::string& query) {
 
-// IS Content-Type = multipart/form-data?
-// 		if yes, extract boundary 
+// IS Content-Type = multipart/form-data
 	const std::string* c_type = _request.find_in_headers("Content-Type");
 	if (!c_type)
 		return -1; // treat as raw bytes
@@ -56,7 +57,6 @@ int		Ft_Post::treatContentType(std::string& ressource, std::string& query) {
 	return treatMultipart(delim, ressource, query);
 }
 
-#include <iostream>
 ///////////////////////////////////////////////////////////////////////////////]
 /** Parses a multipart/form-data request body, splits it into individual parts,
  * and processes each part (file or metadata) against the target resource.
@@ -78,15 +78,9 @@ int		Ft_Post::treatMultipart(std::string& delim, std::string& ressource, std::st
 
 // loop fills vector
 	HttpObj::HttpBodyStatus status = body_parts.back().getStatus();
-// 
-	// std::string x;
-	// int i = 0;
-// 
 	while (status != HttpObj::DOING) {
-	// LOG_HERE("press enter " << i) std::cin >> x;
 
 		int rtrn = current->receive(_data._buffer, _data._sizeofbuff, fd_original, ::read);
-		// LOG_HERE(RED "Httpobj after receive: \n" RESET << *current)
 		
 		if (rtrn >= 100) {
 			LOG_HERE("some bad return: " << rtrn)
@@ -117,25 +111,17 @@ int		Ft_Post::treatMultipart(std::string& delim, std::string& ressource, std::st
 			if (rtrn == HttpObj::DOING) {
 				body_parts.push_back(HttpMultipart(*current));
 				current = &body_parts.back();
-				// LOG_HERE(RED "creating next Httpobj:\n" RESET << *current)
 				status = current->getStatus();
 				continue;
 			}
-			// rtrn == HttpObj::CLOSED
 			break;
 		}
-		// ++i;
 	}
 	temp_file& this_file = _request.getFile();
-/*
-xxd icon000.png > a.hex
-xxd folder2/icon000.png > b.hex
-diff -u a.hex b.hex
-*/
-	// LOG_HERE("press enter A")
-	// std::cin >> x;
+
 // treat each in vector
 	for (std::vector<HttpMultipart>::iterator it = body_parts.begin(); it != body_parts.end(); ++it) {
+
 		// truncate name for '/../../user/psswrd'
 		this_file <= it->getFile();
 		size_t pos = it->getFilename().find_last_of("/\\");
@@ -151,25 +137,9 @@ diff -u a.hex b.hex
 		}
 		// else: treat metadata (ignored now)
 	}
-	// LOG_HERE("press enter B")
-	// std::cin >> x;
 
 	body_parts.back().getFile().closeTemp(true);
 	_answer.setFirstLine(201);
 
 	return Connection::SENDING;
 }
-
-/* other "Content-Type":
-application/x-www-form-urlencoded
-	username=kali&age=42&debug=true
-
-application/json
-	{"user":"kali","admin":true}
-
-text/plain
-	hello server
-
-application/octet-stream
-	binary
- */

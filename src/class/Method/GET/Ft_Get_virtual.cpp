@@ -1,10 +1,5 @@
 #include "Ft_Get.hpp"
 
-
-#include "Log.hpp"
-#include "Tools1.hpp"
-#include "Tools2.hpp"
-#include "HttpAnswer.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 void Ft_Get::printHello() {
 	LOG_DEBUG("GET method called");
@@ -23,7 +18,7 @@ int		Ft_Get::howToHandleFileNotExist(const std::string& ressource, int rtrn_open
 /** */
 int		Ft_Get::handleFileExist(std::string& path) {
 
-	if (access(path.c_str(), R_OK) != 0) { // even if file exist, might not be readable by server {
+	if (access(path.c_str(), R_OK) != 0) { // even if file exist, might not be readable by server
 		LOG_DEBUG("handleFile(): access(): 403");
 		return 403;
 	}

@@ -13,11 +13,10 @@ void Ft_Put::printHello() {
 * @return -1 if no multipart, errCode on any error, Connection::SENDING if all goes well */
 int		Ft_Put::treatContentType(std::string& ressource, std::string& query) {
 
-// IS Content-Type = multipart/form-data? (ignored for PUT)
 	(void)ressource;
 	(void)query;
 
-	return -1; // treat as raw bytes
+	return -1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////]

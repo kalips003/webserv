@@ -1,14 +1,10 @@
 #include "HttpRequest.hpp"
-#include "Log.hpp"
-
-#include "_colors.h"
 
 #include <iostream>
 #include <algorithm>
 
 #include "Tools1.hpp"
 #include "HttpMethods.hpp"
-#include "Settings.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 // #include "HttpMethods.hpp"
@@ -48,7 +44,6 @@ int HttpRequest::isFirstLineValid(int fd) {
 	return 0;
 }
 
-// #include "Settings.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 int		HttpRequest::parseHeadersForValidity() {
 
@@ -85,6 +80,7 @@ int		HttpRequest::parseHeadersForValidity() {
 		return HttpObj::READING_BODY;
 }
 
+///////////////////////////////////////////////////////////////////////////////]
 /** parse given path to extract exact path, find correct block, 
 // validate if method allowed, and body size ok */
 int		HttpRequest::validateLocationBlock(ssize_t body_size) {

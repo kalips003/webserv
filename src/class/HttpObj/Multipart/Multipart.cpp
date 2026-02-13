@@ -1,12 +1,8 @@
 #include "Multipart.hpp"
 
-// #include <iostream>
-// #include <algorithm>
+#include <cstddef>
 
 #include "Tools1.hpp"
-// #include "HttpMethods.hpp"
-#include "Settings.hpp"
-#include <cstddef>
 
 ///////////////////////////////////////////////////////////////////////////////]
 /*
@@ -22,11 +18,27 @@
 	\r\n
 	--BOUNDARY--\r\n
  */
-/**	@return HttpObj::DOING if finished finding last delim, CLOSED on EOF */
 //-----------------------------------------------------------------------------]
-/**
-// _bytes_total should have the value of other._body.size
-// _bytes_written get incremented, never reset */
+/** @brief Reads a multipart/form-data body part, writing content to a temporary file.
+ *
+ * The function searches for the multipart boundary `_delim` while reading from `fd`:
+ * - If the boundary is found, writes the body content to `_tmp_file` and returns `HttpObj::DOING`.
+ * - If EOF is reached before the boundary, returns `HttpObj::CLOSED`.
+ * - If the boundary is not yet found, writes partial data to `_tmp_file` and continues reading.
+ *
+ * Notes:
+ * - `_bytes_total` should hold the expected total body size.
+ * - `_bytes_written` is incremented as bytes are written; it is never reset.
+ * - `_buffer` may temporarily store bytes when the boundary is partially read.
+ * - Error codes:
+ *      - 400 if `_bytes_total` is exceeded before finding the boundary
+ *      - 500 on write failure
+ *
+ * @param buff Temporary buffer for reading
+ * @param sizeofbuff Size of the buffer
+ * @param fd File descriptor to read from
+ * @param reader Function pointer for reading (e.g., ::read)
+ * @return `HttpObj::DOING` if last boundary was found, `HttpObj::CLOSED` on EOF, or error code ---*/
 int		HttpMultipart::readingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 
 	StringSink			to_store_to(_body);
@@ -68,19 +80,6 @@ int		HttpMultipart::readingBody(char *buff, size_t sizeofbuff, int fd, ReadFunc 
 	return HttpObj::DOING;
 }
 
-/*
-	--BOUNDARY\r\n
-	<part headers>\r\n
-	\r\n
-	<part body>
-	\r\n
-	--BOUNDARY\r\n
-	<part headers>\r\n
-	\r\n
-	<part body>
-	\r\n
-	--BOUNDARY--\r\n
- */
 ///////////////////////////////////////////////////////////////////////////////]
 /** Checks the next two bytes after a multipart found its boundary to check if
  * final "--", continue "\r\n", or malformed request (400)
@@ -121,7 +120,6 @@ int		HttpMultipart::tool_check_next_two_char(int fd) {
 		return HttpObj::DOING;
 	return 400;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////]
 int		HttpMultipart::isFirstLineValid(int fd) { 
@@ -165,13 +163,3 @@ int		HttpMultipart::parseHeadersForValidity() {
 		return 500;
 	return HttpObj::READING_BODY;
 }
-
-// #include "SettingsServer.hpp"
-///////////////////////////////////////////////////////////////////////////////]
-HttpMultipart::HttpMultipart(const HttpMultipart& other) : HttpObj(other._settings), _delim(other._delim) {
-	_leftovers = other._leftovers;
-	_bytes_total = other._bytes_total;
-	_bytes_written = other._bytes_written;
-	_status = HttpObj::READING_FIRST;
-}
-

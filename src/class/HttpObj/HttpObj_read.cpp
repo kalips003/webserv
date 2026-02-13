@@ -1,72 +1,47 @@
 #include "HttpObj.hpp"
 
 #include "Tools1.hpp"
+#include "Server.hpp"
 
 #include <string.h>
-#include <Server.hpp>
+#include <iostream>
 
 ///////////////////////////////////////////////////////////////////////////////]
 /***  								READ									***/
 ///////////////////////////////////////////////////////////////////////////////]
-/** HttpObj::receive mapping / state machine
+/** @brief Reads from a file descriptor and leftover buffer to fill the HttpObj.
  *
- * This function reads from a file descriptor (fd) and a leftover buffer
- * to fill the HttpObj instance, handling both full HTTP requests and
- * multipart/form-data parts.
- *
- * State transitions:
- *
+ * Updates internal state as it parses the HTTP request in stages:
  * 1. READING_FIRST
  *    - Consume _leftovers first, then fd
- *    - Read until first "\r\n" is found
- *    - Store the line in _first
- *    - Move _status -> READING_HEADER
- *    - Edge cases:
- *        * _leftovers may already contain more than one line
- *        * "\r\n" may be split across reads
+ *    - Read the first line into _first
+ *    - Move status -> READING_HEADER
  *
  * 2. READING_HEADER
  *    - Read lines until "\r\n\r\n" is found
  *    - Append lines to _head
  *    - Parse headers into _headers map
- *    - Move _status -> READING_BODY
- *    - Edge cases:
- *        * headers may span multiple reads
- *        * extra bytes after "\r\n\r\n" remain in _leftovers for body
+ *    - Move status -> READING_BODY
+ *    - Any extra bytes after headers remain in _leftovers
  *
  * 3. READING_BODY
  *    - Consume _leftovers first, then fd
  *    - Write body bytes into _tmp_file
- *    - Update _bytes_written accordingly
- *    - Stop when:
- *        a) _bytes_total is known and _bytes_written >= _bytes_total
- *        b) EOF on fd
- *        c) (for multipart) boundary delimiter is reached
- *    - Body is treated as binary-safe; do not assume null-terminated strings
- *    - Edge cases:
- *        * _leftovers may contain start of next part
- *        * multipart parts do not have Content-Length; must detect boundary
+ *    - Stop when content-length is satisfied, EOF, or multipart boundary reached
  *
- * 4. Other statuses (DOING, SENDING_HEAD, SENDING_BODY, SENDING_BODY_FD)
- *    - Not relevant for parsing; reserved for sending or application logic
+ * Other statuses (DOING, SENDING_HEAD/BODY) are not relevant here.
  *
  * Notes:
- * - HttpObj is a dumb container: it stores headers, first line, body, and temp file
- * - Responsibility of parsing ends at filling _headers and _tmp_file
- * - Semantic interpretation (file vs regular field, CGI handling) is left to
- *   higher-level logic, e.g., Ft_Post or application layer	---*/
-#include <iostream>
-///////////////////////////////////////////////////////////////////////////////]
-/** @brief Reads from fd.
-// internally update status
-// 		read firt line into _first
-// 		read headers into _head
-// 		read body into _tmp_file
-//
-* @return READING_STATUS or errCode on error		---*/
+ * - _leftovers may contain extra data across reads
+ * - Multipart boundaries and binary bodies are handled correctly
+ * - HttpObj parsing stops at filling _headers and _tmp_file; semantic handling
+ *   (CGI, file vs form field) is left to higher-level logic
+ *
+ * @return Current READING_STATUS or error code on failure			---*/
 int		HttpObj::receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 	int rtrn;
 
+// READING_FIRST
 	if (_status == HttpObj::READING_FIRST) { LOG_DEBUG("receive(): READING_FIRST")
 		
 		rtrn = readingFirstLine(buff, sizeofbuff, fd, reader);
@@ -81,6 +56,7 @@ int		HttpObj::receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 		}
 	}
 
+// READING_HEADER
 	if (_status == READING_HEADER) { LOG_DEBUG("receive(): READING_HEADER")
 
 		rtrn = readingHeaders(buff, sizeofbuff, fd, reader);
@@ -100,49 +76,21 @@ int		HttpObj::receive(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 		}
 	}
 
-	// if (_status == READING_BODY_CHUNKED) { LOG_DEBUG("receive(): READING_BODY_CHUNKED")
-
-	// 	while (!_leftovers.empty()) {
-	// 		rtrn = this->readBodyChunk(buff, sizeofbuff, fd, reader);
-	// 		if (rtrn >= 100)
-	// 			return rtrn;
-	// 		if (rtrn == HttpObj::FINISHED)
-	// 			break;
-	// 	}
-	// 	LOG_HERE("receive: READING_BODY_CHUNKED = " << rtrn)
-	// 	if (rtrn == HttpObj::FINISHED) {
-	// 		LOG_HERE("receive: FINISHED received")
-		
-	// 		_status = HttpObj::DOING;
-	// 	}
-	// 	else
-	// 		_status = static_cast<HttpBodyStatus>(rtrn);
-	// 	LOG_HERE("_leftovers after: {" << _leftovers << "}")
-	// }
-
-	// if (_status == READING_BODY) { LOG_DEBUG("receive(): READING_BODY")
-
-	// 	rtrn = this->readBody(buff, sizeofbuff, fd, reader);
-	// 	if (rtrn >= 100)
-	// 		return rtrn;
-	// 	_status = static_cast<HttpBodyStatus>(rtrn);
-	// }
-
+// READING_BODY
 	if (_status == READING_BODY || _status == READING_BODY_CHUNKED) {
-		if (_status == READING_BODY_CHUNKED) {
-			LOG_DEBUG("receive(): READING_BODY_CHUNKED")
+		if (_status == READING_BODY_CHUNKED) { LOG_DEBUG("receive(): READING_BODY_CHUNKED")
 			rtrn = this->readBodyChunk(buff, sizeofbuff, fd, reader);
 		}
-		else if (_status == READING_BODY) {
-			LOG_DEBUG("receive(): READING_BODY")
+		else if (_status == READING_BODY) { LOG_DEBUG("receive(): READING_BODY")
 			rtrn = this->readBody(buff, sizeofbuff, fd, reader);
 		}
-		// int x; std::cin >> x;
+
 		if (rtrn >= 100)
 			return rtrn;
 		_status = static_cast<HttpBodyStatus>(rtrn);
 	}
 
+// CLOSED
 	if (_status == CLOSED) {
 		LOG_INFO(printFd(fd) << "← " RED "EOF received (closed)" RESET);
 	}
@@ -214,6 +162,25 @@ int		HttpObj::readingHeaders(char *buff, size_t sizeofbuff, int fd, ReadFunc rea
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
+/** @brief Reads CGI output from a file descriptor and fills the HttpObj body.
+ *
+ * The function handles two main stages of CGI output:
+ * 1. READING_HEADER
+ *    - Reads header lines via `readingHeaders()`
+ *    - On EOF or max header size, writes collected headers to _tmp_file
+ *    - Parses header syntax and moves leftover bytes into _tmp_file
+ *    - Updates _status accordingly
+ *
+ * 2. READING_BODY
+ *    - Reads body bytes via `readBody()`
+ *    - Stops when EOF or content-length boundary is reached
+ *
+ * CLOSED status indicates CGI output ended.
+ *
+ * @param buff Temporary buffer for reading
+ * @param sizeofbuff Size of the buffer
+ * @param fd File descriptor to read from
+ * @return Updated HttpBodyStatus or error code on failure 	---*/
 int		HttpObj::receive_cgi(char *buff, size_t sizeofbuff, int fd) {
 	int rtrn;
 

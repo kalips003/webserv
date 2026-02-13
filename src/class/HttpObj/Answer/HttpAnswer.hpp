@@ -4,8 +4,6 @@
 #include "HttpObj.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
-// "GET /index.html HTTP/1.1\r\nHost: example.com\r\n\r\n<body>"
-///////////////////////////////////////////////////////////////////////////////]
 class HttpAnswer : public HttpObj {
 
 private:
@@ -16,19 +14,21 @@ private:
 ///////////////////////////////////////////////////////////////////////////////]
 
 public:
-	HttpAnswer(const Settings::server_setting* settings) : HttpObj(settings), _version("HTTP/1.1"), _status_num(200), _status_msg("OK") { _status = SENDING_HEAD; }
+	HttpAnswer(const Settings::server_setting* settings) : HttpObj(settings),
+		_version("HTTP/1.1"),
+		_status_num(200),
+		_status_msg("OK") { _status = SENDING_HEAD; }
 
 //-----------------------------------------------------------------------------]
 	/***  VIRTUALS  ***/
 public:
-	int		isFirstLineValid(int fd);
+	virtual int		isFirstLineValid(int fd);
 
 ///////////////////////////////////////////////////////////////////////////////]
 public:
 	void	createError(int errCode, const std::string& method);
 	void	setFirstLine(int errCode);
 	void	initializationBeforeSend(const std::string& method);
-
 
 ///////////////////////////////////////////////////////////////////////////////]
 	/***  GETTERS  ***/
@@ -37,15 +37,9 @@ public:
 	int					getStatusNum() { return _status_num; }
 	const std::string&	getStatusMsg() { return _status_msg; }
 	temp_file&			getTempFile() { return _tmp_file; }
-//-----------------------------------------------------------------------------]
-private:
 
-///////////////////////////////////////////////////////////////////////////////]
 	/***  SETTERS  ***/
 public:
-//-----------------------------------------------------------------------------]
-private:
-///////////////////////////////////////////////////////////////////////////////]
 
 	/***  FRIENDS  ***/
 	friend std::ostream& operator<<(std::ostream& os, const HttpAnswer& r);
@@ -85,5 +79,4 @@ Vary:                           Specifies headers that affect caching (Accept-En
 Via:                            Proxy chain
 Warning:                        General warnings
 WWW-Authenticate:               Challenge for authentication (Basic, Digest)
-
- */
+*/

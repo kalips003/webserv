@@ -1,10 +1,9 @@
 #include "Ft_Post.hpp"
 
-#include "Log.hpp"
+#include <cstdlib> 
+#include <fstream>
+
 #include "Tools1.hpp"
-#include "Tools2.hpp"
-#include "HttpAnswer.hpp"
-#include "HttpRequest.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 void Ft_Post::printHello() {
@@ -137,8 +136,6 @@ int		Ft_Post::handleDir(std::string& ressource) {
 	return howToHandleFileNotExist(tmp_path, 404);
 }
 
-#include <cstdlib> 
-#include "HttpRequest.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 /** */
 void	Ft_Post::prepareChild(const std::string& ressource, const std::string& query) {

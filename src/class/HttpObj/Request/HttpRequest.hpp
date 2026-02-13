@@ -3,8 +3,8 @@
 
 #include "HttpObj.hpp"
 
-///////////////////////////////////////////////////////////////////////////////]
-// "GET /index.html HTTP/1.1\r\nHost: example.com\r\n\r\n<body>"
+#define MAX_HEXA_LINE_LENGTH 32
+
 ///////////////////////////////////////////////////////////////////////////////]
 class HttpRequest : public HttpObj {
 
@@ -26,13 +26,13 @@ public:
 	virtual int		parseHeadersForValidity();
 
 ///////////////////////////////////////////////////////////////////////////////]
-public:
-	int				validateLocationBlock(ssize_t body_size);
+private:
+	int			validateLocationBlock(ssize_t body_size);
+	int			readBodyChunk(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
+	int			streamingBodyWrapper(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
+	int			detectChunkedEncoding();
+	int			readBodyChunk_delimHelper(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
 
-int			readBodyChunk(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
-int			streamingBodyWrapper(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
-int			detectChunkedEncoding();
-int			readBodyChunk_delimHelper(char *buff, size_t sizeofbuff, int fd, ReadFunc reader);
 ///////////////////////////////////////////////////////////////////////////////]
 /***  GETTERS  ***/
 public:
@@ -41,11 +41,8 @@ public:
 	const std::string&	getVersion() const { return _version; }
 	temp_file&			getTempFile() { return _tmp_file; }
 //-----------------------------------------------------------------------------]
-private:
 /***  SETTERS  ***/
 public:
-//-----------------------------------------------------------------------------]
-private:
 ///////////////////////////////////////////////////////////////////////////////]
 
 	/***  FRIENDS  ***/
@@ -88,5 +85,4 @@ Upgrade:                Request protocol upgrade (websocket)
 User-Agent:             Software making the request (browser, curl)
 Via:                    Proxies the request went through
 Warning:                General warnings
-
 */

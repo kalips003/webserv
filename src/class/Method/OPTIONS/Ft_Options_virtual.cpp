@@ -1,10 +1,8 @@
 #include "Ft_Options.hpp"
 
-#include "Log.hpp"
+#include <cstdlib>
+
 #include "Tools1.hpp"
-#include "Tools2.hpp"
-#include "HttpAnswer.hpp"
-#include "HttpRequest.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 void Ft_Options::printHello() {
@@ -62,8 +60,6 @@ int		Ft_Options::handleDir(std::string& ressource) {
 	return Connection::SENDING;
 }
 
-#include <cstdlib> 
-#include "HttpRequest.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 /** */
 void	Ft_Options::prepareChild(const std::string& ressource, const std::string& query) {

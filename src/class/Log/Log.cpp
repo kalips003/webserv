@@ -1,10 +1,16 @@
 #include "Log.hpp"
 
 #include <cerrno>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+#include <ctime>
+
+#include <sys/stat.h>
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <iostream>
+#include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////]
 /** oss msg; msg << ""; Log::log(OTHER_P, msg.str()); */
@@ -124,11 +130,6 @@ Log::~Log() {
 	if (_fd >= 0) { close(_fd); _fd = -1; }
 }
 
-#include <sys/stat.h>
-#include <ctime>
-#include <iomanip>
-#include <sstream>
-#include <stdio.h>
 ///////////////////////////////////////////////////////////////////////////////]
 bool Log::createLogging(const std::string& prefix) {
 

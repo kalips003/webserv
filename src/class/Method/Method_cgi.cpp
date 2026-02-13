@@ -1,8 +1,8 @@
 #include "Method.hpp"
 
-#include <signal.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <sys/wait.h>
 
 #include "Tools2.hpp"
 
@@ -84,7 +84,6 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 	return Connection::DOING_CGI;
 }
 
-#include <sys/wait.h>
 ///////////////////////////////////////////////////////////////////////////////]
 /**	Funciton called on second loop, once _cgi_status == CGI_DOING, 
 * child is set-up and so on 

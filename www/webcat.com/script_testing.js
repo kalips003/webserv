@@ -69,7 +69,7 @@ function uploadFiles() {
 
 //////////////////////////////////////////////////////////////////////
 function deleteFile() {
-    const path_to_delete = 'donations/file1';  // relative to website root
+    const path_to_delete = 'donations/filehello';  // relative to website root
 
     fetch(path_to_delete, {
         method: 'DELETE'

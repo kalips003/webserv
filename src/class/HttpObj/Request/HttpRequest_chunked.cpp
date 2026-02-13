@@ -1,7 +1,6 @@
 #include "HttpRequest.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
-///////////////////////////////////////////////////////////////////////////////]
 /*
 	Transfer-Encoding: chunked
 	
@@ -12,8 +11,9 @@
 	0\r\n
 	\r\n
  */
-ssize_t		readHexa(const std::string& hexa);
-#define MAX_HEXA_LINE_LENGTH 32
+///////////////////////////////////////////////////////////////////////////////]
+static ssize_t		readHexa(const std::string& hexa);
+
 ///////////////////////////////////////////////////////////////////////////////]
 int		HttpRequest::readBodyChunk(char *buff, size_t sizeofbuff, int fd, ReadFunc reader) {
 // LOG_LOG("readBodyChunk()")
@@ -22,8 +22,8 @@ int		HttpRequest::readBodyChunk(char *buff, size_t sizeofbuff, int fd, ReadFunc 
 		_leftovers = _buffer;
 		_buffer.clear();
 	}
-	int rtrn;
 
+	int rtrn;
 	while (true) {
 
 		if (_bytes_total < 0) {// -1 search for <hex>\r\n
@@ -72,7 +72,7 @@ int		HttpRequest::readBodyChunk_delimHelper(char *buff, size_t sizeofbuff, int f
 		return HttpObj::READING_BODY_CHUNKED; // try again (recv = -1)
 // not found yet
 	if (read_rtrn == -2) {
-		if (_buffer.size() > MAX_HEXA_LINE_LENGTH) { // ??? infinity check?
+		if (_buffer.size() > MAX_HEXA_LINE_LENGTH) { // infinity check
 			LOG_ERROR("readBodyChunk(): Limit (" << MAX_HEXA_LINE_LENGTH << ") reached before finding chunk size: " << _buffer)
 			return 400;
 		}
@@ -121,7 +121,7 @@ int		HttpRequest::streamingBodyWrapper(char *buff, size_t sizeofbuff, int fd, Re
 }
 
 ///////////////////////////////////////////////////////////////////////////////]
-ssize_t		readHexa(const std::string& hexa) {
+static ssize_t		readHexa(const std::string& hexa) {
 
 	if (hexa.empty())
 		return -1; // invalid

@@ -1,9 +1,8 @@
 #include "Ft_Delete.hpp"
 
-#include "Log.hpp"
+#include <cstdlib>
+
 #include "Tools1.hpp"
-#include "Tools2.hpp"
-#include "HttpAnswer.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
 void Ft_Delete::printHello() {
@@ -47,8 +46,6 @@ int		Ft_Delete::handleDir(std::string& ressource) {
 	return 403; // or 405 with header {Allow: GET, HEAD}
 }
 
-#include "HttpRequest.hpp"
-#include <cstdlib> 
 ///////////////////////////////////////////////////////////////////////////////]
 /** */
 void	Ft_Delete::prepareChild(const std::string& ressource, const std::string& query) {

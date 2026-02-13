@@ -31,10 +31,9 @@ class SettingsServer;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////]*/
 
 typedef Connection::transfer_data	t_connec_data;
-// static_assert(sizeof(t_connec_dataa) != sizeof(int), "t_connec_data is int");
 
 ///////////////////////////////////////////////////////////////////////////////]
-// 							VIRTUAL CLASS: TASK
+// 							VIRTUAL CLASS: METHOD
 ///////////////////////////////////////////////////////////////////////////////]
 class Method {
 
@@ -95,7 +94,7 @@ public:
 //-----------------------------------------------------------------------------]
 	/***  TOOLS  ***/
 public:
-	static int			isFileNOK(std::string path, struct stat& ressource_info);
+	static int	isFileNOK(std::string path, struct stat& ressource_info);
 
 ///////////////////////////////////////////////////////////////////////////////]
 /***							VIRTUAL FUNCTIONS							***/
@@ -156,24 +155,5 @@ public:
 ///////////////////////////////////////////////////////////////////////////////]
 
 };
-
-///////////////////////////////////////////////////////////////////////////////]
-/*
-| Header              | Purpose                                                                   |
-| ------------------- | ------------------------------------------------------------------------- |
-| `Host`              | mandatory in HTTP/1.1, specifies which host the request targets           |
-| `User-Agent`        | client info (browser, curl, etc.)                                         |
-| `Accept`            | media types the client can handle (`text/html`, `application/json`, etc.) |
-| `Accept-Encoding`   | compression formats client supports (`gzip`, `deflate`, `br`)             |
-| `Accept-Language`   | preferred languages                                                       |
-| `Connection`        | e.g., `keep-alive`, `close`                                               |
-| `Cache-Control`     | caching directives, e.g., `no-cache`, `max-age=0`                         |
-| `If-Modified-Since` | conditional GET: only send if resource modified since given date          |
-| `If-None-Match`     | conditional GET using ETag                                                |
-| `Referer`           | URL of the page linking to this resource                                  |
-| `Cookie`            | session cookies, auth tokens                                              |
-*/
-
-
 
 #endif

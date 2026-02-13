@@ -16,31 +16,8 @@
 #include "Ft_Options.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////]
-/*
-Set up a SIGCHLD handler:
-
-signal(SIGCHLD, [](int){ 
-    while (waitpid(-1, nullptr, WNOHANG) > 0) { reap all exited children }});
-
--1 → wait for any child
-WNOHANG → don’t block if no child has exited
-Loops because multiple children may exit at once
-Now, when you want to terminate a CGI child:
-
-kill(child_pid, SIGKILL);
-
-You don’t need to call waitpid() manually
-*/
-
-
-// #include <signal.h>
-// #include "Tools2.hpp"
-// #include <sys/wait.h>
-// #include <sys/epoll.h> 
-///////////////////////////////////////////////////////////////////////////////]
-Method::~Method() {
-
 // _tmp_file handle its destuction
+Method::~Method() {
 
 	if (_cgi_data._child_pipe_fd >= 0) {
 		epollChangeFlags(_data._epoll_fd, _cgi_data._child_pipe_fd, 0, EPOLL_CTL_DEL);
@@ -55,10 +32,6 @@ Method::~Method() {
 	}
 }
 
-
-// #include "Ft_Get.hpp"
-// #include "Ft_Post.hpp"
-// #include "Ft_Delete.hpp"
 ///////////////////////////////////////////////////////////////////////////////]
 Method*		Method::createTask(const std::string& method, const t_connec_data& data) {
 	Method::Ft_Type type = Method::parseMethod(method);
