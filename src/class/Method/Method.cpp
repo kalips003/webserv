@@ -73,7 +73,12 @@ int Method::handleRessource(std::string& ressource, std::string& query) {
 // is FILE
 	if (S_ISREG(ressource_info.st_mode)) {
 		LOG_DEBUG("is FILE");
-		const std::string* CGI_interpreter_path = g_settings.isCGI(ressource); // ptr to /usr/bin/python3;
+		// cgi_interpreter override
+		const std::string* CGI_interpreter_path = &_location_block->data.cgi_interpreter; // ptr to cgi_interpreter;
+		if (!(*CGI_interpreter_path).empty() && *CGI_interpreter_path != "none")
+			return iniCGI(ressource, query, CGI_interpreter_path);
+		// is extension a known cgi?
+		CGI_interpreter_path = g_settings.isCGI(ressource); // ptr to /usr/bin/python3;
 		if (CGI_interpreter_path)
 			return iniCGI(ressource, query, CGI_interpreter_path);
 		else

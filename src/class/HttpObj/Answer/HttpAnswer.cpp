@@ -20,7 +20,7 @@ void	HttpAnswer::createError(int errCode, const std::string& method) {
 
 	_body = "<html><body style=\"background:#111;color:#eee;text-align:center;\">"
 		"<h1>" + itostr(errCode) + " " + _status_msg + "</h1>"
-		"<img src=\"/errors/" + itostr(errCode) + ".jpg\" alt=\"error\">"
+		"<img src=\"img/errors/" + itostr(errCode) + ".jpg\" alt=\"error\">"
 		"</body></html>";
 
 	if (_tmp_file._fd >= 0)

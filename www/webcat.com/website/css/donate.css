@@ -1,0 +1,30 @@
+/* donate.css */
+
+body {
+    margin: 0;             /* remove default margins */
+    padding: 0;            /* remove default padding */
+    height: 100vh;         /* full viewport height */
+    display: flex;         
+    flex-direction: column;
+    justify-content: center;  /* vertical centering */
+    align-items: center;      /* horizontal centering */
+    background-image: url('/img/donate.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #fff;           /* make text visible on background */
+    font-family: Arial, sans-serif;
+}
+
+button, input {
+	display: block;   /* default behavior */
+    margin: 5px;
+    padding: 10px;
+	align-self: flex-start;
+}
+
+/* .button-container {
+    display: block;
+    text-align: left;
+    margin: 20px;
+} */

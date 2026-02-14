@@ -10,7 +10,6 @@
 #include "defines.hpp"
 #include "Connection.hpp"
 #include "Settings.hpp"
-#include "Cookies.hpp"
 
 extern bool g_ServerEnd;
 
@@ -49,8 +48,6 @@ private:
 	std::map<int, server_listen>	_sockets;
 
 	map_clients						_clients;
-
-	std::map<std::string, Cookies>	_cookies;
 
 	bool							_server_status;
 ///////////////////////////////////////////////////////////////////////////////]

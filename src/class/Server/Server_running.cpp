@@ -70,7 +70,7 @@ void    Server::run( void ) {
 
 ///////////////////////////////////////////////////////////////////////////////]
 void	Server::handle_EPOLLERR(Connection* client) {
-LOG_HERE("in handle_EPOLLERR")
+LOG_LOG("in handle_EPOLLERR")
 	int err = 0;
 	socklen_t len = sizeof(err);
 	if (getsockopt(client->getClientFd(), SOL_SOCKET, SO_ERROR, &err, &len) == -1)
@@ -85,7 +85,7 @@ LOG_HERE("in handle_EPOLLERR")
 
 ///////////////////////////////////////////////////////////////////////////////]
 void	Server::handle_EPOLLRDHUP(Connection* client) {
-LOG_HERE("in handle_EPOLLRDHUP")
+LOG_LOG("in handle_EPOLLRDHUP")
 	LOG_INFO(printFd(client->getClientFd()) << RED "(Server) connection closed by peer (FIN received)" RESET);
 
 	// We can still send remaining data if needed, but for simplicity, we'll close the connection.
@@ -95,7 +95,7 @@ LOG_HERE("in handle_EPOLLRDHUP")
 
 ///////////////////////////////////////////////////////////////////////////////]
 void	Server::handle_EPOLLHUP(Connection* client, char* buffer, size_t sizeofbuff) {
-LOG_HERE("in handle_EPOLLHUP")
+LOG_LOG("in handle_EPOLLHUP")
 	if (client->getStatus() == Connection::DOING_CGI) { // the cgi pipe sent EOF
 		if (!client->ft_update(buffer, sizeofbuff))
 			pop_connec(_clients.find(client->getClientFd()), false);

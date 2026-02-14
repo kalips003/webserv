@@ -83,16 +83,8 @@ Connection::ConnectionStatus	Connection::ft_doing( void ) {
 	int rtrn;
 
 // if first time, create Method
-	if (!_body_task) {
-		// first check headers / path for cookies
-		rtrn = handle_cookies();
-		// if (rtrn) {
-		// 	if (rtrn >= 100)
-		// 		_answer.createError(rtrn, _request.getMethod());
-		// 	return SENDING;
-		// }
+	if (!_body_task)
 		_body_task = Method::createTask(_request.getMethod(), _data);
-	}
 	if (!_body_task) {
 		LOG_ERROR(RED "_body task NULL" RESET);
 		_answer.createError(500, _request.getMethod());

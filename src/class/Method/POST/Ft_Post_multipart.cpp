@@ -83,13 +83,13 @@ int		Ft_Post::treatMultipart(std::string& delim, std::string& ressource, std::st
 		int rtrn = current->receive(_data._buffer, _data._sizeofbuff, fd_original, ::read);
 		
 		if (rtrn >= 100) {
-			LOG_HERE("some bad return: " << rtrn)
+			LOG_DEBUG("some bad return: " << rtrn)
 			return rtrn;
 		}
 
 		status = static_cast<HttpObj::HttpBodyStatus>(rtrn);
 		if (status == HttpObj::CLOSED) {// eof found
-			LOG_HERE("treatMultipart(): EOF found")
+			LOG_DEBUG("treatMultipart(): EOF found")
 			return 400;
 		}
 
@@ -104,7 +104,7 @@ int		Ft_Post::treatMultipart(std::string& delim, std::string& ressource, std::st
 			// check next 2 char // [\r\n + DELIM + ".."]
 			rtrn = current->tool_check_next_two_char(fd_original);
 			if (rtrn >= 100) {
-				LOG_HERE("some bad return2: " << rtrn)
+				LOG_DEBUG("some bad return2: " << rtrn)
 				return rtrn;
 			}
 	

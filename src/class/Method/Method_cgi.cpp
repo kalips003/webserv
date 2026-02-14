@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <sys/wait.h>
+#include <cstdlib>
 
 #include "Tools2.hpp"
 
@@ -50,6 +51,10 @@ int Method::iniCGI(const std::string& ressource, const std::string& query, const
 				continue;
 			close(i);
 		}
+		// Cookies handling
+		std::string* cookie = _request.find_in_headers("Cookie");
+		if (cookie) // cookie is found
+			setenv("HTTP_COOKIE", (*cookie).c_str(), 1);
 
 		this->prepareChild(ressource, query);
 
@@ -123,6 +128,5 @@ int		Method::exec_cgi() {
 		_answer.setStatus(HttpObj::SENDING_HEAD);
 		return Connection::SENDING;
 	}
-	LOG_HERE("exec_cgi(), exiting: status = " << rtrn)
 	return Connection::DOING_CGI;
 }

@@ -63,7 +63,7 @@ Server::ConnectionAcceptResult	Server::accept_one_client(char *buff, size_t size
 	if (!set)
 		return ACCEPT_RETRY;
 
-	_clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, _epoll_fd, client_addr, addr_len, buff, sizeofbuff, &this_domain->_settings, _cookies)));
+	_clients.insert(std::pair<int, Connection>(client_fd, Connection(client_fd, _epoll_fd, client_addr, addr_len, buff, sizeofbuff, &this_domain->_settings)));
 
 	std::map<int, Connection>::iterator conn_it = _clients.find(client_fd);
 	if (!epollChangeFlags(_epoll_fd, client_fd, &conn_it->second, EPOLLIN, EPOLL_CTL_ADD))
