@@ -15,6 +15,7 @@ if (!$login) {
     exit;
 }
 
+///////////////////////////////////////////////////////////////////////////////]
 // --- OAuth token handler ---
 function get_token() {
     $token_file = __DIR__ . '/token.json';
