@@ -115,7 +115,7 @@ bool		default_settings_setup(Settings::server_setting& global_block) {
 
 	map_strstr default_global_settings;
 // default
-	default_global_settings["listen"] = "9999"; // default
+	default_global_settings["listen"] = ""; // default
 	default_global_settings["client_max_body_size"] = "-1"; // default
 	// insert skip keys if they already exist
 	global_block._settings.insert(default_global_settings.begin(), default_global_settings.end());
