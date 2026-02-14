@@ -1,5 +1,6 @@
 #include "Method.hpp"
 
+#include "Log.hpp"
 #include "Settings.hpp"
 #include <cerrno>
 
@@ -42,7 +43,10 @@ int Method::normal_doing() {
 	struct stat ressource_info;
 	stat(ressource.c_str(), &ressource_info);
 	if (S_ISDIR(ressource_info.st_mode) && sanitized[sanitized.size() - 1] != '/') {
-		_answer.setFirstLine(301);
+		int errcode = 301;
+		if (_request.getMethod() == "POST" || _request.getMethod() == "PUT")
+			errcode = 307;
+		_answer.setFirstLine(errcode);
 		_answer.addToHeaders("Location", sanitized + "/");
 		return Connection::SENDING;
 	}

@@ -132,7 +132,8 @@ int		Ft_Post::handleDir(std::string& ressource) {
 
 	std::string tmp_path = _request.getFile()._path; // full path
 	int endinslash = !ressource.empty() && ressource[ressource.size() - 1] != '/';
-	tmp_path = ressource + tmp_path.substr(tmp_path.find_last_of("/") + endinslash);
+	oss num; num << std::rand();
+	tmp_path = ressource + tmp_path.substr(tmp_path.find_last_of("/") + endinslash) + "_" + num.str();
 	return howToHandleFileNotExist(tmp_path, 404);
 }
 
