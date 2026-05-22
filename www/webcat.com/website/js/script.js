@@ -34,17 +34,17 @@ var currentIndex = 0;
 function changeImage() {
     currentIndex = Math.floor(Math.random() * images.length);
     var randomImageElement = document.getElementById("randomImage");
-    randomImageElement.src = 'img/error/' + images[currentIndex];
+    randomImageElement.src = 'img/errors/' + images[currentIndex];
 }
 function prevImage() {
     currentIndex = (currentIndex - 1 + images.length) % images.length;
     var currentImage = document.getElementById("randomImage");
-    currentImage.src = 'img/error/' + images[currentIndex]
+    currentImage.src = 'img/errors/' + images[currentIndex]
 }
 function nextImage() {
     currentIndex = (currentIndex + 1) % images.length;
     var currentImage = document.getElementById("randomImage");
-    currentImage.src = 'img/error/' + images[currentIndex]
+    currentImage.src = 'img/errors/' + images[currentIndex]
 }
 document.addEventListener('keyup', function(event) {
     // Check if the pressed key is the left arrow key
