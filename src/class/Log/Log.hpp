@@ -12,7 +12,7 @@
 #define LVL_DEBUG			(1 << 4)  // 0b010000
 #define LVL_LOG				(1 << 5)  // 0b100000
 
-// LVL_ERROR_SYSTEM | LVL_ERROR | LVL_WARNING | LVL_INFO | LVL_DEBUG | LVL_LOG)
+// ( LVL_ERROR_SYSTEM | LVL_ERROR | LVL_WARNING | LVL_INFO | LVL_DEBUG | LVL_LOG )
 // LOGGING OUTPUT
 #ifndef LOG_LEVEL
 # define LOG_LEVEL ( LVL_ERROR_SYSTEM | LVL_ERROR | LVL_DEBUG | LVL_LOG)
@@ -20,19 +20,19 @@
 
 // TERMINAL OUTPUT
 #ifndef PRINT_LEVEL
-# define PRINT_LEVEL ( LVL_ERROR_SYSTEM | LVL_ERROR | LVL_WARNING | LVL_INFO)
+# define PRINT_LEVEL ( LVL_ERROR_SYSTEM | LVL_ERROR | LVL_WARNING | LVL_INFO | LVL_DEBUG | LVL_LOG )
 #endif
 
 
 #define LOG_PATH "log/"
 
 // LOG STAMP FOR TERMINAL OUTPUT 
-#define ERROR_SYS_P	"[ " C_510 "- SYS ERROR -" RESET " ] "
-#define ERROR_P		"[" C_510 " ERROR " RESET "] "
-#define WARNING_P	"[" C_441 "WARNING" RESET "] "
-#define INFO_P		"[" C_150 " INFO  " RESET "] "
-#define DEBUG_P		"[" C_124 " DEBUG " RESET "] "
-#define LOG_P		"[" C_035 "  L0G  " RESET "] "
+#define ERROR_SYS_P	RESET "[ " C_500 "- SYS ERROR -" RESET " ] "
+#define ERROR_P		RESET "[" C_510 " ERROR " RESET "] "
+#define WARNING_P	RESET "[" C_441 "WARNING" RESET "] "
+#define INFO_P		RESET "[" C_150 " INFO  " RESET "] "
+#define DEBUG_P		RESET "[" C_124 " DEBUG " RESET "] "
+#define LOG_P		RESET "[" C_035 "  L0G  " RESET "] "
 
 #define OTHER_P		"<<<" C_520 " HERE " RESET ">>> "
 

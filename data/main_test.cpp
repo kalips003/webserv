@@ -23,15 +23,27 @@
 ///////////////////////////////////////////////////////////////////////////////]
 int main(int ac, char** av)
 {
-	
-	if (ac != 2)
+
+	Log& logger = Log::instance();
+	if (!logger.getStatus()) {
+		std::cerr << RED "Log failed to setup" RESET << std::endl;
 		return 0;
+	}
 
-	Settings s;
-	s.parse_config_file(av[1]);
+    std::string filename = "path/to/file";
+    std::string request = "HELLO";
+    int port = 42;
 
-	std::cout << s;
+    errno = EACCES;
+    LOG_ERROR_SYS("System call failed");
+    LOG_ERROR("Failed to open file: " C_321 << filename);
+    LOG_WARNING("Low memory detected");
+    LOG_INFO("Server started on port " C_321 << port);
+    LOG_DEBUG("Request received: " C_321 << request);
+    LOG_LOG("Generic log message");
+    LOG_HERE("Debug checkpoint reached");
 
+    std::cout << std::endl;
     // static bool seeded = false;
     // if (!seeded) {
     //     // seed with time XOR pid for some entropy

@@ -190,10 +190,10 @@ FILES_TEST = $(TEST_PATH_FILE)HttpRequest.cpp \
 	src/kali/_A.cpp \
 	$(wildcard src/Tools/*.cpp) $(wildcard src/vocabulary/*.cpp)
 
-test: $(TEST_MAIN)
+test: $(TEST_MAIN) $(OBJ) $(HEAD)
 	@rm -f $(TEST_FOLDER)/a.out
 	@clear
-	-@$(CC) $(FLAGS_LESS) $(INC) $(FILES_TEST) $(TEST_MAIN) -o $(TEST_FOLDER)/a.out
+	-@$(CC) $(FLAGS_LESS) $(INC) $(OBJ) $(TEST_MAIN) -o $(TEST_FOLDER)/a.out
 	@if [ ! -e $(TEST_FOLDER)/a.out ]; then\
 		$(call print_cat, "", $(RED), $(GOLD), $(RED_L), $(call pad_word, 10, "The⠀Cake"), $(call pad_word, 12, "Is⠀A⠀Lie..")); \
 		exit 3; \
@@ -258,35 +258,17 @@ V_FLAG =
 # Default git push
 git: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
-	@current_date=$$(date); \
 	git add .; \
-	git commit -m "^^._, work in progress, small changes"; \
+	git commit; \
 	git push
 
 # Git Push that asks for commit msg
 git2: fclean
 	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
-	@read -p "Enter commit message: " msg; \
-	[ -z "$$msg" ] && msg=$$(date); \
 	git add .; \
-	git commit -m "$$msg"; \
+	git commit -m "^^._, work in progress, small changes"; \
 	git push
 
-# Git Push use the content of .gitmsg to push
-# if .gitmsg empty, return error
-# clear .gitmsg on succesfull push.
-GIT_MSG_FILE = data/.gitmsg
-git3: fclean
-	@$(call random_shmol_cat_blink, 作業を保存してるかな.., いいね、いいねえー , $(CLS), );
-	@{ \
-		msg="$$(cat $(GIT_MSG_FILE) 2>/dev/null)"; \
-		[ -z "$$msg" ] && { $(call random_shmol_cat_blink, error, file is empty, , ); exit 1; }; \
-		git add . && \
-		git commit -m "$$msg" && \
-		git push && \
-		: > $(GIT_MSG_FILE) && \
-		$(call random_shmol_cat_blink, success!, $(GIT_MSG_FILE) cleared., , ); \
-	}
 # --------------------------------------------------------------------------------- >
 # 																				CLEAN
 clean:
